@@ -26,7 +26,8 @@ Author: Amos Egel (amos.egel@gmail.com).
 
 The following persons have contributed to the project: Dominik Theobald (functions for the simulation of rotated particles, 
 plane wave based particle coupling for non-spherical particles with overlapping circumscribing spheres), Lorenzo Pattelli (logo),
-Konstantin Ladutenko (MPI support, numerous additions and improvements for a smooth user experience, correction of bugs)
+Konstantin Ladutenko (MPI support, numerous additions and improvements for a smooth user experience, correction of bugs),
+Giacomo Mazzamuto (several additions for a smooth user and developer experience).
 
 We thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for allowing us to use their NFM-DS Fortran code, 
 Ilia Rasskazov as well as Fabio Mangini for bug reports and useful comments 
