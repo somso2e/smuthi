@@ -5,6 +5,7 @@ import numpy as np
 import scipy.interpolate as interp
 import smuthi.postprocessing.scattered_field as sf
 import smuthi.postprocessing.internal_field as intf
+import smuthi.postprocessing.far_field as ff
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.colors import LogNorm
@@ -484,7 +485,114 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
         np.savetxt(filename, e_z_scat_raw.imag, header=header)
 
 
-def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_field', outputdir='.', 
+def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='scattered_far_field',
+                             outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
+                             azimuthal_angles='default'):
+    """Display and export the scattered far field.
+
+    Args:
+        simulation(smuthi.simulation.Simulation):       simulation object
+        save_plots (bool):                              save images if true
+        show_plots (bool):                              display plots if true
+        save_data (bool):                               export data in ascii format if true
+        tag (str):                                      name to attribute files
+        outputdir (str):                                path to the directory where data to be stored
+        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
+                                                        if true
+        split (bool):                                   show two different plots for upward and downward directions
+                                                        if true
+        log_scale (bool):                               do plots in logarithmic scale if true
+        polar_angles (numpy.ndarray or str):            polar angles values (radian).
+                                                        if 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
+                                                        if 'default', use smuthi.fields.default_azimuthal_angles
+    """
+
+    infld = simulation.initial_field
+    plst = simulation.particle_list
+    lsys = simulation.layer_system
+    far_field = ff.scattered_far_field(vacuum_wavelength=infld.vacuum_wavelength,
+                                       particle_list=plst,
+                                       layer_system=lsys,
+                                       polar_angles=polar_angles,
+                                       azimuthal_angles=azimuthal_angles)
+
+    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
+                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale)
+
+
+def show_total_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='total_far_field',
+                         outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
+                         azimuthal_angles='default'):
+    """Display and export the total far field. This function cannot be used if the inital field is a plane wave.
+
+    Args:
+        simulation(smuthi.simulation.Simulation):       simulation object
+        save_plots (bool):                              save images if true
+        show_plots (bool):                              display plots if true
+        save_data (bool):                               export data in ascii format if true
+        tag (str):                                      name to attribute files
+        outputdir (str):                                path to the directory where data to be stored
+        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
+                                                        if true
+        split (bool):                                   show two different plots for upward and downward directions
+                                                        if true
+        log_scale (bool):                               do plots in logarithmic scale if true
+        polar_angles (numpy.ndarray or str):            polar angles values (radian).
+                                                        if 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
+                                                        if 'default', use smuthi.fields.default_azimuthal_angles
+    """
+    infld = simulation.initial_field
+    plst = simulation.particle_list
+    lsys = simulation.layer_system
+    far_field = ff.total_far_field(vacuum_wavelength=infld.vacuum_wavelength,
+                                   particle_list=plst,
+                                   layer_system=lsys,
+                                   polar_angles=polar_angles,
+                                   azimuthal_angles=azimuthal_angles)
+
+    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
+                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale)
+
+
+def show_scattering_cross_section(simulation, save_plots=False, show_plots=True, save_data=False,
+                                  tag='scattering_cross_section', outputdir='.', flip_downward=True, split=True,
+                                  log_scale=False, polar_angles='default', azimuthal_angles='default'):
+    """Display and export the differential scattering cross section.
+
+    Args:
+        simulation(smuthi.simulation.Simulation):       simulation object
+        save_plots (bool):                              save images if true
+        show_plots (bool):                              display plots if true
+        save_data (bool):                               export data in ascii format if true
+        tag (str):                                      name to attribute files
+        outputdir (str):                                path to the directory where data to be stored
+        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
+                                                        if true
+        split (bool):                                   show two different plots for upward and downward directions
+                                                        if true
+        log_scale (bool):                               do plots in logarithmic scale if true
+        polar_angles (numpy.ndarray or str):            polar angles values (radian).
+                                                        if 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
+                                                        if 'default', use smuthi.fields.default_azimuthal_angles
+    """
+
+    infld = simulation.initial_field
+    plst = simulation.particle_list
+    lsys = simulation.layer_system
+    far_field = ff.scattering_cross_section(initial_field=infld,
+                                            particle_list=plst,
+                                            layer_system=lsys,
+                                            polar_angles=polar_angles,
+                                            azimuthal_angles=azimuthal_angles)
+
+    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
+                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale)
+
+
+def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_field', outputdir='.',
                    flip_downward=True, split=True, log_scale=False):
     """Display and export the far field.
     

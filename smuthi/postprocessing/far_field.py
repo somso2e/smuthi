@@ -370,8 +370,7 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
 
     Returns:
-        A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
-        scattering (bottom hemisphere).
+        A smuthi.field_expansion.FarField object.
     """
     if not type(initial_field).__name__ == 'PlaneWave':
         raise ValueError('Cross section only defined for plane wave excitation.')
@@ -396,7 +395,7 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
     else:
         n_P = n_P.real
 
-    initial_intensity = abs(A_P) ** 2 * abs(np.cos(beta_P)) * n_P / 2
+    initial_intensity = abs(A_P) ** 2 * n_P / 2
 
     dscs = scattered_far_field(vacuum_wavelength, particle_list, layer_system, polar_angles, azimuthal_angles)
     dscs.signal_type = 'differential scattering cross section'
@@ -479,7 +478,7 @@ def extinction_cross_section(initial_field, particle_list, layer_system):
     ejkriP = np.exp(1j * np.dot(kvec_P, rvec_iP - rvec_0))
     A_P = initial_field.amplitude * ejkriP
 
-    initial_intensity = abs(A_P) ** 2 * abs(np.cos(beta_P)) * n_P / 2
+    initial_intensity = abs(A_P) ** 2 * n_P / 2
 
     pwe_scat_top, _ = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, i_top, kappa_P, alpha_P)
 
