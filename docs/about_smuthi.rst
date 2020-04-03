@@ -16,7 +16,6 @@ It solves the Maxwell equations (3D wave optics) in frequency domain (one wavele
 
 Simulation method
 ------------------
-
 Smuthi is based on the T-matrix method for the single particle scattering and on the scattering-matrix method
 for the propagation through the layered medium.
 See :doc:`[Egel 2018] <literature>` and other publications listed in the :doc:`literature section <literature>` for a description of the method.
@@ -97,6 +96,17 @@ The following issues need to be considered when applying Smuthi:
     interface, a correct simulation result can in principle be achieved. However, special care has to be taken
     regarding the selection of the truncation of the spherical and plane wave expansion, see
     the :doc:`hints for the selection of the wavenumber truncation<simulation_guidelines>`. 
+
+
+.. _ProgramStructureAnchor:
+
+Program structure
+-----------------
+
+The following chart illustrates the interaction between the various Smuthi modules:
+
+.. image:: images/smuthi_overview.png
+   :align: center
 
 
 License

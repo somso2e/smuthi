@@ -16,14 +16,14 @@ Contents
    about_smuthi
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   installation
+   getting_started
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   run_smuthi
+   simulation_guidelines
 
 .. toctree::
    :maxdepth: 1
@@ -41,4 +41,8 @@ Contents
 
    smuthi_api
 
+.. toctree::
+   :maxdepth: 1
+
+   literature
 

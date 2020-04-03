@@ -1,7 +1,7 @@
 Literature
 ==========
 
-The following publications describe the theory behind Smuthi:
+Publications that describe the theory behind Smuthi:
 
 [Egel 2018]
    `Amos Egel: "Accurate optical simulation of disordered scattering layers for light extractionfrom organic light emitting diodes", Dissertation, Karlsruhe (2018), DOI: 10.5445/IR/1000093961 <https://publikationen.bibliothek.kit.edu/1000093961/26467128>`_
@@ -24,7 +24,16 @@ This book describes the Null-Field Method with Discrete Sources (NFM-DS):
 [Doicu et al. 2006]
     `Doicu, Adrian, Thomas Wriedt, and Yuri A. Eremin. Light scattering by systems of particles: null-field method with discrete sources: theory and programs. Vol. 124. Springer, 2006. <http://www.springer.com/us/book/9783540336969>`_
 
-The following articles use Smuthi:
+Other publications to which we refer in this user manual:
+
+[Wiscombe 1980]
+		W.J. Wiscombe: "Improved Mie scattering algorithms", Appl. Opt. 19, 1505-1509 (1980)
+		
+[Neves 2012]
+		Antonio A. R. Neves and Dario Pisignano: "Effect of finite terms on the truncation error of Mie series." Optics letters 37.12 (2012): 2418-2420.
+
+
+Publications that use Smuthi:
 
 [Egel et al. 2017a]
     Egel, A., Gomard, G., Kettlitz, S. W., & Lemmer, U. (2017). Accurate optical simulation of nano-particle based internal scattering layers for light outcoupling from organic light emitting diodes. Journal of Optics, 19(2), 025605.
