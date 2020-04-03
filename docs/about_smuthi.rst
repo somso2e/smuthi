@@ -127,7 +127,7 @@ Smuthi includes contributions from the following persons:
    - Konstantin Ladutenko with many useful additions, including example simulations, smoother input/output, 
      support of MPI parallel computing (currently in construction) and the option of permanent NFM-DS installation folder.
 
-Big thanks go to Lorenzo Pattelli for designing the Smuthi logo.
+Big thanks go to Lorenzo Pattelli for designing the Smuthi logo and Giacomo Mazzamuto for his help and code additions.
 
 Ilia Rasskazov has helped with useful comments and bug reports.
 
