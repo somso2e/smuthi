@@ -15,6 +15,7 @@ The following chart illustrates the interaction between the various Smuthi modul
 .. image:: images/smuthi_overview.png
    :align: center
 
+
 Initial field
 ~~~~~~~~~~~~~
 
@@ -34,6 +35,10 @@ Layer system
 The layer system is specified by a list of layer thicknesses and a list of complex refractive indices.
 Here is the link to the corresponding class in the API documentation: :class:`smuthi.layers.LayerSystem`.
 
+.. image:: images/layers.png
+   :scale: 40%
+   :align: center
+
 Please note that
 
 - the layer system is built from bottom to top, i.e., the first elements in the lists refer to the bottom layer.
@@ -43,9 +48,14 @@ Please note that
 
 
 Particles
-~~~~~~~~
+~~~~~~~~~
 
 When defining a scattering particle, you need to provide the parameters regarding *geometry and material*, as well as the parameters :math:`l_\mathrm{max}` and :math:`m_\mathrm{max}` which define the *multipole expansion cutoff* (see section :ref:`MultipoleCutOffAnchor`).
+
+.. image:: images/particles.png
+   :scale: 40%
+   :align: center
+
 
 The following classes can currently be used:
 
@@ -63,7 +73,7 @@ Some notes:
 - The circumscribing spheres of non-spherical particles must not overlap with each other. There is a Smuthi package to allow for plane-wave mediated particle coupling developed by Dominik Theobald which allows to treat particles with overlaping circumscribing spheres, but this package is still in beta and requires expert knowledge to be used.
 
 The simulation class
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 The simulation object is the central manager of a Smuthi simulation. To define a simulation, you need to at least specify the optical system, i.e., an initial field, a layer system and a list of scattering particles.
 
@@ -72,17 +82,23 @@ In addition, you can provide a number of input parameters regarding numerical pa
 For your first simulations, you can probably just go with the default parameters. However, when approaching numerically challanging systems or if you are interested to optimize the runtime, we recommend to read the sections :ref:`NumericalParametersAnchor` and :ref:`SolverSettingsAnchor` to get an overview and to study the corresponding tutorial scripts (yet to be done).
 
 Post processing
-~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
 
 Once the :meth:`smuthi.simulation.Simulation.run` method has successfully terminated, we still need to process the results into the desired simulation output. Smuthi offers data structures to obtain near and far field distributions as well as scattering cross sections. Below, we give a short overview on a couple of convenience functions that can be used to quickly generate some output. 
 
-- **Near fields** are electric field distributions as a function of position. The term *near field* is opposed to *far field* which is an intensity distribution in direction space. Near field does *not* imply that the field is evaluated very close to the particles. If you want to generate plots or animations of the electric field distribution, we recommend to use the :func:`smuthi.postprocessing.graphical_output.show_near_field` function. This is a very flexible and powerful function that allows a couple of settings which you can study in the API documentation.
+- **Near fields** are electric field distributions as a function of position, :math:`\mathbf{E} = \mathbf{E}(\mathbf{r})`. The term *near field* is opposed to *far field* which is an intensity distribution in direction space. Near field does *not* imply that the field is evaluated very close to the particles. If you want to generate plots or animations of the electric field distribution, we recommend to use the :func:`smuthi.postprocessing.graphical_output.show_near_field` function. This is a very flexible and powerful function that allows a couple of settings which you can study in the API documentation.
+
+
 
 .. note:: Spheres allow the evaluation of near fields everywhere (inside and outside the particles). Non-spherical particles allow the evaluation only outside the particles. Please also note that the computed near fields inside the circumscribing sphere of non-spherical particles are in general not correct.
 
 - **Far fields** are intensity distributions in direction space (i.e., power per solid angle, measured far away from the scattering centers). We recommend to have a look at the functions :func:`smuthi.postprocessing.graphical_output.show_scattered_far_field`, :func:`smuthi.postprocessing.graphical_output.show_total_far_field` and :func:`smuthi.postprocessing.graphical_output.show_scattering_cross_section` and to study their input parameters in the API documentation.
 
-- **Cross sections**: If the initial field was a plane wave, the total scattering cross section as well as the extinction cross section can be evaluated. Please view the section :ref:`CrossSectionAnchor`
+.. math:: W = \int_0^{2\pi} \int_0^\pi  I(\alpha, \beta) \sin\beta  \mathrm{d}\beta \mathrm{d}\alpha
+
+
+
+- **Cross sections**: If the initial field was a plane wave, the total scattering cross section as well as the extinction cross section can be evaluated. Please view the section :ref:`CrossSectionAnchor` for details.
 
 If you need post processing that goes beyond the described functionality, we recommend to browse through the API documentation of the :mod:`smuthi.postprocessing` package or directly through the source code and construct your own post processing machinery from the provided data structure.
 

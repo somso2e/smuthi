@@ -8,7 +8,10 @@ docs/_build/
 docs/_static/
 docs/_templates/
 NFM*.mod
-build*
+allocation.mod
+derived_parameters.mod
+parameters.mod
+build/*
 NFM*.exe
 data/
 nfmds_*
@@ -24,5 +27,7 @@ smuthi_nfmds_bin*
 *~
 scripts/*
 examples/*/output
+examples/*.png
+examples/renaud/
 *.sh
 *.bat

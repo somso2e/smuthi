@@ -31,14 +31,19 @@ or :doc:`[Wiscombe 1980] <literature>`.
 Otherwise, you can use Smuthi's built-in automatic parameter selection feature 
 to estimate a suitable multipole truncation 
 
-.. todo:: refer to example
-
 .. _SommerfeldParametersAnchor:
 
 Sommerfeld integral contour
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See :ref:`SommerfeldAnchor`
+The layer system response to the scattered field is internally represented in terms of plane wave expansions, which give 
+rise to the need of numerically evaluating so-called Sommerfeld integrals. As explained in the dedicated section (see :ref:`SommerfeldAnchor`)
+the integral contour is deflected into the imaginary.
+
+.. image:: images/contour.png
+   :scale: 70%
+   :align: center
+
 
 .. todo:: explain
 
