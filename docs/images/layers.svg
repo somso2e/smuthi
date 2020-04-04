@@ -22,6 +22,44 @@
    inkscape:export-ydpi="145">
   <defs
      id="defs2">
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Mend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path10064"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#000000;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(0.6) rotate(180) translate(0,0)" />
+    </marker>
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect15565"
+       is_visible="true"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path10046"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
     <linearGradient
        id="linearGradient9350"
        inkscape:collect="always">
@@ -66,6 +104,26 @@
        y1="170.61099"
        x2="105.11537"
        y2="138.39496" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9312-9"
+       id="linearGradient15310"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.76154854,0,0,0.56609358,8.1067727,160.36526)"
+       x1="105.13387"
+       y1="138.061"
+       x2="105.39886"
+       y2="170.94495" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9350"
+       id="linearGradient15312"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.76154854,0,0,0.56609358,8.1067727,104.80264)"
+       x1="105.32286"
+       y1="170.61099"
+       x2="105.11537"
+       y2="138.39496" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -75,8 +133,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="332.3531"
-     inkscape:cy="1109.2125"
+     inkscape:cx="363.36379"
+     inkscape:cy="368.98457"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -383,7 +441,67 @@
            x="165"
            y="54.66254" /></flowRegion><flowPara
          id="flowPara9476"
-         style="font-size:21.33333397px">h</flowPara></flowRoot>  </g>
+         style="font-size:21.33333397px">h</flowPara></flowRoot>    <rect
+       y="200.17969"
+       x="33.997578"
+       height="38.519108"
+       width="108.40536"
+       id="rect15248"
+       style="fill:#e9afaf;fill-opacity:1;stroke:none;stroke-width:0.24889782;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <rect
+       y="238.41379"
+       x="34.01302"
+       height="18.829351"
+       width="108.37447"
+       id="rect15250"
+       style="fill:url(#linearGradient15310);fill-opacity:1;stroke:none;stroke-width:0.17399579;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path15254"
+       d="M 33.997577,238.35858 H 142.16724"
+       style="fill:none;stroke:#000000;stroke-width:0.49252087;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <rect
+       style="fill:url(#linearGradient15312);fill-opacity:1;stroke:none;stroke-width:0.17399579;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect15258"
+       width="108.37447"
+       height="18.829351"
+       x="34.01302"
+       y="182.85152" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path15260"
+       d="M 34.099628,201.78992 H 141.86839"
+       style="fill:none;stroke:#000000;stroke-width:0.49160731;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot15308"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,20.720782,112.97347)"><flowRegion
+         id="flowRegion15304"><rect
+           id="rect15302"
+           width="330"
+           height="173.57143"
+           x="213.57143"
+           y="411.09113" /></flowRegion><flowPara
+         id="flowPara15306"
+         style="font-size:24px;line-height:1.25">Δz=2xdistance</flowPara></flowRoot>    <circle
+       style="fill:#99a1c3;fill-opacity:1;stroke:#000000;stroke-width:0.35299999;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path9406-8"
+       cx="66.296997"
+       cy="219.47708"
+       r="5.494369"
+       inkscape:export-xdpi="145"
+       inkscape:export-ydpi="145" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:1.0583333, 1.0583333;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 54.444458,205.94215 c 11.242899,0.27972 22.485443,0.55944 22.543761,0.92566 0.05832,0.36623 -11.067264,0.81899 -22.193778,1.27178"
+       id="path15563"
+       inkscape:connector-curvature="0"
+       inkscape:path-effect="#path-effect15565"
+       inkscape:original-d="m 54.444458,205.94215 c 11.242892,0.28 22.485436,0.55971 33.727633,0.83914 -11.125543,0.45301 -22.251126,0.90576 -33.37765,1.3583"
+       transform="matrix(0,0.81880062,1,0,-140.89101,175.06219)"
+       sodipodi:nodetypes="ccc" />
+  </g>
   <g
      inkscape:groupmode="layer"
      id="layer2"
