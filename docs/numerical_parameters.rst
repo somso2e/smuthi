@@ -1,7 +1,11 @@
+.. _NumericalParametersAnchor:
+
 Numerical parameters
 --------------------
 
 We want to explain the meaning of the parameters that control Smuthi's performance regarding accuracy and runtime.
+
+.. _MultipoleCutOffAnchor:
 
 Multipole cut-off
 ~~~~~~~~~~~~~~~~~

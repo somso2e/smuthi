@@ -1,3 +1,5 @@
+.. _CrossSectionAnchor:
+
 Cross sections
 --------------
 If the initial excitation is given by a plane wave, it is natural to discuss the far field
@@ -23,7 +25,7 @@ where :math:`W_\mathrm{scat}` is the total scattered power and :math:`I_\mathrm{
    :scale: 40%
    :align: center
 
-.. note:: In Smuthi versions < 1.0.0, a different definition of cross sections was used. In these versions, the incident irradiance was defined as "power per unit area parallel to the layer system", such that cross section figures computed with previous versions can deviate from the current version by a factor :math:`\cos(\beta_\mathrm{inc})`, where :math:`\beta_\mathrm{inc}` is the propagation angle of the incoming plane wave.
+.. note:: In Smuthi versions < 1.0, a different definition of cross sections was used. In these versions, the incident irradiance was defined as "power per unit area parallel to the layer system", such that cross section figures computed with previous versions can deviate from the current version by a factor :math:`\cos(\beta_\mathrm{inc})`, where :math:`\beta_\mathrm{inc}` is the propagation angle of the incoming plane wave.
 
 Extinction cross section
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,12 +41,12 @@ is also a planarly layered medium involved. The reason is that besides particle 
    :scale: 40%
    :align: center
 
-Instead, we apply what is usually referred to as the `optical theorem <https://en.wikipedia.org/wiki/Optical_theorem>`_ to define extinction.
+Instead, we apply what is usually referred to as the `optical theorem <https://en.wikipedia.org/wiki/Optical_theorem>`_ to define extinction (please see section 3.8.1 of :doc:`[Egel 2018] <literature>` for the mathematical details).
 This way, we take the term "extinction" serious and provide a measure for "how much power is taken away by the particles from the incident plane wave?"
 
 In fact, Smuthi computes two extinction cross sections: one for the reflected incoming wave and one for the transmitted incoming wave.
 That means, the extinction cross section for reflection (transmission) refers to the destructive interference of the scattered signal with the
-specular reflection (transmission) of the initial wave. It thereby includes absorption in the particles, scattering, and a modified absorption by the layer system, e.g. through incoupling into waveguide modes. 
+specular reflection (transmission) of the initial wave. It thereby includes absorption in the particles, scattering, and a modified absorption by the layer system, e.g. through incoupling into waveguide modes.
 
 As a consequence, the extinction cross sections can be negative if (for example due to a modified absorption in the layer system) more light is reflected (or transmitted) in the specular direction than would be without the particles.
 

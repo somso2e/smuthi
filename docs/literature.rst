@@ -38,5 +38,8 @@ Publications that use Smuthi:
 [Egel et al. 2017a]
     Egel, A., Gomard, G., Kettlitz, S. W., & Lemmer, U. (2017). Accurate optical simulation of nano-particle based internal scattering layers for light outcoupling from organic light emitting diodes. Journal of Optics, 19(2), 025605.
 
+[Theobald et al. 2017]
+    Theobald, D., Egel, A., Gomard, G., & Lemmer, U. (2017). Plane-wave coupling formalism for T-matrix simulations of light scattering by nonspherical particles. Physical Review A, 96(3), 033822.
+
 
 .. |ref NFM-DS| replace:: [Doicu et al. 2006]

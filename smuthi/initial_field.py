@@ -628,7 +628,7 @@ class DipoleCollection(InitialField):
         self.azimuthal_angles_array = azimuthal_angles_array        
 
     def append(self, dipole):
-        """Add dipole do collection.
+        """Add dipole to collection.
         
         Args:
             dipole (DipoleSource):    Dipole object to add.

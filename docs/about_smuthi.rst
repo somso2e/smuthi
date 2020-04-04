@@ -98,17 +98,6 @@ The following issues need to be considered when applying Smuthi:
     the :doc:`hints for the selection of the wavenumber truncation<simulation_guidelines>`. 
 
 
-.. _ProgramStructureAnchor:
-
-Program structure
------------------
-
-The following chart illustrates the interaction between the various Smuthi modules:
-
-.. image:: images/smuthi_overview.png
-   :align: center
-
-
 License
 -------
 

@@ -1,3 +1,5 @@
+.. _SolverSettingsAnchor:
+
 Simulations with many particles (solver settings)
 -------------------------------------------------
 
