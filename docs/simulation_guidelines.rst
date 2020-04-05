@@ -21,12 +21,12 @@ In this section, you can find general hints how to properly run a simulation wit
 .. toctree::
    :maxdepth: 2
 
-   numerical_parameters
+   multipole_cutoff
 
 .. toctree::
    :maxdepth: 2
 
-   sommerfeld_integrals
+   complex_contours
 
 .. toctree::
    :maxdepth: 2

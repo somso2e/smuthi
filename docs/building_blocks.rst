@@ -79,7 +79,9 @@ The simulation object is the central manager of a Smuthi simulation. To define a
 
 In addition, you can provide a number of input parameters regarding numerical parameters or solver settings which you can view in the API documentation: :class:`smuthi.simulation.Simulation`. 
 
-For your first simulations, you can probably just go with the default parameters. However, when approaching numerically challanging systems or if you are interested to optimize the runtime, we recommend to read the sections :ref:`NumericalParametersAnchor` and :ref:`SolverSettingsAnchor` to get an overview and to study the corresponding tutorial scripts (yet to be done).
+For your first simulations, you can probably just go with the default parameters. However, when approaching numerically challanging systems or if you are interested to optimize the runtime, we recommend to read the sections xyz to get an overview and to study the corresponding tutorial scripts.
+
+.. todo:: Add links to sections and examples
 
 Post processing
 ~~~~~~~~~~~~~~~

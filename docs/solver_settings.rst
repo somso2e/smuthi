@@ -1,7 +1,10 @@
 .. _SolverSettingsAnchor:
 
-Simulations with many particles (solver settings)
--------------------------------------------------
+Solver settings
+---------------
+
+.. note:: This section is relevant if you want to simulate systems with many particles
+
 
 In order to limit the runtime, Smuthi currently offers two numerical strategies for
 the solution of the scattering problem:

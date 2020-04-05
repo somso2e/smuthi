@@ -33,12 +33,6 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   gallery
-
-
-.. toctree::
-   :maxdepth: 1
-
    smuthi_api
 
 .. toctree::

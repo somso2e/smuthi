@@ -5,8 +5,6 @@ Sommerfeld integrals
 
 This section contains background information about deflected integral contours in Smuthi.
 It is not strictly necessary to read the below explanations.
-The article is intended for those users who would like to get some understanding of the meaning of the 
-numerical parameters describing the :ref:`SommerfeldAnchor`.
 
 Singularities and contour deflection
 ------------------------------------
@@ -55,8 +53,7 @@ the singularities can be easily estimated:
   highest of the refractive indices of the outer layers and :math:`n_\mathrm{core, max}` is the highest of the refractive indices of the inner layers
   (in fact, TM modes can also exist at :math:`n_\mathrm{eff} \gt n_\mathrm{core, max}`, but in that case they are usually so strongly damped, that they do no harm to the numerical integration).
 	
-For example: A layer system consisting of a (semi-infinite) substrate with :math:`n=1.52`, covered with a thin film of some high-index material with :math:`n=2.1` which is finally topped with a (semi-infinite) air layer can yield branchpoint singularities at :math:`n_\mathrm{eff}=1`, :math:`n_\mathrm{eff}=1.52` and :math:`n_\mathrm{eff}=2.1` as well as waveguide mode singularities between :math:`n_\mathrm{eff}=1.52` and :math:`n_\mathrm{eff}=2.1`.
-  
+.. admonition:: Example
 
-
-
+   A layer system consisting of a (semi-infinite) substrate with :math:`n=1.52`, covered with a thin film of some high-index material with :math:`n=2.1` which is finally topped with a (semi-infinite) air layer can yield branchpoint singularities at :math:`n_\mathrm{eff}=1`, :math:`n_\mathrm{eff}=1.52` and :math:`n_\mathrm{eff}=2.1` as well as waveguide mode singularities between :math:`n_\mathrm{eff}=1.52` and :math:`n_\mathrm{eff}=2.1`.
+	

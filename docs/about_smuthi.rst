@@ -1,5 +1,3 @@
-.. iclude:: literature
-
 About Smuthi
 ========================
 
@@ -75,11 +73,11 @@ The following issues need to be considered when applying Smuthi:
   - Particles in a single homogeneous medium (or in free space) can be treated 
     by setting a trivial two layer system with the same refractive index.
     However, Smuthi was not designed for that use case and we believe that 
-	there is better software for that case.
+    there is better software for that case.
   - Smuthi was designed for particles on a substrate or particles near or inside a thin-film system 
     with layer thicknesses of up to a few wavelengths. 
     Simulations involving thick layers might fail or return wrong results due to numerical instability.
-	Maybe a more stable algorithm for the layer system response does exist - help is welcome.
+    Maybe a more stable algorithm for the layer system response does exist - help is welcome.
   - Smuthi does not provide error checking of user input, nor does it check if 
     numerical parameters specified by the user are sufficient for accurate 
     simulation results. It is thus required that the user develops some 
@@ -104,10 +102,12 @@ License
 The software is licensed under the `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_.
 
 
-Contact
----------
+.. _ContactAnchor:
 
-Smuthi was written and is maintained by Amos Egel. Email to |emailpic| for questions, feature requests or if you would like to contribute.
+Contact
+-------
+
+Smuthi was written and is maintained by Amos Egel. Email to the author under |emailpic| or to the Smuthi mailing list under smuthi@googlegroups.com for questions, feature requests or if you would like to contribute.
 
 .. |emailpic| image:: images/email.png
 
