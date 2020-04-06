@@ -176,22 +176,22 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
 
     vacuum_wavelength = simulation.initial_field.vacuum_wavelength
     if xmin == xmax:
-        dim1vec = np.linspace(ymin, ymax, (ymax - ymin)/resolution_step + 1, endpoint=True)
-        dim2vec = np.linspace(zmin, zmax, (zmax - zmin)/resolution_step + 1, endpoint=True)
+        dim1vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
+        dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
         yarr, zarr = np.meshgrid(dim1vec, dim2vec)
         xarr = yarr - yarr + xmin
         dim1name = 'y (' + simulation.length_unit + ')'
         dim2name = 'z (' + simulation.length_unit + ')'
     elif ymin == ymax:
-        dim1vec = np.linspace(xmin, xmax, (xmax - xmin)/resolution_step + 1, endpoint=True)
-        dim2vec = np.linspace(zmin, zmax, (zmax - zmin)/resolution_step + 1, endpoint=True)
+        dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
+        dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
         xarr, zarr = np.meshgrid(dim1vec, dim2vec)
         yarr = xarr - xarr + ymin
         dim1name = 'x (' + simulation.length_unit + ')'
         dim2name = 'z (' + simulation.length_unit + ')'
     else:
-        dim1vec = np.linspace(xmin, xmax, (xmax - xmin)/resolution_step + 1, endpoint=True)
-        dim2vec = np.linspace(ymin, ymax, (ymax - ymin)/resolution_step + 1, endpoint=True)
+        dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
+        dim2vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
         xarr, yarr = np.meshgrid(dim1vec, dim2vec)
         zarr = xarr - xarr + zmin
         dim1name = 'x (' + simulation.length_unit + ')'
@@ -224,8 +224,8 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
         sys.stdout.write("Evaluate interpolation ...\n")
         sys.stdout.flush()
 
-        dim1vecfine = np.linspace(dim1vec[0], dim1vec[-1], (dim1vec[-1] - dim1vec[0])/interpolate_step + 1, endpoint=True)
-        dim2vecfine = np.linspace(dim2vec[0], dim2vec[-1], (dim2vec[-1] - dim2vec[0])/interpolate_step + 1, endpoint=True)
+        dim1vecfine = np.arange(dim1vec[0], dim1vec[-1] + interpolate_step/2, interpolate_step)
+        dim2vecfine = np.arange(dim2vec[0], dim2vec[-1] + interpolate_step/2, interpolate_step)
 
         # interpolate scattered field
         real_ex_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_scat_raw.real, 
