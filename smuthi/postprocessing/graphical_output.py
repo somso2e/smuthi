@@ -444,6 +444,18 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
             f.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
             f.attrs.update(metadata)
 
+        np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
+        np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
+
+        fmt = list(np.repeat('%.15g %+.15gj', np.size(dim1vec)))
+        np.savetxt(outputdir + '/e_init_x.dat', Ei[0,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_init_y.dat', Ei[1,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_init_z.dat', Ei[2,], fmt=fmt, delimiter=',')
+
+        np.savetxt(outputdir + '/e_scat_x.dat', Es[0,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_scat_y.dat', Es[1,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_scat_z.dat', Es[2,], fmt=fmt, delimiter=',')
+
 
 def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='scattered_far_field',
                              outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
