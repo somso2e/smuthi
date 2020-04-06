@@ -70,6 +70,7 @@ def get_requirements():
                     'scipy',
                     'sympy',
                     'tqdm',
+                    'h5py',
                     'pycparser']
     if sys.platform.startswith('win'):
         # skip pywigxjpf (to have it optional, if the user has no C compiler)

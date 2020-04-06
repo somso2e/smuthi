@@ -428,61 +428,33 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
             plt.close(fig)
 
     if save_data:
-        filename = outputdir + '/spatial_coordinates_along_first_dimension.dat'
-        header = dim1name
-        np.savetxt(filename, dim1vec, header=header)
+        import h5py
 
-        filename = outputdir + '/spatial_coordinates_along_second_dimension.dat'
-        header = dim2name
-        np.savetxt(filename, dim2vec, header=header)
+        metadata = {'vacuum_wavelength': simulation.initial_field.vacuum_wavelength,
+                    'polar_angle': simulation.initial_field.polar_angle,
+                    'azimuthal_angle': simulation.initial_field.azimuthal_angle,
+                    'polarization': simulation.initial_field.polarization,}
 
-        filename = outputdir + '/real_e_init_x.dat'
-        header = 'Real part of x-component of initial electric field.'
-        np.savetxt(filename, e_x_init_raw.real, header=header)
+        Ei = np.stack((e_x_init_raw, e_y_init_raw, e_z_init_raw))
+        Es = np.stack((e_x_scat_raw, e_y_scat_raw, e_z_scat_raw))
+        with h5py.File(outputdir + '/data.hdf5', 'w') as f:
+            f.create_dataset('1st_dim_axis', data=dim1vec)
+            f.create_dataset('2nd_dim_axis', data=dim2vec)
+            f.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
+            f.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
+            f.attrs.update(metadata)
 
-        filename = outputdir + '/imag_e_init_x.dat'
-        header = 'Imaginary part of x-component of initial electric field.'
-        np.savetxt(filename, e_x_init_raw.imag, header=header)
+        np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
+        np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
 
-        filename = outputdir + '/real_e_init_y.dat'
-        header = 'Real part of y-component of initial electric field.'
-        np.savetxt(filename, e_y_init_raw.real, header=header)
+        fmt = list(np.repeat('%.15g %+.15gj', np.size(dim1vec)))
+        np.savetxt(outputdir + '/e_init_x.dat', Ei[0,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_init_y.dat', Ei[1,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_init_z.dat', Ei[2,], fmt=fmt, delimiter=',')
 
-        filename = outputdir + '/imag_e_init_y.dat'
-        header = 'Imaginary part of y-component of initial electric field.'
-        np.savetxt(filename, e_y_init_raw.imag, header=header)
-
-        filename = outputdir + '/real_e_init_z.dat'
-        header = 'Real part of z-component of initial electric field.'
-        np.savetxt(filename, e_z_init_raw.real, header=header)
-
-        filename = outputdir + '/imag_e_init_z.dat'
-        header = 'Imaginary part of z-component of initial electric field.'
-        np.savetxt(filename, e_z_init_raw.imag, header=header)
-
-        filename = outputdir + '/real_e_scat_x.dat'
-        header = 'Real part of x-component of scattered electric field.'
-        np.savetxt(filename, e_x_scat_raw.real, header=header)
-
-        filename = outputdir + '/imag_e_scat_x.dat'
-        header = 'Imaginary part of x-component of scattered electric field.'
-        np.savetxt(filename, e_x_scat_raw.imag, header=header)
-
-        filename = outputdir + '/real_e_scat_y.dat'
-        header = 'Real part of y-component of scattered electric field.'
-        np.savetxt(filename, e_y_scat_raw.real, header=header)
-
-        filename = outputdir + '/imag_e_scat_y.dat'
-        header = 'Imaginary part of y-component of scattered electric field.'
-        np.savetxt(filename, e_y_scat_raw.imag, header=header)
-
-        filename = outputdir + '/real_e_scat_z.dat'
-        header = 'Real part of z-component of scattered electric field.'
-        np.savetxt(filename, e_z_scat_raw.real, header=header)
-
-        filename = outputdir + '/imag_e_scat_z.dat'
-        header = 'Imaginary part of z-component of scattered electric field.'
-        np.savetxt(filename, e_z_scat_raw.imag, header=header)
+        np.savetxt(outputdir + '/e_scat_x.dat', Es[0,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_scat_y.dat', Es[1,], fmt=fmt, delimiter=',')
+        np.savetxt(outputdir + '/e_scat_z.dat', Es[2,], fmt=fmt, delimiter=',')
 
 
 def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='scattered_far_field',
