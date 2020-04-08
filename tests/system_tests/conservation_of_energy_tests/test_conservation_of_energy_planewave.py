@@ -20,11 +20,6 @@ neff_waypoints = [0, 0.5, 0.8-0.01j, 2-0.01j, 2.5, 5]
 neff_discr = 5e-3
 # --------------------------------------------
 
-flds.default_Sommerfeld_k_parallel_array = flds.reasonable_Sommerfeld_kpar_contour(
-    vacuum_wavelength=vacuum_wavelength,
-    neff_waypoints=neff_waypoints,
-    neff_resolution=neff_discr)
-
 #coord.set_default_k_parallel(vacuum_wavelength, neff_waypoints, neff_discr)
 
 # initialize particle object
@@ -43,6 +38,7 @@ init_fld = init.PlaneWave(vacuum_wavelength=vacuum_wavelength, polar_angle=plane
 
 # initialize simulation object
 simulation = simul.Simulation(layer_system=lay_sys, particle_list=particle_list, initial_field=init_fld,
+                              neff_waypoints=neff_waypoints, neff_resolution=neff_discr,
                               log_to_terminal=(not sys.argv[0].endswith('nose2')))  # suppress output if called by nose
 simulation.run()
 

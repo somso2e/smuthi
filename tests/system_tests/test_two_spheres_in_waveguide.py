@@ -23,12 +23,6 @@ neff_discr = 1e-3
 
 # --------------------------------------------
 
-flds.default_Sommerfeld_k_parallel_array = flds.reasonable_Sommerfeld_kpar_contour(
-    vacuum_wavelength=vacuum_wavelength,
-    neff_waypoints=neff_waypoints,
-    neff_resolution=neff_discr)
-
-
 # initialize particle object
 part1 = part.Sphere(position=[100,100,150], refractive_index=2.4+0.0j, radius=120, l_max=lmax)
 part2 = part.Sphere(position=[-100,-100,250], refractive_index=1.9+0.1j, radius=120, l_max=lmax)
@@ -44,15 +38,17 @@ plane_wave = init.PlaneWave(vacuum_wavelength=vacuum_wavelength, polar_angle=pla
 
 # initialize simulation object
 simulation1 = simul.Simulation(layer_system=lay_sys1, particle_list=[part1,part2], initial_field=plane_wave,
+                               neff_waypoints=neff_waypoints, neff_resolution=neff_discr,
                                log_to_terminal=(not sys.argv[0].endswith('nose2')))  # suppress output if called by nose
 simulation1.run()
 
 simulation2 = simul.Simulation(layer_system=lay_sys2, particle_list=[part1,part2], initial_field=plane_wave,
+                               neff_waypoints=neff_waypoints, neff_resolution=neff_discr,
                                log_to_terminal=(not sys.argv[0].endswith('nose2')))  # suppress output if called by nose
 simulation2.run()
 
 ff = farf.scattered_far_field(vacuum_wavelength=vacuum_wavelength, particle_list=simulation1.particle_list,
-                            layer_system=simulation1.layer_system)
+                              layer_system=simulation1.layer_system)
 
 
 def test_equivalent_layer_systems():
