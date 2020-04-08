@@ -20,7 +20,6 @@ class Simulation:
         layer_system (smuthi.layers.LayerSystem):               stratified medium
         particle_list (list):                                   list of smuthi.particles.Particle objects
         initial_field (smuthi.initial_field.InitialField):      initial field object
-        post_processing (smuthi.post_processing.PostProcessing): object managing post processing tasks
         k_parallel (numpy.ndarray or str):               in-plane wavenumber for Sommerfeld integrals and field
                                                          expansions. if 'default', use
                                                          smuthi.fields.default_Sommerfeld_k_parallel_array
@@ -29,6 +28,7 @@ class Simulation:
                                                          This quantity is dimensionless (effective
                                                          refractive index, will be multiplied by vacuum
                                                          wavenumber)
+                                                         :ref:`MultipoleCutOffAnchor`
                                                          If not provided, reasonable waypoints are estimated.
         neff_imag (float):                               Used to set default k_parallel arrays.
                                                          Extent of the contour into the negative imaginary direction
@@ -51,6 +51,8 @@ class Simulation:
                                                          branchpoint singularities (in terms of effective
                                                          refractive index). This is only relevant if not deflected
                                                          into imaginary. Default: One fifth of neff_resolution
+        overwrite_default_contours (bool):               If true (default), the default contours are written even if
+                                                         they have already been defined before
         solver_type (str):                      What solver type to use?
                                                 Options: 'LU' for LU factorization, 'gmres' for GMRES iterative solver
         coupling_matrix_lookup_resolution (float or None): If type float, compute particle coupling by interpolation of
@@ -71,7 +73,6 @@ class Simulation:
                  layer_system=None,
                  particle_list=None,
                  initial_field=None,
-                 post_processing=None,
                  k_parallel='default',
                  neff_waypoints=None,
                  neff_imag=1e-2,
@@ -79,6 +80,7 @@ class Simulation:
                  neff_max_offset=1,
                  neff_resolution=1e-2,
                  neff_minimal_branchpoint_distance=None,
+                 overwrite_default_contours=True,
                  solver_type='LU',
                  solver_tolerance=1e-4,
                  store_coupling_matrix=True,
@@ -102,12 +104,13 @@ class Simulation:
         self.neff_max_offset = neff_max_offset
         self.neff_resolution = neff_resolution
         self.neff_minimal_branchpoint_distance = neff_minimal_branchpoint_distance
+        self.overwrite_default_contours = overwrite_default_contours
         self.solver_type = solver_type
         self.solver_tolerance = solver_tolerance
         self.store_coupling_matrix = store_coupling_matrix
         self.coupling_matrix_lookup_resolution = coupling_matrix_lookup_resolution
         self.coupling_matrix_interpolator_kind = coupling_matrix_interpolator_kind
-        self.post_processing = post_processing
+        self.post_processing = None
         self.length_unit = length_unit
         self.save_after_run = save_after_run
 
@@ -239,10 +242,10 @@ class Simulation:
         self.print_simulation_header()
 
         # check if default contours exists, otherwise set them
-        if smuthi.fields.default_Sommerfeld_k_parallel_array is None:
+        if smuthi.fields.default_Sommerfeld_k_parallel_array is None or self.overwrite_default_contours:
             self.set_default_Sommerfeld_contour()
 
-        if smuthi.fields.default_initial_field_k_parallel_array is None:
+        if smuthi.fields.default_initial_field_k_parallel_array is None or self.overwrite_default_contours:
             self.set_default_initial_field_contour()
 
         # prepare and solve linear system

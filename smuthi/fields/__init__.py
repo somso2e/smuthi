@@ -134,10 +134,10 @@ arrays for the specification of the wavevectors are explicitly stated."""
 default_azimuthal_angles = np.arange(0, 361, 1, dtype=float) * np.pi / 180
 default_polar_angles = np.arange(0, 181, 1, dtype=float) * np.pi / 180
 
-# Default n_effective array for Sommerfeld integrals - needs to be set, e.g. at beginning of simulation
+"""Default n_effective array for Sommerfeld integrals - needs to be set, e.g. at beginning of simulation"""
 default_Sommerfeld_k_parallel_array = None
 
-# Default n_effective array for the initial field (beams, dipoles) - needs to be set, e.g. at beginning of simulation
+"""Default n_effective array for the initial field (beams, dipoles) - needs to be set, e.g. at beginning of simulation"""
 default_initial_field_k_parallel_array = None
 
 
