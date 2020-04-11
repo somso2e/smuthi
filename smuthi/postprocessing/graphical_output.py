@@ -437,12 +437,13 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
 
         Ei = np.stack((e_x_init_raw, e_y_init_raw, e_z_init_raw))
         Es = np.stack((e_x_scat_raw, e_y_scat_raw, e_z_scat_raw))
-        with h5py.File(outputdir + '/data.hdf5', 'w') as f:
-            f.create_dataset('1st_dim_axis', data=dim1vec)
-            f.create_dataset('2nd_dim_axis', data=dim2vec)
-            f.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
-            f.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
+        with h5py.File(outputdir + '/data.hdf5', 'a') as f:
             f.attrs.update(metadata)
+            g = f.require_group('near_field')
+            g.create_dataset('1st_dim_axis', data=dim1vec)
+            g.create_dataset('2nd_dim_axis', data=dim2vec)
+            g.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
+            g.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
 
         np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
         np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
