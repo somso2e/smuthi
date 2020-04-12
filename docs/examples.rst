@@ -13,25 +13,45 @@ No. Tutorial                             level           script
 === ==================================  ============== ============
 1   |ex1link|                             |introd|      |ex1script|
 2   |ex2link|                             |introd|      |ex2script|
-3   Purcell effect (to be done)           |intermed|      TBD       
+3   |ex3link|                             |introd|      |ex3script| 
 4   |ex4link|                             |intermed|      TBD       
-4   Dielectric metalens (to be done)      |intermed|      TBD       
-5   Light extraction (to be done)         |intermed|      TBD       
-6   |ex6link|                             |advanced|      TBD       
+5   |ex5link|                             |intermed|      TBD       
+6   |ex6link|                             |intermed|      TBD       
+7   |ex7link|                             |advanced|      TBD       
+8   |ex8link|                             |advanced|    |ex8script| 
 === ==================================  ============== ============ 
 
-.. |ex1script| replace:: :download:`download <../examples/tutorials/01_sphere_on_substrate/dielectric_sphere_on_substrate.py>`
+.. |ex1script| replace:: :download:`download <../examples/tutorials/01_setting_up_a_simulation/dielectric_sphere_on_substrate.py>`
 
-.. |ex1link| replace:: :doc:`Sphere on substrate: Setting up a simulation <examples/01_sphere_on_substrate/discussion>`
-
-.. |ex2script| replace:: :download:`download <../examples/tutorials/02_near_fields/plotting_the_field.py>`
-
-.. |ex2link| replace:: :doc:`Three spheres in waveguide: Plotting the near field <examples/02_plotting_the_near_field/discussion>`
+.. |ex1link| replace:: :doc:`Setting up a simulation <examples/01_setting_up_a_simulation/discussion>`
 
 
-.. |ex4link| replace:: :doc:`Many spheres on substrate: Solver settings <examples/many_particles/discussion>`
+.. |ex2script| replace:: :download:`download <../examples/tutorials/02_plotting_the_near_field/three_spheres_in_waveguide.py>`
 
-.. |ex6link| replace:: :doc:`Numerical parameters <examples/numerical_parameters/discussion>`
+.. |ex2link| replace:: :doc:`Plotting the near field <examples/02_plotting_the_near_field/discussion>`
+
+
+.. |ex3script| replace:: :download:`download <../examples/tutorials/03_plotting_the_far_field/fifteen_spheres_on_substrate.py>`
+
+.. |ex3link| replace:: :doc:`Plotting the far field <examples/03_plotting_the_far_field/discussion>`
+
+
+.. |ex4link| replace:: Non-spherical particles
+
+
+.. |ex5link| replace:: Dipole sources
+
+
+.. |ex6link| replace:: Gaussian beams
+
+
+.. |ex7link| replace:: Automatic parameter selection
+
+.. |ex8script| replace:: :download:`download <../examples/tutorials/08_many_particle_simulations/many_dielectric_spheres_on_substrate.py>`
+
+.. |ex8link| replace:: :doc:`Many particle simulations <examples/many_particles/discussion>`
+
+
 
 .. |introd| raw:: html
 
@@ -56,12 +76,9 @@ Click on the respective benchmark names to view a brief discussion.
 === ================================ ============== ===================
 No. Benchmark                         other method   script and data    
 === ================================ ============== ===================
-1   |bench1link|                      Mie theory     TBD         
-2   |bench2link|                      FEM            |bench2data|                
+1   |bench1link|                      FEM            |bench1data|                
 === ================================ ============== =================== 
 
-.. |bench1link| replace:: :doc:`Sphere in vacuum <examples/sphere_in_vacuum/discussion>`
+.. |bench1link| replace:: :doc:`Four particles in slab waveguide <examples/four_particles_in_slab/discussion>`
 
-.. |bench2link| replace:: :doc:`Four particles in slab waveguide <examples/four_particles_in_slab/discussion>`
-
-.. |bench2data| replace:: :download:`download <../examples/benchmarks/four_particles_in_slab/four_particles_in_slab.zip>`
+.. |bench1data| replace:: :download:`download <../examples/benchmarks/four_particles_in_slab/four_particles_in_slab.zip>`

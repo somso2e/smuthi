@@ -1,5 +1,5 @@
 #*****************************************************************************#
-# This is a simple example script for Smuthi v10.0.0                          #
+# This is a simple example script for Smuthi v1.0.0                           #
 # It evaluates the electric near field for three spheres in a waveguide       #
 # excited by a plane wave under oblique incidence                             #
 #*****************************************************************************#

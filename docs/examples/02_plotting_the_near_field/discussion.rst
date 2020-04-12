@@ -10,11 +10,11 @@ Plotting the near field
    :align: right
 
 This example contains the simulation of a plane wave scattered by three polydisperse spheres
-embedded in a thin film on a glass substrate under air. Click :download:`here <../../../examples/tutorials/02_near_fields/plotting_the_field.py>` 
+embedded in a thin film on a glass substrate under air. Click :download:`here <../../../examples/tutorials/02_plotting_the_near_field/three_spheres_in_waveguide.py>` 
 to download the Python script.
 
 
-After the simulation has been run, the electric field distribution is evaluated in a post processing step.
+After the simulation has run, the electric field distribution is evaluated in a post processing step.
 Click on the following link to view the API documentation of the function that is used to calculate and plot the fields.
 :py:func:`smuthi.postprocessing.graphical_output.show_near_field`
 

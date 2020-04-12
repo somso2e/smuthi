@@ -1,5 +1,5 @@
 #*****************************************************************************#
-# This is a simple example script for Smuthi v10.0.0                          #
+# This is a simple example script for Smuthi v1.0.0                           #
 # It evaluates the total scattering cross section of a glass sphere on a      #
 # glass substrate, excited by a plane wave under normal incidence.            #
 #*****************************************************************************#

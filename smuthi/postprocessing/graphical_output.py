@@ -460,7 +460,7 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
 
 def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='scattered_far_field',
                              outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
-                             azimuthal_angles='default'):
+                             azimuthal_angles='default', min_field=None, max_field=None):
     """Display and export the scattered far field.
 
     Args:
@@ -479,6 +479,8 @@ def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save
                                                         if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
                                                         if 'default', use smuthi.fields.default_azimuthal_angles
+        min_field(float):                               truncate colorscale from below at that value
+        max_field(float):                               truncate colorscale from above at that value
     """
 
     infld = simulation.initial_field
@@ -491,12 +493,13 @@ def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save
                                        azimuthal_angles=azimuthal_angles)
 
     show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale)
+                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
+                   min_field=min_field, max_field=max_field)
 
 
 def show_total_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='total_far_field',
                          outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
-                         azimuthal_angles='default'):
+                         azimuthal_angles='default', min_field=None, max_field=None):
     """Display and export the total far field. This function cannot be used if the inital field is a plane wave.
 
     Args:
@@ -515,6 +518,8 @@ def show_total_far_field(simulation, save_plots=False, show_plots=True, save_dat
                                                         if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
                                                         if 'default', use smuthi.fields.default_azimuthal_angles
+        min_field(float):                               truncate colorscale from below at that value
+        max_field(float):                               truncate colorscale from above at that value
     """
     infld = simulation.initial_field
     plst = simulation.particle_list
@@ -526,12 +531,14 @@ def show_total_far_field(simulation, save_plots=False, show_plots=True, save_dat
                                    azimuthal_angles=azimuthal_angles)
 
     show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale)
+                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
+                   min_field=min_field, max_field=max_field)
 
 
 def show_scattering_cross_section(simulation, save_plots=False, show_plots=True, save_data=False,
                                   tag='scattering_cross_section', outputdir='.', flip_downward=True, split=True,
-                                  log_scale=False, polar_angles='default', azimuthal_angles='default'):
+                                  log_scale=False, polar_angles='default', azimuthal_angles='default', min_field=None,
+                                  max_field=None):
     """Display and export the differential scattering cross section.
 
     Args:
@@ -550,6 +557,8 @@ def show_scattering_cross_section(simulation, save_plots=False, show_plots=True,
                                                         if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
                                                         if 'default', use smuthi.fields.default_azimuthal_angles
+        min_field(float):                               truncate colorscale from below at that value
+        max_field(float):                               truncate colorscale from above at that value
     """
 
     infld = simulation.initial_field
@@ -562,11 +571,12 @@ def show_scattering_cross_section(simulation, save_plots=False, show_plots=True,
                                             azimuthal_angles=azimuthal_angles)
 
     show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale)
+                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
+                   min_field=min_field, max_field=max_field)
 
 
 def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_field', outputdir='.',
-                   flip_downward=True, split=True, log_scale=False):
+                   flip_downward=True, split=True, log_scale=False, min_field=None, max_field=None):
     """Display and export the far field.
     
     Args:
@@ -581,13 +591,15 @@ def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_
         split (bool):                                   show two different plots for upward and downward directions 
                                                         if true
         log_scale (bool):                               do plots in logarithmic scale if true
+        min_field(float):                               truncate colorscale from below at that value
+        max_field(float):                               truncate colorscale from above at that value
     """
     
     if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
         show_far_field(far_field.top(), save_plots, show_plots, save_data,
-                       tag+'_top', outputdir, True, False, log_scale)
+                       tag+'_top', outputdir, True, False, log_scale, min_field, max_field)
         show_far_field(far_field.bottom(), save_plots, show_plots, save_data,
-                       tag+'_bottom', outputdir, True, False, log_scale)
+                       tag+'_bottom', outputdir, True, False, log_scale, min_field, max_field)
         return
     
     if (not os.path.exists(outputdir)) and (save_plots or save_data):
@@ -609,10 +621,10 @@ def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_
 
     if flip_downward and all(far_field.polar_angles >= np.pi / 2):
         pcm = ax.pcolormesh(alpha_grid, 180 - beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            cmap='inferno', norm=color_norm)
+                            cmap='inferno', norm=color_norm, vmin=min_field, vmax=max_field)
     else:
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            cmap='inferno', norm=color_norm)
+                            cmap='inferno', norm=color_norm, vmin=min_field, vmax=max_field)
 
     plt.colorbar(pcm, ax=ax)
     plt.title(tag)

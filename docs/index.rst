@@ -26,7 +26,7 @@ Contents
    simulation_guidelines
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    examples
 

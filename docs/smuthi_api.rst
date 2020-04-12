@@ -31,4 +31,9 @@ Smuthi is a Python package with the following modules and sub-packages.
 .. toctree::
    :maxdepth: 2
 
+   smuthi_api_postprocessing
+
+.. toctree::
+   :maxdepth: 2
+
    smuthi_api_utility
