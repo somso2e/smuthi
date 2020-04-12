@@ -24,6 +24,12 @@ utility.cuda
     :members:
     :undoc-members:
 
+utility.logging
+---------------
+
+.. automodule:: smuthi.utility.logging
+    :members:
+    :undoc-members:
 
 utility.math
 ------------

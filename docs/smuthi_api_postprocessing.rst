@@ -21,6 +21,14 @@ postprocessing.graphical_output
 .. automodule:: smuthi.postprocessing.graphical_output
     :members:
     :undoc-members:
+		
+postprocessing.internal_field
+
+------------------------------
+
+.. automodule:: smuthi.postprocessing.internal_field
+    :members:
+    :undoc-members:		
 
 postprocessing.post_processing
 ------------------------------

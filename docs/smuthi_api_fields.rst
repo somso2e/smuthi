@@ -9,13 +9,6 @@ fields
     :undoc-members:
 		
 
-fields.coordinates_and_contours
--------------------------------
-
-.. automodule:: smuthi.fields.coordinates_and_contours
-    :members:
-    :undoc-members:
-
 fields.expansions
 -----------------
 
