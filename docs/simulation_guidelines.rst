@@ -7,7 +7,6 @@ In this section, you can find general hints how to properly run a simulation wit
 
    building_blocks
 
-
 .. toctree::
    :maxdepth: 2
 
@@ -27,6 +26,11 @@ In this section, you can find general hints how to properly run a simulation wit
    :maxdepth: 2
 
    complex_contours
+	 
+.. toctree::
+   :maxdepth: 2
+
+   auto_param	 
 
 .. toctree::
    :maxdepth: 2

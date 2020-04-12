@@ -37,7 +37,4 @@ case of spherical particles, see for example :doc:`[Neves 2012] <literature>`
 or :doc:`[Wiscombe 1980] <literature>`.
 
 Otherwise, you can use Smuthi's built-in automatic parameter selection feature 
-to estimate a suitable multipole truncation.
-
-
-.. todo:: link to auto param section   
+to estimate a suitable multipole truncation, see section on :ref:`AutoParamAnchor`.

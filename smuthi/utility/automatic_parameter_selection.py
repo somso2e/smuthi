@@ -197,7 +197,7 @@ def converge_multipole_cutoff(simulation,
     return current_value
 
 
-def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.5, neff_step=2e-3):
+def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.5, neff_resolution=2e-3):
     """Update the default `k_parallel` arrays in smuthi.fields with a newly constructed Sommerfeld integral
     contours.
 
@@ -210,7 +210,7 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
         neff_max_offset (float):                        If no value for `neff_max` is specified, use the last estimated
                                                         singularity location plus this value (in terms of effective
                                                         refractive index).
-        neff_step (float):                              Discretization of the contour (in terms of eff. refractive
+        neff_resolution (float):                              Discretization of the contour (in terms of eff. refractive
                                                         index).
         update_default_contours (logical)               If true, overwrite the default contours in smuthi.fields module.
                                                         Otherwise, overwrite simulation.k_parallel array
@@ -218,7 +218,7 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
     simulation.neff_imag = neff_imag
     simulation.neff_max = neff_max
     simulation.neff_max_offset = neff_max_offset
-    simulation.neff_resolution = neff_step
+    simulation.neff_resolution = neff_resolution
     simulation.set_default_initial_field_contour()
     simulation.set_default_Sommerfeld_contour()
 
@@ -230,7 +230,7 @@ def converge_neff_max(simulation,
                       tolerance=1e-3,
                       max_iter=20,
                       neff_imag=1e-2,
-                      neff_step=2e-3,
+                      neff_resolution=2e-3,
                       neff_max_increment=0.5,
                       converge_lm=True):
     """Find a suitable truncation value for the multiple scattering Sommerfeld integral contour and update the
@@ -247,7 +247,7 @@ def converge_neff_max(simulation,
                                                       no convergence has been achieved.
         neff_imag (float):                              Extent of the contour into the negative imaginary direction
                                                         (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_step (float):                              Discretization of the contour (in terms of eff. refractive
+        neff_resolution (float):                        Discretization of the contour (in terms of eff. refractive
                                                         index).
         neff_max_increment (float):                     Increment the neff_max parameter with that step size
         converge_lm (logical):                          If set to true, update multipole truncation during each step
@@ -262,14 +262,14 @@ def converge_neff_max(simulation,
     print("---------------------------")
     log.write_blue("Searching suitable neff_max")
 
-    update_contour(simulation=simulation, neff_imag=neff_imag, neff_max_offset=0, neff_step=neff_step)
+    update_contour(simulation=simulation, neff_imag=neff_imag, neff_max_offset=0, neff_resolution=neff_resolution)
 
     simulation.k_parallel = flds.reasonable_Sommerfeld_kpar_contour(
         vacuum_wavelength=simulation.initial_field.vacuum_wavelength,
         layer_refractive_indices=simulation.layer_system.refractive_indices,
         neff_imag=neff_imag,
         neff_max_offset=0,
-        neff_resolution=neff_step)
+        neff_resolution=neff_resolution)
 
     neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength)
     print("Starting value: neff_max=%f"%neff_max.real)
@@ -286,7 +286,7 @@ def converge_neff_max(simulation,
     for _ in range(max_iter):
         old_neff_max = neff_max
         neff_max = neff_max + neff_max_increment
-        update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_step=neff_step)
+        update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
 
         print("---------------------------------------")
         print("Try neff_max = %f"%neff_max.real)
@@ -308,7 +308,7 @@ def converge_neff_max(simulation,
 
         if rel_diff < tolerance:  # in this case: discard l_max increment
             neff_max = old_neff_max
-            update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_step=neff_step)
+            update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_max = %f"%neff_max.real)
             return current_value
         else:
@@ -318,13 +318,13 @@ def converge_neff_max(simulation,
     return None
 
 
-def converge_neff_step(simulation,
+def converge_neff_resolution(simulation,
                        detector="extinction cross section",
                        tolerance=1e-3,
                        max_iter=20,
                        neff_imag=1e-2,
                        neff_max=None,
-                       neff_step=1e-2):
+                       neff_resolution=1e-2):
     """Find a suitable discretization step size for the multiple scattering Sommerfeld integral contour and update the
     simulation object accordingly.
 
@@ -341,7 +341,7 @@ def converge_neff_step(simulation,
                                                       (in terms of effective refractive index, n_eff=kappa/omega).
         neff_max (float):                             Truncation value of contour (in terms of effective refractive
                                                       index).
-        neff_step (float):                            Discretization of the contour (in terms of eff. refractive
+        neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
                                                       index) - start value for iteration
 
     Returns:
@@ -349,19 +349,19 @@ def converge_neff_step(simulation,
     """
     print("")
     print("-----------------------")
-    log.write_blue("Find suitable neff_step")
+    log.write_blue("Find suitable neff_resolution")
 
-    update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_step=neff_step)
-    print("Starting value: neff_step=%f" % neff_step)
+    update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
+    print("Starting value: neff_resolution=%f" % neff_resolution)
     current_value = evaluate(simulation, detector)
 
     for _ in range(max_iter):
-        old_neff_step = neff_step
-        neff_step = neff_step / 2.0
-        update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_step=neff_step)
+        old_neff_resolution = neff_resolution
+        neff_resolution = neff_resolution / 2.0
+        update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
 
         print("---------------------------------------")
-        print("Try neff_step = %f" % neff_step)
+        print("Try neff_resolution = %f" % neff_resolution)
 
         new_value = evaluate(simulation, detector)
 
@@ -370,15 +370,15 @@ def converge_neff_step(simulation,
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
 
-        if rel_diff < tolerance:  # in this case: discard halfed neff_step
-            neff_step = old_neff_step
-            update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_step=neff_step)
-            log.write_green("Relative difference smaller than tolerance. Keep neff_step = %f" % neff_step)
+        if rel_diff < tolerance:  # in this case: discard halfed neff_resolution
+            neff_resolution = old_neff_resolution
+            update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
+            log.write_green("Relative difference smaller than tolerance. Keep neff_resolution = %f" % neff_resolution)
             return current_value
         else:
             current_value = new_value
 
-    log.write_red("No convergence achieved. Keep neff_step = %i" % neff_step)
+    log.write_red("No convergence achieved. Keep neff_resolution = %i" % neff_resolution)
     return None
 
 
@@ -387,14 +387,13 @@ def select_numerical_parameters(simulation,
                                 tolerance=1e-3,
                                 max_iter=20,
                                 neff_imag=1e-2,
-                                neff_step=1e-2,
+                                neff_resolution=1e-2,
                                 select_neff_max=True,
                                 neff_max_increment=0.5,
                                 neff_max=None,
-                                select_neff_step=True,
+                                select_neff_resolution=True,
                                 select_multipole_cutoff=True,
-                                relative_convergence=True,
-                                suppress_simulation_output=True):
+                                relative_convergence=True):
     """Trigger automatic selection routines for various numerical parameters.
 
     Args:
@@ -409,8 +408,8 @@ def select_numerical_parameters(simulation,
                                                       no convergence has been achieved.
         neff_imag (float):                            Extent of the contour into the negative imaginary direction
                                                       (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_step (float):                            Discretization of the contour (in terms of eff. refractive
-                                                      index) - if `select_neff_step` is true, this value will be
+        neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
+                                                      index) - if `select_neff_resolution` is true, this value will be
                                                       eventually overwritten. However, it is required in any case.
                                                       Default: 1e-2
         select_neff_max (logical):                    If set to true (default), the Sommerfeld integral truncation parameter
@@ -421,8 +420,8 @@ def select_numerical_parameters(simulation,
         neff_max (float):                             Only needed if `select_neff_max` is false.
                                                       Truncation value of contour (in terms of effective refractive
                                                       index).
-        select_neff_step (logical):                   If set to true (default), the Sommerfeld integral discretization
-                                                      parameter `neff_step` is determined automatically with the help of
+        select_neff_resolution (logical):             If set to true (default), the Sommerfeld integral discretization
+                                                      parameter `neff_resolution` is determined automatically with the help of
                                                       a Cauchy convergence criterion.
         select_multipole_cutoff (logical):            If set to true (default), the multipole expansion cutoff
                                                       parameters `l_max` and `m_max` are determined automatically with
@@ -433,8 +432,6 @@ def select_numerical_parameters(simulation,
                                                       convergence is checked again for each value of the Sommerfeld
                                                       integral truncation. This takes more time, but is required at
                                                       least in the case of flat particles near interfaces.
-        suppress_simulation_output (logical):         If set to false (default), suppress any output from simulations
-                                                      and only display convergence progress
     """
     print("")
     print("----------------------------------------")
@@ -447,7 +444,7 @@ def select_numerical_parameters(simulation,
                           tolerance=tolerance,
                           max_iter=max_iter,
                           neff_imag=neff_imag,
-                          neff_step=neff_step,
+                          neff_resolution=neff_resolution,
                           neff_max_increment=neff_max_increment,
                           converge_lm=relative_convergence)
         neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength)
@@ -458,10 +455,10 @@ def select_numerical_parameters(simulation,
                                   tolerance=tolerance,
                                   max_iter=max_iter)
 
-    if select_neff_step:
-        converge_neff_step(simulation=simulation,
-                           detector=detector,
-                           tolerance=tolerance,
-                           max_iter=max_iter,
-                           neff_imag=neff_imag,
-                           neff_max=neff_max)
+    if select_neff_resolution:
+        converge_neff_resolution(simulation=simulation,
+                                 detector=detector,
+                                 tolerance=tolerance,
+                                 max_iter=max_iter,
+                                 neff_imag=neff_imag,
+                                 neff_max=neff_max)

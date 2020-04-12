@@ -19,10 +19,9 @@ Note, however, that this does not guarantee accurate results in all use cases.
 
 Automatic contour definition
 ----------------------------
-If you want to be on the safe side, use the automatic parameter selection feature to obtain a suitable integral contour. 
+If you want to be on the safe side, use the automatic parameter selection feature to obtain a suitable integral contour, see section on :ref:`AutoParamAnchor`. 
 The drawback is a substantially enhanced runtime, as the simulation is repeated multiple times until the result converges.
 
-.. todo:: link to section on auto selection
 
 Manual contour definition
 -------------------------
@@ -115,6 +114,8 @@ To select a reasonable `neff_max`, we should consider that the shortest possible
    :math:`\exp(-2\pi \frac{20nm}{550nm} \sqrt{(2.3^2-1^2)}) \approx 0.62` when scattered by the layer interface.
    Even a truncation of :math:`n_\mathrm{eff, max}=10` would only lead to an evanescent damping of
    :math:`\exp(-2\pi \frac{20nm}{550nm} \sqrt{(10^2-1^2)}) \approx 0.1` which might still not be enough.
+
+.. _SommerfeldResolutionAnchor:
 
 Resolution
 ~~~~~~~~~~
