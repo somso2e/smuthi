@@ -213,12 +213,22 @@ smuthi.utility
     :members:
     :undoc-members:
 
+
+... utility.automatic_parameter_selection
+-----------------------------------------
+
+.. automodule:: smuthi.utility.automatic_parameter_selection
+    :members:
+    :undoc-members:
+		
+		
 ... utility.cuda
 -------------------
 
 .. automodule:: smuthi.utility.cuda
     :members:
     :undoc-members:
+
 
 ... utility.math
 --------------------
