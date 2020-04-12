@@ -160,6 +160,19 @@ class FarField:
         """
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
+
+        import h5py
+
+        pa = self.polar_angles
+        aa = self.azimuthal_angles
+
+        with h5py.File(output_directory + '/data.hdf5', 'a') as f:
+            g = f.require_group('far_field')
+            g.require_dataset('polar_angles', data=pa, shape=np.shape(pa), dtype=pa.dtype)
+            g.require_dataset('azimuthal_angles', data=aa, shape=np.shape(aa), dtype=aa.dtype)
+            g.create_dataset(tag, data=self.signal, compression="gzip")
+            g.create_dataset(tag + '_polar', data=self.azimuthal_integral(), compression="gzip")
+
         np.savetxt(output_directory + '/' + tag + '_TE.dat', self.signal[0, :, :],
                    header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
         np.savetxt(output_directory + '/' + tag + '_TM.dat', self.signal[1, :, :],
