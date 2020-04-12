@@ -11,7 +11,7 @@ It investigates scattering by a single glass sphere on a glass substrate and eva
 Click :download:`here <../../../examples/tutorials/01_setting_up_a_simulation/dielectric_sphere_on_substrate.py>` 
 to download the Python script.
 
-.. image:: console_screenshot.png
+.. image:: console_screenshot.PNG
    :width: 75%
 
 The console output should look like in the above image.
