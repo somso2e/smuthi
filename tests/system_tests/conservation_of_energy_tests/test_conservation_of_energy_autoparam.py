@@ -8,7 +8,6 @@ import smuthi.initial_field as init
 import smuthi.simulation as simul
 import smuthi.postprocessing.far_field as farf
 import smuthi.utility.automatic_parameter_selection as autoparam
-import smuthi.fields as flds
 
 
 # Parameter input ----------------------------
@@ -44,22 +43,21 @@ autoparam.select_numerical_parameters(simulation,
                                       tolerance=1e-5,
                                       max_iter=20,
                                       neff_imag=1e-2,
-                                      neff_step=1e-2,
+                                      neff_resolution=1e-2,
                                       select_neff_max=True,
                                       neff_max_increment=0.5,
                                       neff_max=None,
-                                      select_neff_step=True,
+                                      select_neff_resolution=True,
                                       select_multipole_cutoff=True,
-                                      relative_convergence=True,
-                                      suppress_simulation_output=True)
+                                      relative_convergence=True)
 
 simulation.run()
 
 scs = farf.scattering_cross_section(initial_field=simulation.initial_field, particle_list=simulation.particle_list,
-                                  layer_system=simulation.layer_system)
+                                    layer_system=simulation.layer_system)
 
 ecs = farf.extinction_cross_section(initial_field=simulation.initial_field,particle_list=simulation.particle_list,
-                                  layer_system=simulation.layer_system)
+                                    layer_system=simulation.layer_system)
 
 
 def test_optical_theorem():
