@@ -17,7 +17,7 @@ No. Tutorial                             level           script
 4   |ex4link|                             |intermed|      TBD       
 5   |ex5link|                             |intermed|      TBD       
 6   |ex6link|                             |intermed|      TBD       
-7   |ex7link|                             |advanced|      TBD       
+7   |ex7link|                             |advanced|    |ex7script| 
 8   |ex8link|                             |advanced|    |ex8script| 
 === ==================================  ============== ============ 
 
@@ -45,7 +45,10 @@ No. Tutorial                             level           script
 .. |ex6link| replace:: Gaussian beams
 
 
-.. |ex7link| replace:: Automatic parameter selection
+.. |ex7link| replace:: :doc:`Automatic parameter selection <examples/07_automatic_parameter_selection/discussion>`
+
+.. |ex7script| replace:: :download:`download <../examples/tutorials/07_automatic_parameter_selection/nine_disks_on_a_thin_film_system.py>`
+
 
 .. |ex8script| replace:: :download:`download <../examples/tutorials/08_many_particle_simulations/many_dielectric_spheres_on_substrate.py>`
 

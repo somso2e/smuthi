@@ -53,7 +53,7 @@ Some things to regard when using the automatic parameter selection:
 
 For more details, see the API documentation on the :mod:`smuthi.utility.automatic_parameter_selection` module.
 
-.. todo:: link to example
+See also the example on :ref:`AutoParamExampleAnchor`.
 
 Simulations involving many particles
 ------------------------------------
@@ -74,7 +74,9 @@ We can thus simulate scattering by a single cylinder on the thin film system and
 for `l_max`, `m_max`, `neff_max` and `neff_resolution`. These parameters are then used as input parameters for the 1000-particles simulation
 which we run without another call to the automatic parameter selection module.
 
+See the example on :ref:`AutoParamExampleAnchor` for an illustration of the procedure.
+
 .. note:: One needs to be cautious when the many particles simulation involves large lateral distances. In that case, a finer resolution of the complex contour might be required compared to the single-particle test balloon. See the section on :ref:`SommerfeldResolutionAnchor` for details.
 
-.. todo:: link to example
+
 
