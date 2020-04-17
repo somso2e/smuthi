@@ -101,7 +101,7 @@ subroutine TCOMP
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a plane wave traveling  !
 ! along the Z-axis of the global coordinate system and the scattering               !
-! characteristics are computed in the azimuthal plane phi = 0°.                     !
+! characteristics are computed in the azimuthal plane phi = 0Â°.                     !
 !                                                                                   !
 ! For the integration and expansion order test, an axisymmetric orientation of the  !
 ! particle is considered, i.e., the incident wave propagates along the axis of      !
@@ -118,13 +118,13 @@ subroutine TCOMP
 !                                                                                   !
 ! By convention, the convergence test over the expansion orders will be referred    !
 ! to as the convergence test over Nrank. The normalized differential scattering     !
-! cross section (DSCS) will be checked at 20° increments for convergence within     !
+! cross section (DSCS) will be checked at 20Â° increments for convergence within     !
 ! epsX (epsNint or epsNrank) tolerance. If the calculated results converge within   !
 ! this tolerance at 80% of the scattering angles, then convergence is achieved.     !
 !                                                                                   ! 
 ! When the convergence tests over Nrank and Nint are finished, we pass to the       !
 ! azimuthal order test. The program automatically sets the particle to a more       !
-! general orientation, i.e., alpha = beta = 45°, and solves the scattering problem  !
+! general orientation, i.e., alpha = beta = 45Â°, and solves the scattering problem  !
 ! for increasing m values until convergence of the angular scattering is achieved.  !
 ! The T matrix is stored for later use by other programs, and the values of Nrank   !
 ! and Mrank are printed to the screen and to the T-matrix information file.  These  !

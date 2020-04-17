@@ -32,13 +32,13 @@ include 'TINHOMSPH.f90'
 include 'TINHOMSPHREC.f90'
 include 'TLAY.f90'
 include 'TMULT.f90'
-include 'TMULT2SPH.f90'	
+include 'TMULT2SPH.f90'
 include 'TMULTSPH.f90'
 include 'TMULTSPHREC.f90'
 include 'TNONAXSYM.f90'
 include 'TPARTSUB.f90'
 include 'TSPHERE.f90'
-program TAXSYM
+program TAXSYMSMUTHI
 !------------------------------------------------------------------------------------
 ! 1. General Considerations                                                         !
 ! --------------------------                                                        !
@@ -134,7 +134,7 @@ program TAXSYM
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a vector plane wave     !
 ! traveling along the Z-axis of the global coordinate system and the scattering     !
-! characteristics are computed in the azimuthal plane phi = 0°. The convergence     !
+! characteristics are computed in the azimuthal plane phi = 0Â°. The convergence     !
 ! tests over Nint and Nrank are interactive, while the convergence test over Mrank  !
 ! is automatically performed.                                                       ! 
 !                                                                                   !
@@ -149,7 +149,7 @@ program TAXSYM
 ! for m = - 1 and m = 1. For the convergence test over Nint the scattering problem  !
 ! is solved for Nint and Nint + dNint, while for the convergence test over Nrank    !
 ! the scattering problem is solved for Nrank and Nrank - 1. The normalized          !
-! differential scattering cross section (DSCS) will be checked at 20° increments    !
+! differential scattering cross section (DSCS) will be checked at 20Â° increments    !
 ! for convergence within epsX (epsNint or epsNrank) tolerance. If the calculated    !
 ! results converge within this tolerance at 80% of the scattering angles, then      !
 ! convergence is achieved. At each calculation, the extinction and scattering       !
@@ -164,7 +164,7 @@ program TAXSYM
 !                                                                                   ! 
 ! After Nrank and Nint have been determined we pass to the azimuthal order test.    !
 ! The program automatically sets the particle to a more general orientation, i.e.,  !
-! alpha = beta = 45°, and solves the scattering problem  for increasing m values    !
+! alpha = beta = 45Â°, and solves the scattering problem  for increasing m values    !
 ! until convergence of the angular scattering is achieved. The T matrix is stored   !
 ! for later use by other programs, and the values of Nrank and Mrank are printed to !
 ! the screen and to the T-matrix information file (see "Description.txt"). These    !
@@ -881,7 +881,7 @@ program TAXSYM
     end if  
   end if 
   close (unit = iOutput)
-end program TAXSYM
+end program TAXSYMSMUTHI
 !************************************************************************************
 subroutine readinputAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,        &
            chiral, kb, FileGeom, TypeGeom, FileFEM, Nsurf, surf, Nparam, anorm,     &
@@ -1428,6 +1428,7 @@ subroutine convergence_NintAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf, 
       if (PrnProgress) call write_progress (.false., 6+iprog*(iNint-1), Nprog)
       call LU_SYSTEM (a, 2*Nrank, 2*Nrank, b, 2*Nrank, 2*Nrank, 2*Nmax)
       if (PrnProgress) call write_progress (.false., 7+iprog*(iNint-1), Nprog)
+
     end if
     call PWcoefficients_ab_m (tetaGI, phiGI, alfa, beta, gama, alfap, -m, Nrank,    &
          Nmax, c)
@@ -1597,9 +1598,49 @@ subroutine convergence_NrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,
   deallocate (a, b, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine convergence_NrankAXSYM
 !***********************************************************************************
+subroutine appendtotmat (b,btot,m,Nrank,Nmax,Nmaxmax)
+  use parameters
+  implicit none   
+  integer       :: Nrank, m, Nmax, Nmaxmax, k1, k2, N0, j, &
+                   mmax
+  complex(O)    :: btot(2*Nmaxmax,2*Nmaxmax)
+  complex(O)    :: b(2*Nrank,2*Nrank)
+!
+  if (m==0) then    
+    N0 = 0    
+    mmax = Nrank
+    do k1 = 1, mmax
+      do k2 = 1, Nrank
+        btot(k1+N0,k2+N0) = b(k1,k2)
+        btot(k1+N0+Nmaxmax,k2+N0+Nmaxmax) = b(k1+Nmax,k2+Nmax)
+        btot(k1+N0,k2+N0+Nmaxmax) = b(k1,k2+Nmax)
+        btot(k1+N0+Nmaxmax,k2+N0) = b(k1+Nmax,k2)
+      end do
+    end do
+  else
+    N0 = Nrank + (m - 1) * (2 * Nrank - m + 2)
+    mmax = Nrank - m + 1
+    do j = 1,2
+      do k1 = 1, mmax
+        do k2 = 1, mmax          
+          btot(k1+N0,k2+N0) = b(k1,k2)
+          btot(k1+N0+Nmaxmax,k2+N0+Nmaxmax) = b(k1+Nmax,k2+Nmax)
+          if (j==2) then
+            b(k1,k2+Nmax)=-b(k1,k2+Nmax)
+            b(k1+Nmax,k2)=-b(k1+Nmax,k2)
+          end if
+          btot(k1+N0,k2+N0+Nmaxmax) = b(k1,k2+Nmax)
+          btot(k1+N0+Nmaxmax,k2+N0) = b(k1+Nmax,k2)
+        end do
+      end do
+      N0 = N0 + Nrank - m + 1
+    end do  
+  end if
+end subroutine appendtotmat
+!***********************************************************************************
 subroutine convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,    &
            surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint, miror,         &
-           perfectcond, DS, chiral, kb, epsMrank, FileTmat, PrnProgress)                
+           perfectcond, DS, chiral, kb, epsMrank, FileTmat, PrnProgress,Nmaxmax,btot)                
   use parameters
   implicit none   
   integer       :: TypeGeom, Nsurf, Nface, Nparam, Nrank, Nint
@@ -1614,7 +1655,9 @@ subroutine convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,
                    Cext, Qext  
   integer,allocatable    :: Nintparam(:)
   real(O),allocatable    :: paramG(:,:), weightsG(:,:), h(:), v(:), oldh(:), oldv(:)
-  complex(O),allocatable :: a(:,:), b(:,:), c(:), c1(:), cc(:)
+  complex(O),allocatable :: a(:,:), c(:), c1(:), cc(:)
+  complex(O)    :: btot(2*Nmaxmax,2*Nmaxmax)
+  complex(O)    :: b(2*Nrank,2*Nrank)
 !
   tetaGI = 0._O
   phiGI  = 0._O
@@ -1625,13 +1668,13 @@ subroutine convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,
   gama   = 0._O
   alfap  = Pi / 4._O
   Mstart = 0
+!  Mstart = Nrank
   Mrank  = Nrank      
-  open (unit = iTmat, file = FileTmat, status = 'replace')  
-  call write_HeadFileTmat (Nrank, Nrank) 
-  call write_TypeConvHead (3)
-  call write_2ConvParamAxsym (Nint, Nrank)
-  allocate (a(2*Nrank,2*Nrank), b(2*Nrank,2*Nrank), c(2*Nrank), c1(2*Nrank))
-  Nmaxmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
+!  open (unit = iTmat, file = FileTmat, status = 'replace')  
+!  call write_HeadFileTmat (Nrank, Nrank) 
+!  call write_TypeConvHead (3)
+!  call write_2ConvParamAxsym (Nint, Nrank)
+  allocate (a(2*Nrank,2*Nrank), c(2*Nrank), c1(2*Nrank))
   allocate (cc(2*Nmaxmax))
   allocate (h(Nteta), v(Nteta), oldh(Nteta), oldv(Nteta))
   do i = 1, Nteta
@@ -1657,7 +1700,8 @@ subroutine convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,
     Nprog = 7
   end if
   Mrank = - 1
-  do m = Mstart, Nrank    
+!  Mrank = Mrank - 1
+  do m = Mstart, Nrank       
     call write_1ConvParam (m)
     Mrank = Mrank + 1
     if (m == 0) then
@@ -1676,14 +1720,15 @@ subroutine convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,
     if (PrnProgress) call write_progress_m (.false., m, 3, Nprog)                           
     call LU_SYSTEM (a, 2*Nrank, 2*Nrank, b, 2*Nrank, 2*Nrank, 2*Nmax)
     if (PrnProgress) call write_progress_m (.false., m, 4, Nprog)                   
-    call write_FileTmat (Nrank, Nrank, b)
+!    call write_FileTmat (Nrank, Nrank, b)
+    call appendtotmat (b,btot,m,Nrank,Nmax,Nmaxmax)     
     call PWcoefficients_ab_m (tetaGI, phiGI, alfa, beta, gama, alfap, m, Nrank,     &
          Nmax, c)
     call product_matrix_vector (2*Nmax, 2*Nmax, b, 2*Nrank, 2*Nrank, c, c1)
     call extend_vector_positive (c1, cc, m, Mstart, Nrank, Nmax, Nmaxmax)       
     if (m /= 0) then
       if (.not. chiral) then
-        call matrix_m_negativ (Nmax, Nmax, b, Nrank, Nrank)     
+        call matrix_m_negativ (Nmax, Nmax, b, Nrank, Nrank)        
       else 
         call matrix_Q_m (FileGeom, TypeGeom, 3, 1, k, ind_ref, Nsurf, surf, rp, np, &
              area, Nface, zRe, zIm, -m, Nrank,Nmax, Nint, Nparam, Nintparam,        &
@@ -1695,37 +1740,38 @@ subroutine convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,
         if (PrnProgress) call write_progress_m (.false., m, 6, Nprog)
         call LU_SYSTEM (a, 2*Nrank, 2*Nrank, b, 2*Nrank, 2*Nrank, 2*Nmax)       
         if (PrnProgress) call write_progress_m (.false., m, 7, Nprog)
-        call write_FileTmat (Nrank, Nrank, b)   
+!        call write_FileTmat (Nrank, Nrank, b)
+        call appendtotmat (b,btot,-m,Nrank,Nmax,Nmaxmax)
       end if
       call PWcoefficients_ab_m (tetaGI, phiGI, alfa, beta, gama, alfap, -m, Nrank,  &
            Nmax, c) 
       call product_matrix_vector (2*Nmax, 2*Nmax, b, 2*Nrank, 2*Nrank, c, c1)
       call extend_vector_negative (c1, cc, m, Nrank, Nmax, Nmaxmax)     
     end if
-    call DSCS (cc, Mrank, Nrank, Nmaxmax, Nteta, phiGS, alfa, beta, gama, k, snorm, &
-        .false.,.true., h, v)
-    call delta_DSCS (Nteta, h, v, oldh, oldv, epsMrank, NthetaConv)     
-    call write_DSCS (Nteta,.false., h, v)
-    if (NthetaConv >= int(0.8*Nteta)) exit 
+!    call DSCS (cc, Mrank, Nrank, Nmaxmax, Nteta, phiGS, alfa, beta, gama, k, snorm, &
+!        .false.,.true., h, v)
+!    call delta_DSCS (Nteta, h, v, oldh, oldv, epsMrank, NthetaConv)     
+!    call write_DSCS (Nteta,.false., h, v)
+!    if (NthetaConv >= int(0.8*Nteta)) exit 
   end do
-  close (unit = iTmat) 
-  call CQscat (cc, Mrank, Nrank, Nmaxmax, k, snorm, Cscat, Qscat)
-  call CQext (cc, Mrank, Nrank, Nmaxmax, tetaGI, phiGI, alfa, beta, gama,           &
-       alfap, k, snorm, Cext, Qext)
-  call write_Effic (Qscat, Qext)
-  call write_MrankConvRes (NthetaConv, epsMrank)
-  if (NthetaConv >= int(0.8*Nteta)) then
-    print "(/,2x,'Convergence criterion for Mrank is satisfied;')"                                              
-  else
-    print "(/,2x,'Convergence criterion for Mrank is not satisfied;')"
-  end if
-  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .true., .false., chiral)
-  call ScatCharact (k, FileTmat, Mrank, Nrank, .true., .false., chiral)
-  print "(/,2x,'T matrix is stored in ',a50)", FileTmat
+!  close (unit = iTmat) 
+!  call CQscat (cc, Mrank, Nrank, Nmaxmax, k, snorm, Cscat, Qscat)
+!  call CQext (cc, Mrank, Nrank, Nmaxmax, tetaGI, phiGI, alfa, beta, gama,           &
+!       alfap, k, snorm, Cext, Qext)
+!  call write_Effic (Qscat, Qext)
+!  call write_MrankConvRes (NthetaConv, epsMrank)
+!  if (NthetaConv >= int(0.8*Nteta)) then
+!    print "(/,2x,'Convergence criterion for Mrank is satisfied;')"                                              
+!  else
+!    print "(/,2x,'Convergence criterion for Mrank is not satisfied;')"
+!  end if
+!  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .true., .false., chiral)
+!  call ScatCharact (k, FileTmat, Mrank, Nrank, .true., .false., chiral)
+!  print "(/,2x,'T matrix is stored in ',a50)", FileTmat
   print "(  2x,'The dimensions of the T matrix are given by:')"      
   print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrank
   print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank                     
-  deallocate (a, b, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
+  deallocate (a, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine convergence_MrankAXSYM
 !***********************************************************************************
 subroutine convergence_NintDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,   &
@@ -2018,7 +2064,7 @@ end subroutine convergence_NrankDSAXSYM
 !***********************************************************************************
 subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,  &
            surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint, miror,         &
-           perfectcond, DS, chiral, kb, epsMrank, dNintMrank, FileTmat, PrnProgress)            
+           perfectcond, DS, chiral, kb, epsMrank, dNintMrank, FileTmat, PrnProgress,Nmaxmax,btot)            
   use parameters
   implicit none   
   integer       :: TypeGeom, Nsurf, Nface, Nparam, Nrank, Nint, dNintMrank
@@ -2034,7 +2080,9 @@ subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsur
   logical       :: ComplexPlane
   integer,allocatable    :: Nintparam(:)
   real(O),allocatable    :: paramG(:,:), weightsG(:,:), h(:), v(:), oldh(:), oldv(:)
-  complex(O),allocatable :: a(:,:), b(:,:), c(:), c1(:), cc(:)
+  complex(O),allocatable :: a(:,:),  c(:), c1(:), cc(:)
+  complex(O)    :: btot(2*Nmaxmax,2*Nmaxmax)
+  complex(O)    :: b(2*Nrank,2*Nrank)
 !
   tetaGI = 0._O
   phiGI  = 0._O
@@ -2046,11 +2094,11 @@ subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsur
   alfap  = Pi / 4._O
   Mstart = 0
   Mrank  = Nrank      
-  open (unit = iTmat, file = FileTmat, status = 'replace') 
-  call write_HeadFileTmat (Nrank, Nrank) 
-  call write_TypeConvHead (3)
-  call write_2ConvParamAxsym (Nint, Nrank)
-  allocate (a(2*Nrank,2*Nrank), b(2*Nrank,2*Nrank), c(2*Nrank), c1(2*Nrank))
+!  open (unit = iTmat, file = FileTmat, status = 'replace') 
+!  call write_HeadFileTmat (Nrank, Nrank) 
+!  call write_TypeConvHead (3)
+!  call write_2ConvParamAxsym (Nint, Nrank)
+  allocate (a(2*Nrank,2*Nrank), c(2*Nrank), c1(2*Nrank))
   Nmaxmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
   allocate (cc(2*Nmaxmax))
   allocate (h(Nteta), v(Nteta), oldh(Nteta), oldv(Nteta))
@@ -2113,7 +2161,8 @@ subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsur
     call product_matrices (2*Nmax, 2*Nrank, 2*Nmax, a, 2*Nrank, 2*Nrank, b, 2*Nrank,&
          2*Nrank)   
     if (PrnProgress) call write_progress_m (.false., m, 5, Nprog)
-    call write_FileTmat (Nrank, Nrank, a)
+!    call write_FileTmat (Nrank, Nrank, a)
+    call appendtotmat (a,btot,m,Nrank,Nmax,Nmaxmax)
     call PWcoefficients_ab_m (tetaGI, phiGI, alfa, beta, gama, alfap, m, Nrank,     &
          Nmax, c)           
     call product_matrix_vector (2*Nmax, 2*Nmax, a, 2*Nrank, 2*Nrank, c, c1)
@@ -2139,35 +2188,352 @@ subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsur
         call product_matrices (2*Nmax, 2*Nrank, 2*Nmax, a, 2*Nrank, 2*Nrank,        &
              b, 2*Nrank, 2*Nrank)               
         if (PrnProgress) call write_progress_m (.false., m, 9, Nprog)
-        call write_FileTmat (Nrank, Nrank, a)   
+!        call write_FileTmat (Nrank, Nrank, a)  
+        call appendtotmat (a,btot,-m,Nrank,Nmax,Nmaxmax)
       end if
       call PWcoefficients_ab_m (tetaGI, phiGI, alfa, beta, gama, alfap, -m, Nrank,  &
            Nmax, c)
       call product_matrix_vector (2*Nmax, 2*Nmax, a, 2*Nrank, 2*Nrank, c, c1)
       call extend_vector_negative (c1, cc, m, Nrank, Nmax, Nmaxmax)
     end if
-    call DSCS (cc, Mrank, Nrank, Nmaxmax, Nteta, phiGS, alfa, beta, gama, k, snorm, &
-        .false.,.true., h, v)
-    call delta_DSCS (Nteta, h, v, oldh, oldv, epsMrank, NthetaConv)     
-    call write_DSCS (Nteta,.false., h, v)
-    if (NthetaConv >= int(0.8*Nteta)) exit 
+ !   call DSCS (cc, Mrank, Nrank, Nmaxmax, Nteta, phiGS, alfa, beta, gama, k, snorm, &
+ !       .false.,.true., h, v)
+ !   call delta_DSCS (Nteta, h, v, oldh, oldv, epsMrank, NthetaConv)     
+ !   call write_DSCS (Nteta,.false., h, v)
+ !   if (NthetaConv >= int(0.8*Nteta)) exit 
   end do
-  close (unit = iTmat)
-  call CQscat (cc, Mrank, Nrank, Nmaxmax, k, snorm, Cscat, Qscat)
-  call CQext (cc, Mrank, Nrank, Nmaxmax, tetaGI, phiGI, alfa, beta, gama,           &
-       alfap, k, snorm, Cext, Qext)
-  call write_Effic (Qscat, Qext)
-  call write_MrankConvRes (NthetaConv, epsMrank)
-  if (NthetaConv >= int(0.8*Nteta)) then
-    print "(/,2x,'Convergence criterion for Mrank is satisfied;')"                                   
-  else
-    print "(/,2x,'Convergence criterion for Mrank is not satisfied;')"
-  end if
-  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .true., .false., chiral)     
-  call ScatCharact (k, FileTmat, Mrank, Nrank, .true., .false., chiral) 
-  print "(/,2x,'T matrix is stored in ',a50)", FileTmat
+!  close (unit = iTmat)
+!  call CQscat (cc, Mrank, Nrank, Nmaxmax, k, snorm, Cscat, Qscat)
+!  call CQext (cc, Mrank, Nrank, Nmaxmax, tetaGI, phiGI, alfa, beta, gama,           &
+!       alfap, k, snorm, Cext, Qext)
+!  call write_Effic (Qscat, Qext)
+!  call write_MrankConvRes (NthetaConv, epsMrank)
+!  if (NthetaConv >= int(0.8*Nteta)) then
+!    print "(/,2x,'Convergence criterion for Mrank is satisfied;')"                                   
+!  else
+!    print "(/,2x,'Convergence criterion for Mrank is not satisfied;')"
+!  end if
+!  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .true., .false., chiral)     
+!  call ScatCharact (k, FileTmat, Mrank, Nrank, .true., .false., chiral) 
+!  print "(/,2x,'T matrix is stored in ',a50)", FileTmat
   print "(  2x,'The dimensions of the T matrix are given by:')"
   print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrank 
   print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank             
-  deallocate (a, b, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
+  deallocate (a, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine convergence_MrankDSAXSYM
+subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,              &
+           chiral, kb, FileGeom, TypeGeom, FileFEM, Nsurf, surf, Nparam, anorm,     &
+           Rcirc, miror, DoConvTest, MishConvTest, DS, autGenDS, ComplexPlane,      &
+           epsZReIm, Nint, Nrank, epsNint, epsNrank, epsMrank, dNint, dNintMrank,   &
+           FileTmat, PrnProgress, Nface,Nmaxmax,b) 
+  use parameters 
+  use derived_parameters  
+  implicit none 
+  integer       :: TypeGeom, Nsurf, Nparam, TypeConvTest, dNint, Nrank, Nint,       &
+                   Nrank1, dNintMrank, Ndgs, NrankMax, NrankW, Nface, i, j, Mrank,   &
+                   Nmaxmax
+  real(O)       :: k, ind_refMed, wavelength, anorm, surf(NsurfPD), snorm,          &
+                   kb, epsNint, epsNrank, epsMrank, zRe(NrankPD), zIm(NrankPD),     &
+                   zRe1(NrankPD), zIm1(NrankPD), Rcirc, x, delta, Cscat1, Cext1,    &
+                   epsZReIm, rp(2,NfacePD), np(2,NfacePD), area(NfacePD)                          
+  complex(O)    :: ind_refRel
+  logical       :: FileGeom, miror, perfectcond, DoConvTest, DS, chiral, autGenDS,  &
+                   ComplexPlane, MishConvTest, PrnProgress
+  character(80) :: FileTmat, FileFEM
+  complex(O), intent(out)    :: b(2*Nmaxmax,2*Nmaxmax)
+  !f2py real(O) :: wavelength  = 1
+  !f2py real(O) :: ind_refMed = 1                                                                 
+  !f2py complex(O) :: ind_refRel = (1.5,0) 
+  !f2py real(O) :: epsNint  = 5.e-2
+  !f2py real(O) :: epsNrank = 5.e-2
+  !f2py real(O) :: epsMrank = 5.e-2
+  !f2py integer :: dNint    = 4
+  !f2py integer :: dNintMrank = 10
+  !f2py character(80) :: FileTmat = '../TMATFILES/T.dat'
+  !f2py logical :: PrnProgress = 1 
+  !f2py logical :: perfectcond = 0  
+  !f2py logical :: chiral = 0
+  !f2py real(O) :: kb     = 0 
+  !f2py logical :: FileGeom = 0
+  !f2py character(80) :: FileFEM  = ' '  
+  !f2py integer :: TypeGeom = 1  
+  !f2py integer :: Nsurf    = 2
+  !f2py integer :: Nparam = 1
+  !f2py real(O) :: anorm  = 1
+  !f2py real(O) :: Rcirc  = 1 
+  !f2py logical :: miror  = 0
+  !f2py integer :: Nface = 1
+  !f2py logical :: DoConvTest   = 0
+  !f2py logical :: MishConvTest = 0
+  !f2py logical :: ComplexPlane = 1
+  !f2py real(O) :: epsZReIm = 0.95 
+  !f2py integer :: Nint   = 100
+  !f2py integer :: Nrank  =  17
+  !f2py logical :: DS = 0
+  !f2py logical :: autGenDS = 1 
+!************************************************************************************
+!  Nmaxmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
+  integer       :: ios                     
+  real(O)       :: xpart,dp 
+  logical       :: InputDS, XFindPar      
+! -----------------------------------------------------------------------------------
+!                        Read the input file FileInputAXSYM                         ! 
+! -----------------------------------------------------------------------------------    
+  call DrvParameters   
+  call check_ind_ref (ind_refRel)
+  k = 2._O * Pi * ind_refMed / wavelength 
+!       
+  call check_MatPropAXSYM (perfectcond, chiral, kb)   
+  if (chiral) call check_chirality (kb)
+
+!                          
+  call check_geomAXSYM (TypeGeom, Nsurf, Nparam)
+  call check_geomAXSYMOblate (TypeGeom, Nsurf, surf)  
+  call check_anorm (anorm)
+  xpart = k * anorm
+  snorm = Pi * xpart * xpart 
+  do i = 1, NfacePD
+    do j = 1, 2
+      rp(j,i) = 0._O
+      np(j,i) = 0._O
+    end do
+    area(i) = 0._O
+  end do  
+  if (FileGeom) then    
+    call read_FileFEMAxsym (FileFEM, Nface, rp, np, area)     
+    Rcirc = 0._O    
+    do i = 1, Nface
+      dp = sqrt(rp(1,i)**2 + rp(2,i)**2)
+      if (dp > Rcirc) Rcirc = dp
+    end do    
+  end if          
+! 
+  if (chiral)   MishConvTest = .false.     
+  if (FileGeom) MishConvTest = .false.  
+!    
+  call check_inputAXSYM (miror, chiral, DS)
+  if (FileGeom) autGenDS = .false.  
+  InputDS = .false.
+  if (DS .and. .not. autGenDS) InputDS = .true. 
+  do i = 1, NrankPD
+    zRe(i)  = 0._O
+    zIm(i)  = 0._O
+    zRe1(i) = 0._O
+    zIm1(i) = 0._O
+  end do                 
+! -----------------------------------------------------------------------------------
+!         Select the type of convergence test and the values of Nint and Nrank      !
+! -----------------------------------------------------------------------------------
+  x = k * Rcirc
+  NrankW = int(x + 4.05_O * x**0.33_O + 2._O)
+  if (.not. DS) then
+    if (DoConvTest) then                      
+      if (MishConvTest) then                         
+        print "(/,2x, a)",                                                          &
+       'Estimates of Nint and Nrank Using Mishchenko''s Convergence Procedure' 
+        print "(  2x, a)",                                                          &
+       '---------------------------------------------------------------------'                                         
+        call estimateNrankMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,         &
+             zRe, zIm, Nparam, miror, perfectcond, DS, ComplexPlane,                &
+             epsZReIm, x, delta, Ndgs, Nint, Nrank, NrankMax, Cscat1, Cext1)
+        call estimateNintMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,          &
+             zRe, zIm, Nparam, miror, perfectcond, DS, x, delta, Ndgs, Nint,        &
+             dNint, Nrank, NrankMax, Cscat1, Cext1)
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+        print "(  2x,'---------------------------------------------')"	       
+        print "(/,2x,'- enter the estimated values of Nint and Nrank;')"            
+        call read_integer2 (Nint, Nrank)                                
+      else 
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+        print "(  2x,'---------------------------------------------')"             
+        print "(/,2x,'Nrank estimate:')"                                                            
+        print "(  2x, a, i3, a)",                                                   &  
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';'
+        if (.not. FileGeom) then
+          print "(/,2x, a)",                                                        &
+         '- enter the estimated values of Nint and Nrank, where Nint = Ndgs * Nrank'
+          print "(  2x,'  and Ndgs = 3,4,...;')"
+          call read_integer2 (Nint, Nrank)                                                                      
+        else
+          print "(/,2x,'- enter the estimated value of Nrank;')"              
+          call read_integer (Nrank)     
+        end if  
+      end if
+      if (.not. FileGeom) then        
+        print "(/,2x, a)",                                                          &
+       '- enter the type of convergence test: 1 - Nint, 2 - Nrank, 3 - Mrank;' 
+        call read_integerbound (TypeConvTest, 1, 3)
+      else
+        print "(/,2x,'- enter the type of convergence test: 2 - Nrank, 3 - Mrank;')"
+        call read_integerbound (TypeConvTest, 2, 3)
+      end if
+    else
+      print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+      print "(  2x,'--------------------------------------------------------')"
+      print "(/,2x,'Input values:')"
+      if (.not. FileGeom) then
+        print "(  2x, a, i4, a, i4, a)",                                            & 
+       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
+       ', respectively,'  
+        print "(  2x, a, i3, a)",                                                   &
+       'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'
+      else
+        print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+        print "(  2x, a, i3, a)",                                                   &
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+      end if                                                                          
+      TypeConvTest = 3      
+    end if
+    Nrank1 = Nrank - 1 ! redundant            
+  else
+    if (autGenDS) then
+      if (DoConvTest) then                        
+        if (MishConvTest) then           
+          print "(/,2x, a)",                                                        &
+         'Estimates of Nint and Nrank Using Mishchenko''s Convergence Procedure'
+          print "(  2x, a)",                                                        &
+         '---------------------------------------------------------------------'	  	 	 	                    
+          call estimateNrankMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,       &
+               zRe, zIm, Nparam, miror, perfectcond, DS, ComplexPlane,              &
+               epsZReIm, x, delta, Ndgs, Nint, Nrank, NrankMax, Cscat1, Cext1)
+          call estimateNintMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,        &
+               zRe, zIm, Nparam, miror, perfectcond, DS, x, delta, Ndgs, Nint,      &
+               dNint, Nrank, NrankMax, Cscat1, Cext1)   
+          print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+          print "(  2x,'---------------------------------------------')"	       
+          print "(/,2x,'- enter the estimated values of Nint and Nrank;')"           
+          call read_integer2 (Nint, Nrank)                               
+        else
+          print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+          print "(  2x,'---------------------------------------------')"	
+          print "(/,2x,'Nrank estimate:')"                                                                
+          print "(  2x, a, i3, a)",                                                 &
+         'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';'
+          print "(/,2x, a)",                                                        &
+         '- enter the estimated values of Nint and Nrank, where Nint = Ndgs * Nrank'
+          print "(  2x,'  and Ndgs = 5,6,...;')"
+          call read_integer2 (Nint, Nrank)                                                                                 
+        end if      
+        call check_MaxNrank (Nrank)             
+        call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank, ComplexPlane, epsZReIm, zRe, zIm)     
+        print "(/,2x, a)",                                                          &
+       '- enter the type of convergence test: 1 - Nint, 2 - Nrank, 3 - Mrank;'
+        call read_integerbound (TypeConvTest, 1, 3)
+        if (TypeConvTest == 2) then
+          Nrank1 = Nrank - 1
+          call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank1, ComplexPlane, epsZReIm,     &
+               zRe1, zIm1)         
+        end if
+      else
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+        print "(  2x,'--------------------------------------------------------')"
+        print "(/,2x,'Input values:')"
+        print "(  2x, a, i4, a, i4, a)",                                            &
+       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
+       ', respectively,' 
+        print "(  2x, a, i3, a)",                                                   &
+       'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'         
+        call check_MaxNrank (Nrank)
+        call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank, ComplexPlane, epsZReIm, zRe, zIm) 
+        TypeConvTest = 3    
+      end if
+      Nrank1 = Nrank - 1 ! redundant  
+    else 
+      if (DoConvTest) then      
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+        print "(  2x,'---------------------------------------------')"
+        print "(/,2x,'Input values:')"
+        print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+        print "(  2x, a, i3, a)",                                                   &
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';'
+        if (.not. FileGeom) then                                            
+          print "(/,2x, a)",                                                        &
+         '- enter the estimated value of Nint, where Nint = Ndgs * Nrank'
+          print "(  2x,'  and Ndgs = 5,6,...;')"
+          call read_integer (Nint) 
+          print "(/,2x, a)",                                                        &
+         '- enter the type of convergence test: 1 - Nint, 2 - Nrank, 3 - Mrank;'
+          call read_integerbound (TypeConvTest, 1, 3)
+        else
+          print "(/,2x,'- enter the type of convergence test: 2 - Nrank, 3 - Mrank;')"
+          call read_integerbound (TypeConvTest, 2, 3)
+        end if
+        if (TypeConvTest == 2) Nrank1 = Nrank - 1
+      else
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+        print "(  2x,'--------------------------------------------------------')" 
+        print "(/,2x,'Input values:')" 
+        if (.not. FileGeom) then                  
+          print "(  2x, a, i4, a, i4, a)",                                          &
+         'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,           &
+         ', respectively,' 
+          print "(  2x, a, i3, a)",                                                 &
+         'while the estimated value of Nrank from Wiscombe''s criterion is ',       &
+          NrankW,';' 
+        else
+          print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+          print "(  2x, a, i3, a)",                                                 &
+         'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+        end if
+        TypeConvTest = 3              
+      end if
+      Nrank1 = Nrank - 1 ! redundant          
+    end if
+  end if                                                                            
+! -----------------------------------------------------------------------------------
+!                               Convergence test                                    !
+! -----------------------------------------------------------------------------------
+!  open (unit = iOutput, file = FileOutput, status = "replace") 
+!  call printinputAXSYM (TypeConvTest, FileGeom, TypeGeom, FileFEM, Nsurf, Nparam,   &
+!       Nrank, Nrank1, dNint, dNintMrank, ind_refMed, wavelength, anorm, Rcirc,      &
+!       surf, kb, epsNint, epsNrank, epsMrank, zRe, zIm, zRe1, zIm1, ind_refRel,     &
+!       miror, perfectcond, DS, chiral, autGenDS)                     
+  if (DoConvTest) then              
+    if (TypeConvTest == 1) then
+      if (.not. DS) then                  
+        call convergence_NintAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,       &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             dNint, miror, perfectcond, DS, chiral, kb, epsNint, PrnProgress)
+      else 
+        call convergence_NintDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,     &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             dNint, miror, perfectcond, DS, chiral, kb, epsNint, PrnProgress)
+      end if
+    else if (TypeConvTest == 2) then
+      if (.not. DS) then        
+        call convergence_NrankAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,      &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             miror, perfectcond, DS, chiral, kb, epsNrank, PrnProgress)
+      else      
+        call convergence_NrankDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,    &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, zRe1, zIm1, Nparam, Nrank, &
+             Nrank1, Nint, miror, perfectcond, DS, chiral, kb, epsNrank,            &
+             PrnProgress)
+      end if
+    else 
+      if (.not. DS) then    
+        call convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,    &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             miror, perfectcond, DS, chiral, kb, epsMrank, FileTmat, PrnProgress,   &
+             Nmaxmax,b)
+      else 
+        call convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,    &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             miror, perfectcond, DS, chiral, kb, epsMrank, dNintMrank, FileTmat,    &
+             PrnProgress,Nmaxmax,b)
+      end if
+    end if  
+  else      
+    if (.not. DS) then    
+      call convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm, Nsurf, &
+           surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,                &
+             miror, perfectcond, DS, chiral, kb, epsMrank, FileTmat, PrnProgress,   &
+             Nmaxmax,b)
+    else          
+      call convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,      &
+           Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint, miror,  &
+           perfectcond, DS, chiral, kb, epsMrank, dNintMrank, FileTmat, PrnProgress,&
+           Nmaxmax,b)
+    end if  
+  end if 
+end subroutine TAXSYM

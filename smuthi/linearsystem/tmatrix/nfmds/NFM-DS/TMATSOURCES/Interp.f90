@@ -84,21 +84,8 @@ subroutine readinputInterp ( TypeInterp )
   character(80) :: string
   logical       :: XFindPar
 !
-  open (unit = iInput, file = FileInput, status = "old", position = "rewind")  
   TypeInterp = 'LINEAR'  
-  string     = 'Interpolation'
-  if (XFindPar (iInput, string)) then
-    read (iInput, *, iostat = ios) TypeInterp
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypeInterp;')"
-      stop
-    end if
-  else
-    print "(/,2x,'Group name Interpolation not found;')"
-    stop  
-  end if  
-  call check_Interpolation (TypeInterp) 
-  close (unit = iInput)   
+  string     = 'Interpolation' 
 end subroutine readinputInterp   
 ! ************************************************************************************
 ! *                           LINEAR INTERPOLATION ROUTINE                           *

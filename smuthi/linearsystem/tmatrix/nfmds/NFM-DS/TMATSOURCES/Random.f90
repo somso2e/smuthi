@@ -67,21 +67,9 @@ subroutine readinputRND ( TypeRND )
   character(80) :: string
   logical       :: XFindPar
 !
-  open (unit = iInput, file = FileInput, status = "old", position = "rewind")  
   TypeRND = 'SLAT'
   string  = 'RandomNumbers'
-  if (XFindPar (iInput, string)) then
-    read (iInput, *, iostat = ios) TypeRND
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypeRND;')"
-      stop
-    end if
-  else
-    print "(/,2x,'Group name TypeRND not found;')"
-    stop  
-  end if  
-  call check_Random (TypeRND)   
-  close (unit = iInput)   
+  call check_Random (TypeRND) 
 end subroutine readinputRND   
 ! **********************************************************************************
 subroutine SeqAddMet (TypeRND, Ntry, Npart, Rcirc, r, x, y, z)

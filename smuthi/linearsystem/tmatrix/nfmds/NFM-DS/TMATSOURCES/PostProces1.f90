@@ -1074,7 +1074,7 @@ subroutine DSCS_SCAT (ComputeDSCS, ComputeScatPar, ComputeAsymPar, axsym, sphere
 ! scattered field are computed for linearly polarized waves (vector plane waves and ! 
 ! Gaussian beams propagating in the direction (thetaGI,phiGI)). The calculations    !
 ! are performed for incident parallel and perpendicular polarizations, that is for  !
-! alphap = 0° and alphap = 90°. The code also determines the differential           !
+! alphap = 0Â° and alphap = 90Â°. The code also determines the differential           !
 ! scattering cross sections at a set of NthetaGS scattering angles in the azimuthal !
 ! plane phiAZIMUT. The calculations are performed for elliptically polarized plane  !
 ! waves and linearly polarized Gaussian beams. For a plane wave incidence, the      !
@@ -2574,8 +2574,29 @@ subroutine delta_DSCSPARTSUB (m, Ntheta, h, v, oldh, oldv, eps, nconv)
     print "(  2x,'of the DSCS is smaller than the machine precision;')"  
     if (sconv == Ntheta - 2) nconv = 0    
   end if                      
-end subroutine delta_DSCSPARTSUB         
+end subroutine delta_DSCSPARTSUB  
+subroutine read_HeadFileKC(FileTmat, ntg, mtg)
+  use parameters
+  implicit none
+  character(80), intent(in) :: FileTmat
+  integer, intent(out)       :: ntg, mtg
 
+  open (unit = iTmat, file = FileTmat, status = 'unknown')
+  call read_HeadFileTmat (ntg, mtg)
+  close (unit = iTmat)
+end subroutine  read_HeadFileKC
+subroutine read_filetmatKC(FileTmat, ntg, mtg,T)
+  use parameters
+  implicit none
+  character(80), intent(in) :: FileTmat
+  integer, intent(in)       :: ntg, mtg
+  complex(O), intent(out)   :: T(2*ntg,2*mtg)
+
+  open (unit = iTmat, file = FileTmat, status = 'unknown')
+  call read_HeadFileTmat (ntg, mtg)
+  call read_FileTmat (ntg, mtg, T)
+  close (unit = iTmat)  
+end subroutine  read_filetmatKC   
 
 
 

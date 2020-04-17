@@ -94,7 +94,7 @@ subroutine TAXSYM
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a vector plane wave     !
 ! traveling along the Z-axis of the global coordinate system and the scattering     !
-! characteristics are computed in the azimuthal plane phi = 0°. The convergence     !
+! characteristics are computed in the azimuthal plane phi = 0Â°. The convergence     !
 ! tests over Nint and Nrank are interactive, while the convergence test over Mrank  !
 ! is automatically performed.                                                       ! 
 !                                                                                   !
@@ -109,7 +109,7 @@ subroutine TAXSYM
 ! for m = - 1 and m = 1. For the convergence test over Nint the scattering problem  !
 ! is solved for Nint and Nint + dNint, while for the convergence test over Nrank    !
 ! the scattering problem is solved for Nrank and Nrank - 1. The normalized          !
-! differential scattering cross section (DSCS) will be checked at 20° increments    !
+! differential scattering cross section (DSCS) will be checked at 20Â° increments    !
 ! for convergence within epsX (epsNint or epsNrank) tolerance. If the calculated    !
 ! results converge within this tolerance at 80% of the scattering angles, then      !
 ! convergence is achieved. At each calculation, the extinction and scattering       !
@@ -124,7 +124,7 @@ subroutine TAXSYM
 !                                                                                   ! 
 ! After Nrank and Nint have been determined we pass to the azimuthal order test.    !
 ! The program automatically sets the particle to a more general orientation, i.e.,  !
-! alpha = beta = 45°, and solves the scattering problem  for increasing m values    !
+! alpha = beta = 45Â°, and solves the scattering problem  for increasing m values    !
 ! until convergence of the angular scattering is achieved. The T matrix is stored   !
 ! for later use by other programs, and the values of Nrank and Mrank are printed to !
 ! the screen and to the T-matrix information file (see "Description.txt"). These    !
@@ -841,358 +841,7 @@ subroutine TAXSYM
     end if  
   end if 
   close (unit = iOutput)
-end subroutine TAXSYM
-!************************************************************************************
-subroutine readinputAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,        &
-           chiral, kb, FileGeom, TypeGeom, FileFEM, Nsurf, surf, Nparam, anorm,     &
-           Rcirc, miror, DoConvTest, MishConvTest, DS, autGenDS, ComplexPlane,      &
-           epsZReIm, Nint, Nrank, zRe, zIm, zRe1, zIm1, epsNint, epsNrank,          &
-           epsMrank, dNint, dNintMrank, FileTmat, PrnProgress, k, snorm, Nface,     &
-           rp, np, area )
-  use parameters
-  use derived_parameters
-  implicit none 
-  integer       :: TypeGeom, Nsurf, Nparam, dNint, Nrank, Nint, i, dNintMrank, ios, &
-                   Nface, j                     
-  real(O)       :: k, ind_refMed, wavelength, anorm, surf(NsurfPD), xpart, snorm,   &
-                   kb, epsNint, epsNrank, epsMrank, zRe(NrankPD), zIm(NrankPD),     &
-                   zRe1(NrankPD), zIm1(NrankPD), Rcirc, epsZReIm, rp(2,NfacePD),    &
-                   np(2,NfacePD), area(NfacePD), dp                          
-  complex(O)    :: ind_refRel
-  logical       :: FileGeom, miror, perfectcond, DoConvTest, DS, chiral, autGenDS,  &
-                   ComplexPlane, InputDS, MishConvTest, PrnProgress, XFindPar
-  character(80) :: FileTmat, FileFEM, string       
-! -----------------------------------------------------------------------------------
-!                        Read the input file FileInputAXSYM                         ! 
-! -----------------------------------------------------------------------------------    
-  call DrvParameters  
-  open (unit = iInputAXSYM, file = FileInputAXSYM, status = "old",                  &
-        position = "rewind")   
-  wavelength = 0.1_O * 2._O * Pi  
-  ind_refMed = 1._O                                                                 
-  ind_refRel = (1.5_O,0._O) 
-  string     = 'OptProp'    
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) wavelength
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable wavelength;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) ind_refMed
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable ind_refMed;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) ind_refRel
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable ind_refRel;')"
-      stop
-    end if      
-  else
-    print "(/,2x,'Group name OptProp not found;')"
-    stop  
-  end if
-  call check_ind_ref (ind_refRel)
-  k = 2._O * Pi * ind_refMed / wavelength 
-!
-  perfectcond = .false.  
-  chiral = .false.
-  kb     = 0._O  
-  string = 'MatProp'
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) perfectcond
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable perfectcond;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) chiral
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable chiral;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) kb
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable kb;')"
-      stop
-    end if      
-  else
-    print "(/,2x,'Group name MatProp not found;')"
-    stop  
-  end if      
-  call check_MatPropAXSYM (perfectcond, chiral, kb)   
-  if (chiral) call check_chirality (kb)
-!
-  FileGeom = .false.
-  FileFEM  = ' '  
-  TypeGeom = 1  
-  Nsurf    = 2
-  do i = 1, NsurfPD
-    surf(i)= 1._O
-  end do
-  Nparam = 1
-  anorm  = 1._O
-  Rcirc  = 1._O 
-  miror  = .false.
-  string = 'GeomProp'
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) FileGeom
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable FileGeom;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) FileFEM
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable FileFEM;')"
-      stop
-    end if       
-    read (iInputAXSYM, *, iostat = ios) TypeGeom
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypeGeom;')"
-      stop
-    end if       
-    read (iInputAXSYM, *, iostat = ios) Nsurf
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable Nsurf;')"
-      stop
-    end if
-    if (Nsurf > NsurfPD) then
-      print "(/,2x,'Input error: Nsurf exceeds NsurfPD;')"                                    
-      stop
-    end if            
-    do i = 1, Nsurf
-      read (iInputAXSYM, *, iostat = ios) surf(i)
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable surf;')"
-        stop
-      end if
-    end do    
-    read (iInputAXSYM, *, iostat = ios) Nparam
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable Nparam;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) anorm
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable anorm;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) Rcirc
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable Rcirc;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) miror
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable miror;')"
-      stop
-    end if                                                
-  else
-    print "(/,2x,'Group name GeomProp not found;')"
-    stop  
-  end if                          
-  call check_geomAXSYM (TypeGeom, Nsurf, Nparam)
-  call check_geomAXSYMOblate (TypeGeom, Nsurf, surf)  
-  call check_anorm (anorm)
-  xpart = k * anorm
-  snorm = Pi * xpart * xpart 
-  Nface = 1
-  do i = 1, NfacePD
-    do j = 1, 2
-      rp(j,i) = 0._O
-      np(j,i) = 0._O
-    end do
-    area(i) = 0._O
-  end do   
-  if (FileGeom) then    
-    call read_FileFEMAxsym (FileFEM, Nface, rp, np, area)     
-    Rcirc = 0._O    
-    do i = 1, Nface
-      dp = sqrt(rp(1,i)**2 + rp(2,i)**2)
-      if (dp > Rcirc) Rcirc = dp
-    end do    
-  end if          
-!
-  DoConvTest   = .true.
-  MishConvTest = .true.
-  string       = 'ConvTest'
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) DoConvTest
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable DoConvTest;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) MishConvTest
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable MishConvTest;')"
-      stop
-    end if         
-  else
-    print "(/,2x,'Group name ConvTest not found;')"
-    stop  
-  end if   
-  if (chiral)   MishConvTest = .false.     
-  if (FileGeom) MishConvTest = .false.  
-!
-  DS = .false.
-  autGenDS = .true.
-  string   = 'Sources'
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) DS
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable DS;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) autGenDS
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable autGenDS;')"
-      stop
-    end if         
-  else
-    print "(/,2x,'Group name Sources not found;')"
-    stop  
-  end if          
-  call check_inputAXSYM (miror, chiral, DS)
-  if (FileGeom) autGenDS = .false.  
-  InputDS = .false.
-  if (DS .and. .not. autGenDS) InputDS = .true. 
-!
-  ComplexPlane = .false.
-  epsZReIm = 0.95_O 
-  if (DS .and. autGenDS) then
-    string = 'SourcePosAut'
-    if (XFindPar (iInputAXSYM, string)) then
-      read (iInputAXSYM, *, iostat = ios) ComplexPlane
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable ComplexPlane;')"
-        stop
-      end if
-      read (iInputAXSYM, *, iostat = ios) epsZReIm
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable epsZReIm;')"
-        stop
-      end if         
-    else
-      print "(/,2x,'Group name SourcePosAut not found;')"
-      stop  
-    end if              
-  end if
-!
-  Nint   = 100
-  Nrank  =  17 
-  if (.not. DoConvTest .or. InputDS) then       
-    string = 'NintNrank'
-    if (XFindPar (iInputAXSYM, string)) then
-      read (iInputAXSYM, *, iostat = ios) Nint
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable Nint;')"
-        stop
-      end if
-      read (iInputAXSYM, *, iostat = ios) Nrank
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable Nrank;')"
-        stop
-      end if         
-    else
-      print "(/,2x,'Group name NintNrank not found;')"
-      stop  
-    end if                              
-  end if    
-!
-  do i = 1, NrankPD
-    zRe(i)  = 0._O
-    zIm(i)  = 0._O
-    zRe1(i) = 0._O
-    zIm1(i) = 0._O
-  end do
-  if (InputDS) then   
-    call check_MaxNrank (Nrank) 
-    string = 'SourcePosInp'
-    if (XFindPar (iInputAXSYM, string)) then
-      do i = 1, Nrank
-        read (iInputAXSYM, *, iostat = ios) zRe(i), zIm(i)
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variables zRe and zIm;')"
-          stop
-        end if
-      end do      
-      read (iInputAXSYM, *)
-      do i = 1, Nrank - 1
-        read (iInputAXSYM, *, iostat = ios) zRe1(i), zIm1(i)
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variables zRe1 and zIm1;')"
-          stop
-        end if
-      end do
-    else
-      print "(/,2x,'Group name SourcePosInp not found;')"
-      stop  
-    end if                       
-  end if         
-!
-  epsNint  = 5.e-2_O
-  epsNrank = 5.e-2_O
-  epsMrank = 5.e-2_O
-  dNint    = 4
-  dNintMrank = 10
-  string   = 'Errors'
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) epsNint
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsNint;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) epsNrank
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsNrank;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) epsMrank
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsMrank;')"
-      stop
-    end if 
-    read (iInputAXSYM, *, iostat = ios) dNint
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable dNint;')"
-      stop
-    end if
-    read (iInputAXSYM, *, iostat = ios) dNintMrank
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable dNintMrank;')"
-      stop
-    end if         
-  else
-    print "(/,2x,'Group name Errors not found;')"
-    stop  
-  end if
-!
-  FileTmat = '../TMATFILES/T.dat'
-  string   = 'Tmat' 
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) FileTmat
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable FileTmat;')"
-      stop
-    end if             
-  else
-    print "(/,2x,'Group name Tmat not found;')"
-    stop  
-  end if   
-!
-  PrnProgress = .true.
-  string   = 'PrintProgress' 
-  if (XFindPar (iInputAXSYM, string)) then
-    read (iInputAXSYM, *, iostat = ios) PrnProgress
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable PrnProgress;')"
-      stop
-    end if             
-  else
-    print "(/,2x,'Group name PrintProgress not found;')"
-    stop  
-  end if       
-  close (unit = iInputAXSYM) 
-end subroutine readinputAXSYM   
+end subroutine TAXSYM 
 !************************************************************************************
 subroutine printinputAXSYM (ic, FileGeom, TypeGeom, FileFEM, Nsurf, Nparam, Nrank,  &
            Nrank1, dNint, dNintMrank,ind_refMed, wavelength, anorm, Rcirc, surf,    &
@@ -2131,3 +1780,315 @@ subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsur
   print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank             
   deallocate (a, b, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine convergence_MrankDSAXSYM
+subroutine TAXSYMkc ( wavelength, ind_refMed, ind_refRel, perfectcond,              &
+           chiral, kb, FileGeom, TypeGeom, FileFEM, Nsurf, surf, Nparam, anorm,     &
+           Rcirc, miror, DoConvTest, MishConvTest, DS, autGenDS, ComplexPlane,      &
+           epsZReIm, Nint, Nrank, zRe, zIm, zRe1, zIm1, epsNint, epsNrank,          &
+           epsMrank, dNint, dNintMrank, FileTmat, PrnProgress, k, snorm, Nface,     &
+           rp, np, area )
+  use parameters 
+  use derived_parameters  
+  implicit none 
+  integer       :: TypeGeom, Nsurf, Nparam, TypeConvTest, dNint, Nrank, Nint,       &
+                   Nrank1, dNintMrank, Ndgs, NrankMax, NrankW, Nface                     
+  real(O)       :: k, ind_refMed, wavelength, anorm, surf(NsurfPD), snorm,          &
+                   kb, epsNint, epsNrank, epsMrank, zRe(NrankPD), zIm(NrankPD),     &
+                   zRe1(NrankPD), zIm1(NrankPD), Rcirc, x, delta, Cscat1, Cext1,    &
+                   epsZReIm, rp(2,NfacePD), np(2,NfacePD), area(NfacePD)                          
+  complex(O)    :: ind_refRel
+  logical       :: FileGeom, miror, perfectcond, DoConvTest, DS, chiral, autGenDS,  &
+                   ComplexPlane, MishConvTest, PrnProgress
+  character(80) :: FileTmat, FileFEM
+!************************************************************************************
+  integer       :: i, dNintMrank, ios, j                     
+  real(O)       :: xpart,dp 
+  logical       :: InputDS, XFindPar      
+! -----------------------------------------------------------------------------------
+!                        Read the input file FileInputAXSYM                         ! 
+! -----------------------------------------------------------------------------------    
+  call DrvParameters  
+ 
+  wavelength = 0.1_O * 2._O * Pi  
+  ind_refMed = 1._O                                                                 
+  ind_refRel = (1.5_O,0._O) 
+  call check_ind_ref (ind_refRel)
+  k = 2._O * Pi * ind_refMed / wavelength 
+!
+  perfectcond = .false.  
+  chiral = .false.
+  kb     = 0._O        
+  call check_MatPropAXSYM (perfectcond, chiral, kb)   
+  if (chiral) call check_chirality (kb)
+!
+  FileGeom = .false.
+  FileFEM  = ' '  
+  TypeGeom = 1  
+  Nsurf    = 2
+  Nparam = 1
+  anorm  = 1._O
+  Rcirc  = 1._O 
+  miror  = .false.                          
+  call check_geomAXSYM (TypeGeom, Nsurf, Nparam)
+  call check_geomAXSYMOblate (TypeGeom, Nsurf, surf)  
+  call check_anorm (anorm)
+  xpart = k * anorm
+  snorm = Pi * xpart * xpart 
+  Nface = 1
+  do i = 1, NfacePD
+    do j = 1, 2
+      rp(j,i) = 0._O
+      np(j,i) = 0._O
+    end do
+    area(i) = 0._O
+  end do   
+  if (FileGeom) then    
+    call read_FileFEMAxsym (FileFEM, Nface, rp, np, area)     
+    Rcirc = 0._O    
+    do i = 1, Nface
+      dp = sqrt(rp(1,i)**2 + rp(2,i)**2)
+      if (dp > Rcirc) Rcirc = dp
+    end do    
+  end if          
+!
+  DoConvTest   = .true.
+  MishConvTest = .true.  
+  if (chiral)   MishConvTest = .false.     
+  if (FileGeom) MishConvTest = .false.  
+!
+  DS = .false.
+  autGenDS = .true.
+  string   = 'Sources'         
+  call check_inputAXSYM (miror, chiral, DS)
+  if (FileGeom) autGenDS = .false.  
+  InputDS = .false.
+  if (DS .and. .not. autGenDS) InputDS = .true. 
+  ComplexPlane = .false.
+  epsZReIm = 0.95_O 
+  Nint   = 100
+  Nrank  =  17 
+  do i = 1, NrankPD
+    zRe(i)  = 0._O
+    zIm(i)  = 0._O
+    zRe1(i) = 0._O
+    zIm1(i) = 0._O
+  epsNint  = 5.e-2_O
+  epsNrank = 5.e-2_O
+  epsMrank = 5.e-2_O
+  dNint    = 4
+  dNintMrank = 10
+  FileTmat = '../TMATFILES/T.dat'
+  PrnProgress = .true.                  
+! -----------------------------------------------------------------------------------
+!         Select the type of convergence test and the values of Nint and Nrank      !
+! -----------------------------------------------------------------------------------
+  x = k * Rcirc
+  NrankW = int(x + 4.05_O * x**0.33_O + 2._O)
+  if (.not. DS) then
+    if (DoConvTest) then                      
+      if (MishConvTest) then                         
+        print "(/,2x, a)",                                                          &
+       'Estimates of Nint and Nrank Using Mishchenko''s Convergence Procedure' 
+        print "(  2x, a)",                                                          &
+       '---------------------------------------------------------------------'                                         
+        call estimateNrankMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,         &
+             zRe, zIm, Nparam, miror, perfectcond, DS, ComplexPlane,                &
+             epsZReIm, x, delta, Ndgs, Nint, Nrank, NrankMax, Cscat1, Cext1)
+        call estimateNintMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,          &
+             zRe, zIm, Nparam, miror, perfectcond, DS, x, delta, Ndgs, Nint,        &
+             dNint, Nrank, NrankMax, Cscat1, Cext1)
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+        print "(  2x,'---------------------------------------------')"	       
+        print "(/,2x,'- enter the estimated values of Nint and Nrank;')"            
+        call read_integer2 (Nint, Nrank)                                
+      else 
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+        print "(  2x,'---------------------------------------------')"             
+        print "(/,2x,'Nrank estimate:')"                                                            
+        print "(  2x, a, i3, a)",                                                   &  
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';'
+        if (.not. FileGeom) then
+          print "(/,2x, a)",                                                        &
+         '- enter the estimated values of Nint and Nrank, where Nint = Ndgs * Nrank'
+          print "(  2x,'  and Ndgs = 3,4,...;')"
+          call read_integer2 (Nint, Nrank)                                                                      
+        else
+          print "(/,2x,'- enter the estimated value of Nrank;')"              
+          call read_integer (Nrank)     
+        end if  
+      end if
+      if (.not. FileGeom) then        
+        print "(/,2x, a)",                                                          &
+       '- enter the type of convergence test: 1 - Nint, 2 - Nrank, 3 - Mrank;' 
+        call read_integerbound (TypeConvTest, 1, 3)
+      else
+        print "(/,2x,'- enter the type of convergence test: 2 - Nrank, 3 - Mrank;')"
+        call read_integerbound (TypeConvTest, 2, 3)
+      end if
+    else
+      print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+      print "(  2x,'--------------------------------------------------------')"
+      print "(/,2x,'Input values:')"
+      if (.not. FileGeom) then
+        print "(  2x, a, i4, a, i4, a)",                                            & 
+       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
+       ', respectively,'  
+        print "(  2x, a, i3, a)",                                                   &
+       'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'
+      else
+        print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+        print "(  2x, a, i3, a)",                                                   &
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+      end if                                                                          
+      TypeConvTest = 3      
+    end if
+    Nrank1 = Nrank - 1 ! redundant            
+  else
+    if (autGenDS) then
+      if (DoConvTest) then                        
+        if (MishConvTest) then           
+          print "(/,2x, a)",                                                        &
+         'Estimates of Nint and Nrank Using Mishchenko''s Convergence Procedure'
+          print "(  2x, a)",                                                        &
+         '---------------------------------------------------------------------'	  	 	 	                    
+          call estimateNrankMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,       &
+               zRe, zIm, Nparam, miror, perfectcond, DS, ComplexPlane,              &
+               epsZReIm, x, delta, Ndgs, Nint, Nrank, NrankMax, Cscat1, Cext1)
+          call estimateNintMishchenko (TypeGeom, k, ind_refRel, Nsurf, surf,        &
+               zRe, zIm, Nparam, miror, perfectcond, DS, x, delta, Ndgs, Nint,      &
+               dNint, Nrank, NrankMax, Cscat1, Cext1)   
+          print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+          print "(  2x,'---------------------------------------------')"	       
+          print "(/,2x,'- enter the estimated values of Nint and Nrank;')"           
+          call read_integer2 (Nint, Nrank)                               
+        else
+          print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+          print "(  2x,'---------------------------------------------')"	
+          print "(/,2x,'Nrank estimate:')"                                                                
+          print "(  2x, a, i3, a)",                                                 &
+         'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';'
+          print "(/,2x, a)",                                                        &
+         '- enter the estimated values of Nint and Nrank, where Nint = Ndgs * Nrank'
+          print "(  2x,'  and Ndgs = 5,6,...;')"
+          call read_integer2 (Nint, Nrank)                                                                                 
+        end if      
+        call check_MaxNrank (Nrank)             
+        call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank, ComplexPlane, epsZReIm, zRe, zIm)     
+        print "(/,2x, a)",                                                          &
+       '- enter the type of convergence test: 1 - Nint, 2 - Nrank, 3 - Mrank;'
+        call read_integerbound (TypeConvTest, 1, 3)
+        if (TypeConvTest == 2) then
+          Nrank1 = Nrank - 1
+          call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank1, ComplexPlane, epsZReIm,     &
+               zRe1, zIm1)         
+        end if
+      else
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+        print "(  2x,'--------------------------------------------------------')"
+        print "(/,2x,'Input values:')"
+        print "(  2x, a, i4, a, i4, a)",                                            &
+       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
+       ', respectively,' 
+        print "(  2x, a, i3, a)",                                                   &
+       'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'         
+        call check_MaxNrank (Nrank)
+        call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank, ComplexPlane, epsZReIm, zRe, zIm) 
+        TypeConvTest = 3    
+      end if
+      Nrank1 = Nrank - 1 ! redundant  
+    else 
+      if (DoConvTest) then      
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle')"
+        print "(  2x,'---------------------------------------------')"
+        print "(/,2x,'Input values:')"
+        print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+        print "(  2x, a, i3, a)",                                                   &
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';'
+        if (.not. FileGeom) then                                            
+          print "(/,2x, a)",                                                        &
+         '- enter the estimated value of Nint, where Nint = Ndgs * Nrank'
+          print "(  2x,'  and Ndgs = 5,6,...;')"
+          call read_integer (Nint) 
+          print "(/,2x, a)",                                                        &
+         '- enter the type of convergence test: 1 - Nint, 2 - Nrank, 3 - Mrank;'
+          call read_integerbound (TypeConvTest, 1, 3)
+        else
+          print "(/,2x,'- enter the type of convergence test: 2 - Nrank, 3 - Mrank;')"
+          call read_integerbound (TypeConvTest, 2, 3)
+        end if
+        if (TypeConvTest == 2) Nrank1 = Nrank - 1
+      else
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+        print "(  2x,'--------------------------------------------------------')" 
+        print "(/,2x,'Input values:')" 
+        if (.not. FileGeom) then                  
+          print "(  2x, a, i4, a, i4, a)",                                          &
+         'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,           &
+         ', respectively,' 
+          print "(  2x, a, i3, a)",                                                 &
+         'while the estimated value of Nrank from Wiscombe''s criterion is ',       &
+          NrankW,';' 
+        else
+          print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+          print "(  2x, a, i3, a)",                                                 &
+         'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+        end if
+        TypeConvTest = 3              
+      end if
+      Nrank1 = Nrank - 1 ! redundant          
+    end if
+  end if                                                                            
+! -----------------------------------------------------------------------------------
+!                               Convergence test                                    !
+! -----------------------------------------------------------------------------------
+  open (unit = iOutput, file = FileOutput, status = "replace") 
+  call printinputAXSYM (TypeConvTest, FileGeom, TypeGeom, FileFEM, Nsurf, Nparam,   &
+       Nrank, Nrank1, dNint, dNintMrank, ind_refMed, wavelength, anorm, Rcirc,      &
+       surf, kb, epsNint, epsNrank, epsMrank, zRe, zIm, zRe1, zIm1, ind_refRel,     &
+       miror, perfectcond, DS, chiral, autGenDS)                     
+  if (DoConvTest) then              
+    if (TypeConvTest == 1) then
+      if (.not. DS) then                  
+        call convergence_NintAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,       &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             dNint, miror, perfectcond, DS, chiral, kb, epsNint, PrnProgress)
+      else 
+        call convergence_NintDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,     &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             dNint, miror, perfectcond, DS, chiral, kb, epsNint, PrnProgress)
+      end if
+    else if (TypeConvTest == 2) then
+      if (.not. DS) then        
+        call convergence_NrankAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,      &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             miror, perfectcond, DS, chiral, kb, epsNrank, PrnProgress)
+      else      
+        call convergence_NrankDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,    &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, zRe1, zIm1, Nparam, Nrank, &
+             Nrank1, Nint, miror, perfectcond, DS, chiral, kb, epsNrank,            &
+             PrnProgress)
+      end if
+    else 
+      if (.not. DS) then    
+        call convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,      &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             miror, perfectcond, DS, chiral, kb, epsMrank, FileTmat, PrnProgress)
+      else 
+        call convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,    &
+             Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint,       &
+             miror, perfectcond, DS, chiral, kb, epsMrank, dNintMrank, FileTmat,    &
+             PrnProgress)
+      end if
+    end if  
+  else      
+    if (.not. DS) then    
+      call convergence_MrankAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm, Nsurf, &
+           surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint, miror,         &
+           perfectcond, DS, chiral, kb, epsMrank, FileTmat, PrnProgress)
+    else          
+      call convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_refRel, snorm,      &
+           Nsurf, surf, rp, np, area, Nface, zRe, zIm, Nparam, Nrank, Nint, miror,  &
+           perfectcond, DS, chiral, kb, epsMrank, dNintMrank, FileTmat, PrnProgress)
+    end if  
+  end if 
+  close (unit = iOutput)
+end subroutine TAXSYMkc

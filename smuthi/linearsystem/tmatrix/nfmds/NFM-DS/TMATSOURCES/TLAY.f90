@@ -93,7 +93,7 @@ subroutine TLAY
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a plane wave traveling  !
 ! along the Z-axis of the global coordinate system and the scattering               !
-! characteristics  are computed in the azimuthal plane  phi = 0°. The convergence   !
+! characteristics  are computed in the azimuthal plane  phi = 0Â°. The convergence   !
 ! tests over Nint and Nrank are interactive, while the convergence test over Mrank  !
 ! is automatically performed.                                                       !  
 !                                                                                   !
@@ -111,13 +111,13 @@ subroutine TLAY
 !                 Nrankp(i) - 1, i = 1,2,...,Npart.                                 !
 !                                                                                   !  
 ! The normalized differential scattering cross section (DSCS) will be checked at    !
-! 20° increments for convergence within epsX (epsNint or epsNrank) tolerance. If    !
+! 20Â° increments for convergence within epsX (epsNint or epsNrank) tolerance. If    !
 ! the calculated results converge within this tolerance at 80% of the scattering    !
 ! angles, then convergence is achieved.                                             !
 !                                                                                   ! 
 ! After Nrank and Nint have been determined we pass to the azimuthal order test.    !
 ! The program automatically sets the particle to a more general orientation, i.e.,  !
-! alpha = beta = 45°, and solves the scattering problem  for increasing m values    !
+! alpha = beta = 45Â°, and solves the scattering problem  for increasing m values    !
 ! until convergence of the angular scattering is achieved. The T matrix is stored   !
 ! for later use by other programs, and the values of Nrank and Mrank are printed to !
 ! the screen and to the T-matrix information file.  These values together with the  !
