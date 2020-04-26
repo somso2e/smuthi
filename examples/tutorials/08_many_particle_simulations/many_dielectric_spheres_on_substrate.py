@@ -83,8 +83,8 @@ def simulate_N_spheres(number_of_spheres=100,
         layer_system=two_layers)
 
     if make_illustrations:
-        azimuthal_angles = np.arange(0, 361, 0.5, dtype=float) * np.pi / 180
-        polar_angles = np.arange(0, 181, 0.25, dtype=float) * np.pi / 180
+        azimuthal_angles = np.arange(0, 360.5, 0.5, dtype=float) * np.pi / 180
+        polar_angles = np.arange(0, 180.25, 0.25, dtype=float) * np.pi / 180
         dscs = smuthi.postprocessing.far_field.scattering_cross_section(
             initial_field=plane_wave,
             particle_list=spheres_list,
