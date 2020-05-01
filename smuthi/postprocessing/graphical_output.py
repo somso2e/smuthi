@@ -29,7 +29,7 @@ def plot_layer_interfaces(dim1min, dim1max, layer_system):
         plt.plot([dim1min, dim1max], [layer_system.reference_z(il), layer_system.reference_z(il)], 'g')
 
 
-def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list, max_particle_distance, 
+def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                    draw_circumscribing_sphere, fill_particle=True):
     """Add circles, ellipses and rectangles to plot to display spheres, spheroids and cylinders.
 
@@ -41,12 +41,11 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list, max_partic
         zmin (float):   Minimal z-value of plot
         zmax (float):   Maximal z-value of plot
         particle_list (list): List of smuthi.particles.Particle objects
-        max_particle_distance (float):  Plot only particles that ar not further away from image plane
-        draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of 
+        draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of
                                            particles.
         fill_particle (bool):              If true, draw opaque particles.
     """
-    
+
     ax = plt.gca()
 
     if fill_particle:
@@ -68,52 +67,57 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list, max_partic
 
     for particle in particle_list:
         pos = particle.position
-                    
-        if abs((xmin, ymin, zmin)[plane_coord] - pos[plane_coord]) > max_particle_distance:
+        dis = abs((xmin, ymin, zmin)[plane_coord] - pos[plane_coord])
+
+        if dis > particle.circumscribing_sphere_radius():
             continue
-        
+
+        circradius = np.sqrt(particle.circumscribing_sphere_radius()**2 - dis**2)
         if type(particle).__name__ == 'Sphere':
-            ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), particle.radius, facecolor=particle_face_color,
-                                       edgecolor='k'))
+            ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), circradius,
+                         facecolor=particle_face_color, edgecolor='k'))
         else:
             if not particle.euler_angles == [0, 0, 0]:
                 warnings.warn("Drawing rotated particles currently not supported - drawing black disc with size"
-                              + " of circumscribing sphere instead")
-                ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), particle.circumscribing_sphere_radius(), 
-                                    facecolor='k', edgecolor='k'))
+                              + " based on the circumscribing sphere instead")
+                ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), circradius, facecolor='k', edgecolor='k'))
                 ax.text(pos[draw_coord[0]], pos[draw_coord[1]], 'rotated ' + type(particle).__name__,
                         verticalalignment='center', horizontalalignment='center', color='blue', fontsize=5)
             else:
                 if draw_circumscribing_sphere:
-                    ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), 
-                                        particle.circumscribing_sphere_radius(), 
-                                        linestyle='dashed', facecolor='none', edgecolor='k'))
+                    ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), circradius,
+                                 linestyle='dashed', facecolor='none', edgecolor='k'))
 
                 if type(particle).__name__ == 'Spheroid':
-                    width = 2 * particle.semi_axis_a
-                    if plane_coord == 2:
-                        height = 2 * particle.semi_axis_a
+                    a = particle.semi_axis_a
+                    c = particle.semi_axis_c
+                    if plane_coord in [0, 1]:
+                        w = a * np.sqrt(1 - (dis/a)**2) if dis < a else 0
+                        h = c * np.sqrt(1 - (dis/a)**2) if dis < a else 0
                     else:
-                        height = 2 * particle.semi_axis_c
-                    ax.add_patch(Ellipse(xy=(pos[draw_coord[0]], pos[draw_coord[1]]), width=width, height=height,
+                        w = a * np.sqrt(1 - (dis/c)**2) if dis < c else 0
+                        h = w
+                    ax.add_patch(Ellipse(xy=(pos[draw_coord[0]], pos[draw_coord[1]]), width=2*w, height=2*h,
                                          facecolor='w', edgecolor='k'))
 
                 elif type(particle).__name__ == 'FiniteCylinder':
-                    if plane_coord == 2:
-                        ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), particle.cylinder_radius,
+                    r = particle.cylinder_radius
+                    h = particle.cylinder_height
+                    if plane_coord in [0, 1]:
+                        w = np.sqrt(r**2 - dis**2) if dis < r else 0
+                        h *= np.sign(w)
+                        ax.add_patch(Rectangle((pos[draw_coord[0]]-w, pos[draw_coord[1]]-h/2),
+                                                2*w, h, facecolor='w', edgecolor='k'))
+                    elif np.logical_and(plane_coord == 2, dis <= h/2):
+                        ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), r,
                                             facecolor='w', edgecolor='k'))
-                    else:
-                        ax.add_patch(Rectangle((pos[draw_coord[0]]-particle.cylinder_radius, 
-                                                pos[draw_coord[1]]-particle.cylinder_height/2), 
-                                               2*particle.cylinder_radius, particle.cylinder_height, facecolor='w', 
-                                               edgecolor='k'))
 
 
 def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, save_animations=False, save_data=False,
                     outputdir='.', xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0, resolution_step=25, 
                     interpolate_step=None, interpolation_order=1, dpi=None, k_parallel='default',
-                    azimuthal_angles='default', simulation=None, max_field=None, min_norm_field=None, 
-                    max_particle_distance=float('inf'), draw_circumscribing_sphere=True, show_internal_field=False):
+                    azimuthal_angles='default', simulation=None, max_field=None, min_norm_field=None,
+                    draw_circumscribing_sphere=True, show_internal_field=False):
     """Plot the electric near field along a plane. To plot along the xy-plane, specify zmin=zmax and so on.
 
     Args:
@@ -159,9 +163,7 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
         simulation (smuthi.simulation.Simulation):  Simulation object
         max_field (float):              If specified, truncate the color scale of the field plots at that value.
         min_norm_field (float):         If specified, truncate the color scale of the norm field plots below that value.
-        max_particle_distance (float):  Show particles that are closer than that distance to the image plane (length
-                                        unit, default = inf).
-        draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of 
+        draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of
                                            particles.
         show_internal_field (bool):     If true, compute also the field inside the particles (only for spheres).
     """
@@ -383,7 +385,7 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
         if not zmin == zmax:
             plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
 
-        plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list, max_particle_distance, 
+        plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
                        draw_circumscribing_sphere, not show_internal_field)
 
         plt.gca().set_aspect("equal")
@@ -413,7 +415,7 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
                     plt.ylabel(dim2name)
                     if not zmin == zmax:
                         plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-                    plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list, max_particle_distance,
+                    plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
                                    draw_circumscribing_sphere, not show_internal_field)
                     plt.gca().set_aspect("equal")
                     tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
