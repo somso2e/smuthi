@@ -36,7 +36,7 @@ def converge_l_max(particle,
                    detector="extinction cross section",
                    tolerance=1e-3,
                    max_iter=100,
-                   current_value=None):
+                   start_from_1=True):
     """Find suitable multipole cutoff degree `l_max` for a given particle and simulation. The routine starts with the
     current `l_max` of the particle. The value of `l_max` is successively incremented in a loop until the resulting
     relative change in the detector value is smaller than the specified tolerance. The method updates the input
@@ -52,9 +52,8 @@ def converge_l_max(particle,
         tolerance (float):                            Relative tolerance for the detector value change.
         max_iter (int):                               Break convergence loop after that number of iterations, even if
                                                       no convergence has been achieved.
-        current_value (float):                        Start value of detector (for current settings). If not
-                                                      specified the method starts with a simulation for the current
-                                                      settings.
+        start_from_1 (logical):                       If true (default), start from `l_max=1`. Otherwise, start from the
+                                                      current particle `l_max`.
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -62,10 +61,14 @@ def converge_l_max(particle,
     print("")
     print("------------------------")
     log.write_blue("Searching suitable l_max")
+
+    if start_from_1:
+        particle.l_max = 1
+        particle.m_max = 1
+
     print("Start value: l_max=%i" % particle.l_max)
 
-    if current_value is None:
-        current_value = evaluate(simulation, detector)
+    current_value = evaluate(simulation, detector)
 
     for _ in range(max_iter):
         old_l_max = particle.l_max
@@ -152,7 +155,8 @@ def converge_multipole_cutoff(simulation,
                               detector="extinction cross section",
                               tolerance=1e-3,
                               max_iter=100,
-                              current_value=None):
+                              current_value=None,
+                              converge_m=True):
     """Find suitable multipole cutoff degree `l_max` and order `m_max` for all particles in a given simulation object.
     The method updates the input simulation object with the so determined multipole truncation values.
 
@@ -168,6 +172,8 @@ def converge_multipole_cutoff(simulation,
         current_value (float):                        Start value of detector (for current settings). If not
                                                       specified the method starts with a simulation for the current
                                                       settings.
+        converge_m (logical):                         If false, only converge `l_max`, but keep `m_max=l_max`. Default
+                                                      is true.
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -185,14 +191,14 @@ def converge_multipole_cutoff(simulation,
                                            simulation,
                                            detector,
                                            tolerance,
-                                           max_iter,
-                                           current_value)
+                                           max_iter)
 
-            current_value = converge_m_max(particle,
-                                           simulation,
-                                           detector,
-                                           tolerance,
-                                           current_value)
+            if converge_m:
+                current_value = converge_m_max(particle,
+                                               simulation,
+                                               detector,
+                                               tolerance,
+                                               current_value)
 
     return current_value
 
@@ -278,8 +284,9 @@ def converge_neff_max(simulation,
         with log.LoggerIndented():
             current_value = converge_multipole_cutoff(simulation=simulation,
                                                       detector=detector,
-                                                      tolerance=tolerance/2,  # otherwise, results flucutate by tolerance and convergence check is compromised
-                                                      max_iter=max_iter)
+                                                      tolerance=tolerance/10,  # otherwise, results flucutate by tolerance and convergence check is compromised
+                                                      max_iter=max_iter,
+                                                      converge_m=False)
     else:
         current_value = evaluate(simulation, detector)
 
