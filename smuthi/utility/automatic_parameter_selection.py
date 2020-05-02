@@ -83,7 +83,7 @@ def converge_l_max(particle,
         print("Old detector value:", current_value)
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
-        print("Allowed tolerance:", tolerance)
+        print("Allowed tolerance:  ", tolerance)
 
         if rel_diff < tolerance:  # in this case: discard l_max increment
             particle.l_max = old_l_max
@@ -142,6 +142,7 @@ def converge_m_max(particle,
         print("Old detector value:", current_value)
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
+        print("Allowed tolerance:  ", tolerance)
         if rel_diff > tolerance:  # in this case: discard m_max decrement
             particle.m_max = old_m_max
             log.write_green("Relative difference larger than tolerance. Keep m_max = %i"%particle.m_max)
@@ -314,6 +315,7 @@ def converge_neff_max(simulation,
         print("Old detector value:", current_value)
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
+        print("Allowed tolerance:  ", tolerance)
 
         if rel_diff < tolerance:  # in this case: discard l_max increment
             neff_max = old_neff_max
@@ -378,6 +380,7 @@ def converge_neff_resolution(simulation,
         print("Old detector value:", current_value)
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
+        print("Allowed tolerance:  ", tolerance)
 
         if rel_diff < tolerance:  # in this case: discard halfed neff_resolution
             neff_resolution = old_neff_resolution
