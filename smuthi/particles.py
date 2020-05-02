@@ -45,12 +45,16 @@ class Particle:
         pass
 
     def is_inside(self, x, y, z):
-        """Virtual method to be overwritten"""
-        pass
+        """Virtual method to be overwritten.
+        Until all child classes implement it: return False
+        """
+        return False
 
     def is_outside(self, x, y, z):
-        """Virtual method to be overwritten"""
-        pass
+        """Virtual method to be overwritten.
+        Until all child classes implement it: return True
+        """
+        return True
     
     def automated_lmax_mmax_selection(self, vacuum_wavelength, ambient_medium,
                                       lmax_stop=20, max_rel_diff=1e-3):
