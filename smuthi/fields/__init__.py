@@ -161,22 +161,29 @@ def reasonable_neff_waypoints(layer_refractive_indices=None, neff_imag=1e-2, nef
     """
     if layer_refractive_indices is None:
         layer_refractive_indices = [1, 2]
-    # avoid the real axis on a region between n_min-0.1 and n_max+0.2
-    # this should save us from branchpoints and numerically critical waveguide modes
-    # (SPPs can be outside of that interval but are then strongly damped)
+
+    # estimate range of possible waveguide mode positions
     min_waveguide_neff = max(0, min(np.array(layer_refractive_indices).real) - 0.1)
     max_waveguide_neff = max(np.array(layer_refractive_indices).real) + 0.2
+
     if neff_max is None:
         neff_max = max_waveguide_neff + neff_max_offset
 
-    waypoints = [0,
-                 min_waveguide_neff,
-                 min_waveguide_neff - 1j * neff_imag,
-                 max_waveguide_neff - 1j * neff_imag,
-                 max_waveguide_neff]
-    if neff_max > max_waveguide_neff:
-        waypoints.append(neff_max)
-    return waypoints
+    if neff_imag == 0:
+        return [0, neff_max]
+
+    else:
+        # avoid the real axis on a region between n_min-0.1 and n_max+0.2
+        # this should save us from branchpoints and numerically critical waveguide modes
+        # (SPPs can be outside of that interval but are then strongly damped)
+        waypoints = [0,
+                     min_waveguide_neff,
+                     min_waveguide_neff - 1j * neff_imag,
+                     max_waveguide_neff - 1j * neff_imag,
+                     max_waveguide_neff]
+        if neff_max > max_waveguide_neff:
+            waypoints.append(neff_max)
+        return waypoints
 
 
 def create_neff_array(neff_waypoints, neff_resolution):
