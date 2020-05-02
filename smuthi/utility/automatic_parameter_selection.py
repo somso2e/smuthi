@@ -83,6 +83,7 @@ def converge_l_max(particle,
         print("Old detector value:", current_value)
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
+        print("Allowed tolerance:", tolerance)
 
         if rel_diff < tolerance:  # in this case: discard l_max increment
             particle.l_max = old_l_max
@@ -302,9 +303,10 @@ def converge_neff_max(simulation,
             with log.LoggerIndented():
                 new_value = converge_multipole_cutoff(simulation=simulation,
                                                       detector=detector,
-                                                      tolerance=tolerance,
+                                                      tolerance=tolerance/10,
                                                       max_iter=max_iter,
-                                                      current_value=current_value)
+                                                      current_value=current_value,
+                                                      converge_m=False)
         else:
             new_value = evaluate(simulation, detector)
 
