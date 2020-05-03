@@ -417,8 +417,8 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
     return dscs
 
 
-def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles='default',
-                                   azimuthal_angles='default'):
+def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=None,
+                                   azimuthal_angles=None, angular_resolution = np.pi / 360.0):
     """Evaluate the total scattering cross section.
 
     Args:
@@ -426,16 +426,26 @@ def total_scattering_cross_section(initial_field, particle_list, layer_system, p
         particle_list (list):                     scattering particles
         layer_system (smuthi.layers.LayerSystem): stratified medium
         polar_angles (numpy.ndarray or str):        polar angles values (radian).
-                                                    if 'default', use smuthi.fields.default_polar_angles
+                                                    if string 'default' is provided, use
+                                                    smuthi.fields.default_polar_angles. Default is None.
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
-                                                    if 'default', use smuthi.fields.default_azimuthal_angles
+                                                    if string 'default' is provided, use
+                                                    smuthi.fields.default_azimuthal_angles. Default is None.
+        angular_resolution (float):                 If `polar_angles` or `azimuthal_angles` are None (default),
+                                                    use this angular sampling distance value to create equidistant
+                                                    arrays. Default: pi/360
 
     Returns:
         A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
         scattering (bottom hemisphere).
     """
-    dscs = scattering_cross_section(initial_field, particle_list, layer_system, polar_angles='default',
-                                    azimuthal_angles='default')
+    if polar_angles is None:
+        polar_angles = np.arange(0, np.pi + 0.5 * angular_resolution, angular_resolution)
+    if azimuthal_angles is None:
+        azimuthal_angles = np.arange(0, 2 * np.pi + 0.5 * angular_resolution, angular_resolution)
+
+    dscs = scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=polar_angles,
+                                    azimuthal_angles=azimuthal_angles)
     scs = dscs.integral()
     return scs[0] + scs[1]
 
