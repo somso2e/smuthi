@@ -151,41 +151,6 @@ class FarField:
         else:
             raise ValueError('far fields have overlapping polar angle domains')
 
-    def export(self, output_directory='.', tag='far_field'):
-        """Export far field information to text file in ASCII format.
-
-        Args:
-            output_directory (str): Path to folder where to store data.
-            tag (str):              Keyword to use in the naming of data files, allowing to assign them to this object.
-        """
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-
-        import h5py
-
-        pa = self.polar_angles
-        aa = self.azimuthal_angles
-
-        with h5py.File(output_directory + '/data.hdf5', 'a') as f:
-            g = f.require_group('far_field')
-            g.require_dataset('polar_angles', data=pa, shape=np.shape(pa), dtype=pa.dtype)
-            g.require_dataset('azimuthal_angles', data=aa, shape=np.shape(aa), dtype=aa.dtype)
-            g.create_dataset(tag, data=self.signal, compression="gzip")
-            g.create_dataset(tag + '_polar', data=self.azimuthal_integral(), compression="gzip")
-
-        np.savetxt(output_directory + '/' + tag + '_TE.dat', self.signal[0, :, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/' + tag + '_TM.dat', self.signal[1, :, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/' + tag + '_polar_TE.dat', self.azimuthal_integral()[0, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/' + tag + '_polar_TM.dat', self.azimuthal_integral()[1, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/polar_angles.dat', self.polar_angles,
-                   header='Polar angles of the far field in radians.')
-        np.savetxt(output_directory + '/azimuthal_angles.dat', self.azimuthal_angles,
-                   header='Azimuthal angles of the far field in radians.')
-
 
 def pwe_to_ff_conversion(vacuum_wavelength, plane_wave_expansion):
     """Compute the far field of a plane wave expansion object.

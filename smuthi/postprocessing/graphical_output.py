@@ -114,8 +114,7 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
 
 
 def show_near_field(simulation=None, quantities_to_plot=None,
-                    show_plots=True, show_opts=[{'interpolation':'none'}],
-                    save_plots=False, save_opts=[{'format':'png'}],
+                    show_plots=True, show_opts=None, save_plots=False, save_opts=None,
                     save_data=False, data_format='hdf5', outputdir='.',
                     xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0,
                     resolution_step=25, k_parallel='default', azimuthal_angles='default',
@@ -142,7 +141,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 'E_init_z'      real part of z-component of complex initial electric field
                                 'norm(E_init)'  norm of complex initial electric field
         show_plots (logical):   If True, plots are shown
-        show_opts (dict):       List of dictionaries containing options to be passed to imshow for plotting.
+        show_opts (dict list):  List of dictionaries containing options to be passed to imshow for plotting.
                                 For each entry in quantities_to_plot, all show_opts dictionaries will be applied.
                                 If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
                                 is assumed. For simplicity, one can also provide a single show_opts entry that will
@@ -160,7 +159,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 An optional extra key called 'label' of type string is shown in the plot title
                                 and appended to the associated file if save_plots is True
         save_plots (logical):   If True, plots are exported to file.
-        save_opts (dict):       List of dictionaries containing options to be passed to savefig.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
                                 For each entry in quantities_to_plot, all save_opts dictionaries will be applied.
                                 A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
                                 simplicity, one can also provide a single save_opts entry that will be applied to
@@ -168,7 +167,6 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 The following keys are made available (see matplotlib.pyplot.savefig documentation):
                                 'dpi'           (None)
                                 'orientation'   (None)
-                                'papertype'     (None)
                                 'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
                                 'transparent'   (False)
                                 'bbox_inches'   ('tight')
@@ -202,6 +200,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
     if quantities_to_plot is None:
         quantities_to_plot = ['norm(E)']
+    if show_opts is None:
+        show_opts = [{'interpolation':'none'}]
+    if save_opts is None:
+        save_opts = [{'format':'png'}]
 
     vacuum_wavelength = simulation.initial_field.vacuum_wavelength
     if xmin == xmax:
@@ -351,8 +353,9 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                        draw_circumscribing_sphere, not show_internal_field)
                         tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
                         plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
-                                    orientation=save_opt.get('orientation','portrait'), papertype=save_opt.get('papertype'),
-                                    transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
+                                    orientation=save_opt.get('orientation','portrait'),
+                                    transparent=save_opt.get('transparent',False),
+                                    bbox_inches=save_opt.get('bbox_inches','tight'),
                                     pad_inches=save_opt.get('pad_inches',0.1))
                         plt.close(tempfig)
                         images.append(imageio.imread(tempfig_filename))
@@ -361,8 +364,9 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 else:
                     file_ext = '.' + save_opt.get('format','png') # default to png if not specified
                     plt.savefig(export_filename + file_ext, dpi=save_opt.get('dpi'),
-                                orientation=save_opt.get('orientation','portrait'), papertype=save_opt.get('papertype'),
-                                transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
+                                orientation=save_opt.get('orientation','portrait'),
+                                transparent=save_opt.get('transparent',False),
+                                bbox_inches=save_opt.get('bbox_inches','tight'),
                                 pad_inches=save_opt.get('pad_inches',0.1))
 
             if not show_plots:
@@ -406,29 +410,54 @@ def show_near_field(simulation=None, quantities_to_plot=None,
             raise ValueError('Currently, only hdf5 or ascii output data formats are available')
 
 
-def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='scattered_far_field',
-                             outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
-                             azimuthal_angles='default', min_field=None, max_field=None):
+def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'scattered_far_field'}],
+                             save_plots=False, save_opts=None,
+                             save_data=False, data_format='hdf5', outputdir='.',
+                             flip_downward=True, split=True, log_scale=False,
+                             polar_angles='default', azimuthal_angles='default'):
     """Display and export the scattered far field.
 
     Args:
-        simulation(smuthi.simulation.Simulation):       simulation object
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        polar_angles (numpy.ndarray or str):            polar angles values (radian).
-                                                        if 'default', use smuthi.fields.default_polar_angles
-        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
-                                                        if 'default', use smuthi.fields.default_azimuthal_angles
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        show_plots (bool):                          Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):                        Path to the directory where files are to be saved
+        flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
+        polar_angles (numpy.ndarray or str):    Polar angles values (radian).
+                                                If 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
+                                                If 'default', use smuthi.fields.default_azimuthal_angles
     """
 
     infld = simulation.initial_field
@@ -440,34 +469,59 @@ def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save
                                        polar_angles=polar_angles,
                                        azimuthal_angles=azimuthal_angles)
 
-    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
-                   min_field=min_field, max_field=max_field)
+    show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
+                   show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_total_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='total_far_field',
-                         outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
-                         azimuthal_angles='default', min_field=None, max_field=None):
+def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total_far_field'}],
+                         save_plots=False, save_opts=None,
+                         save_data=False, data_format='hdf5', outputdir='.',
+                         flip_downward=True, split=True, log_scale=False,
+                         polar_angles='default', azimuthal_angles='default'):
     """Display and export the total far field. This function cannot be used if the inital field is a plane wave.
 
     Args:
-        simulation(smuthi.simulation.Simulation):       simulation object
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        polar_angles (numpy.ndarray or str):            polar angles values (radian).
-                                                        if 'default', use smuthi.fields.default_polar_angles
-        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
-                                                        if 'default', use smuthi.fields.default_azimuthal_angles
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        show_plots (bool):                          Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):                        Path to the directory where files are to be saved
+        flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
+        polar_angles (numpy.ndarray or str):    Polar angles values (radian).
+                                                If 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
+                                                If 'default', use smuthi.fields.default_azimuthal_angles
     """
     infld = simulation.initial_field
     plst = simulation.particle_list
@@ -478,35 +532,59 @@ def show_total_far_field(simulation, save_plots=False, show_plots=True, save_dat
                                    polar_angles=polar_angles,
                                    azimuthal_angles=azimuthal_angles)
 
-    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
-                   min_field=min_field, max_field=max_field)
+    show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
+                   show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_scattering_cross_section(simulation, save_plots=False, show_plots=True, save_data=False,
-                                  tag='scattering_cross_section', outputdir='.', flip_downward=True, split=True,
-                                  log_scale=False, polar_angles='default', azimuthal_angles='default', min_field=None,
-                                  max_field=None):
+def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'label':'scattering_cross_section'}],
+                                  save_plots=False, save_opts=None,
+                                  save_data=False, data_format='hdf5', outputdir='.',
+                                  flip_downward=True, split=True, log_scale=False,
+                                  polar_angles='default', azimuthal_angles='default'):
     """Display and export the differential scattering cross section.
 
     Args:
-        simulation(smuthi.simulation.Simulation):       simulation object
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        polar_angles (numpy.ndarray or str):            polar angles values (radian).
-                                                        if 'default', use smuthi.fields.default_polar_angles
-        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
-                                                        if 'default', use smuthi.fields.default_azimuthal_angles
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        show_plots (bool):                          Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):                        Path to the directory where files are to be saved
+        flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
+        polar_angles (numpy.ndarray or str):    Polar angles values (radian).
+                                                If 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
+                                                If 'default', use smuthi.fields.default_azimuthal_angles
     """
 
     infld = simulation.initial_field
@@ -518,89 +596,164 @@ def show_scattering_cross_section(simulation, save_plots=False, show_plots=True,
                                             polar_angles=polar_angles,
                                             azimuthal_angles=azimuthal_angles)
 
-    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
-                   min_field=min_field, max_field=max_field)
+    show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
+                   show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_field', outputdir='.',
-                   flip_downward=True, split=True, log_scale=False, min_field=None, max_field=None):
+def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}], save_plots=False, save_opts=None,
+                   save_data=False, data_format='hdf5', outputdir='.',
+                   flip_downward=True, split=True, log_scale=False):
     """Display and export the far field.
 
     Args:
-        far_field (smuthi.field_expansion.FarField):    far field object to show and export
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        far_field (smuthi.field_expansion.FarField):    Far-field object to show and export
+        show_plots (bool):      Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):        Path to the directory where files are to be saved
+        flip_downward (bool):   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):           If True, show two different plots for upward and downward directions
+        log_scale (bool):       If True, set a logarithmic scale
     """
 
     if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
-        show_far_field(far_field.top(), save_plots, show_plots, save_data,
-                       tag+'_top', outputdir, True, False, log_scale, min_field, max_field)
-        show_far_field(far_field.bottom(), save_plots, show_plots, save_data,
-                       tag+'_bottom', outputdir, True, False, log_scale, min_field, max_field)
+        top_opts = show_opts
+        for d in top_opts:
+            d['label'] = d.get('label') + '_top'
+        show_far_field(far_field.top(), show_plots, top_opts, save_plots, save_opts,
+                       save_data, data_format, outputdir, True, False, log_scale)
+        bottom_opts = show_opts
+        for d in bottom_opts:
+            d['label'] = d.get('label') + '_bottom'
+        show_far_field(far_field.bottom(), show_plots, bottom_opts, save_plots, save_opts,
+                       save_data, data_format, outputdir, True, False, log_scale)
         return
 
     if (not os.path.exists(outputdir)) and (save_plots or save_data):
         os.makedirs(outputdir)
 
+    if save_opts is None:
+        save_opts = [{'format':'png'}]
+
     if save_data:
-        far_field.export(output_directory=outputdir, tag=tag)
+        pa = far_field.polar_angles
+        aa = far_field.azimuthal_angles
+        label = show_opts[0].get('label') # WARNING: filenames are based only on the label in show_opts[0]
+        if data_format.lower() == 'hdf5':
+            import h5py
+
+            with h5py.File(outputdir + '/data.hdf5', 'a') as f:
+                g = f.require_group('far_field')
+                g.require_dataset('polar_angles', data=pa, shape=np.shape(pa), dtype=pa.dtype)
+                g.require_dataset('azimuthal_angles', data=aa, shape=np.shape(aa), dtype=aa.dtype)
+                g.create_dataset(label, data=far_field.signal, compression="gzip")
+                g.create_dataset(label + '_polar', data=far_field.azimuthal_integral(), compression="gzip")
+        elif data_format.lower() == 'ascii':
+            np.savetxt(outputdir + '/' + label + '_TE.dat', far_field.signal[0, :, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/' + label + '_TM.dat', far_field.signal[1, :, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/' + label + '_polar_TE.dat', far_field.azimuthal_integral()[0, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/' + label + '_polar_TM.dat', far_field.azimuthal_integral()[1, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/polar_angles.dat', pa,
+                       header='Polar angles of the far field in radians.')
+            np.savetxt(outputdir + '/azimuthal_angles.dat', aa,
+                       header='Azimuthal angles of the far field in radians.')
+        else:
+            raise ValueError('Currently, only hdf5 or ascii output data formats are available')
 
     alpha_grid = far_field.alpha_grid()
-    beta_grid = far_field.beta_grid()*180/np.pi
-
-    # 2D polar plot of far field
-    fig = plt.figure()
-    ax = fig.add_subplot(111, polar=True)
+    beta_grid = far_field.beta_grid() * 180 / np.pi
+    polar_array = far_field.polar_angles * 180 / np.pi
+    if flip_downward and all(far_field.polar_angles >= np.pi / 2):
+        beta_grid = 180 - beta_grid
+        polar_array = 180 - polar_array
 
     color_norm = None
     if log_scale:
         color_norm = LogNorm()
 
-    if flip_downward and all(far_field.polar_angles >= np.pi / 2):
-        pcm = ax.pcolormesh(alpha_grid, 180 - beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            cmap='inferno', norm=color_norm, vmin=min_field, vmax=max_field)
-    else:
+    if not show_plots:
+        import matplotlib
+        default_backend = matplotlib.get_backend()
+        matplotlib.use('Agg') # a non-gui backend to avoid opening figure windows
+
+    for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
+        # 2D polar plot of far field
+        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+        ax = fig.add_subplot(111, polar=True)
+
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            cmap='inferno', norm=color_norm, vmin=min_field, vmax=max_field)
+                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm), cmap=show_opt.get('cmap','inferno'),
+                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmin'), shading=show_opt.get('shading','flat'))
 
-    plt.colorbar(pcm, ax=ax)
-    plt.title(tag)
-    if save_plots:
-        plt.savefig(outputdir + '/' + tag + '.png')
-    if show_plots:
-        plt.draw()
-    else:
-        plt.close(fig)
+        plt.colorbar(pcm, ax=ax)
+        plt.title(show_opt.get('label').replace('_',' '))
+        if save_plots:
+            export_filename = outputdir + '/' + show_opt.get('label') + '.' + save_opt.get('format','png') # png unless specified
+            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation','portrait'),
+                        transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
+                        pad_inches=save_opt.get('pad_inches',0.1))
 
-    # 1D polar plot of far field
-    fig = plt.figure()
-    if flip_downward and all(far_field.polar_angles >= np.pi/2):
-        plt.plot(180 - far_field.polar_angles * 180 / np.pi, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180)
-    else:
-        plt.plot(far_field.polar_angles * 180 / np.pi, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180)
-    if log_scale:
-        plt.yscale('log')
-    plt.xlabel('polar angle (degree)')
-    if far_field.signal_type == 'differential scattering cross section':
-        plt.ylabel('d_CS/d_cos(beta)')
-    elif far_field.signal_type == 'intensity':
-        plt.ylabel('d_P/d_cos(beta)')
-    plt.grid(True)
-    plt.title(tag)
-    if save_plots:
-        plt.savefig(outputdir + '/' + tag + '_polar.png')
-    if show_plots:
-        plt.draw()
-    else:
-        plt.close(fig)
+        if not show_plots:
+            plt.close(fig)
+
+        # 1D polar plot of far field
+        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+
+        plt.plot(polar_array, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180, alpha=show_opt.get('alpha'),
+                 lw=show_opt.get('linewidth'), ls=show_opt.get('linestyle'), marker=show_opt.get('marker'))
+
+        plt.xlabel('polar angle (degree)')
+        if far_field.signal_type == 'differential scattering cross section':
+            plt.ylabel('d_CS/d_cos(beta)') # TODO: add units based on simulation.length_unit?
+        elif far_field.signal_type == 'intensity':
+            plt.ylabel('d_P/d_cos(beta)') # TODO: add units based on simulation.length_unit?
+
+        if log_scale:
+            plt.yscale('log')
+
+        plt.grid(True)
+        plt.title(show_opt.get('label').replace('_',' '))
+
+        if save_plots:
+            export_filename = outputdir + '/' + show_opt.get('label') + '_polar.' + save_opt.get('format','png')
+            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation','portrait'),
+                        transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
+                        pad_inches=save_opt.get('pad_inches',0.1))
+        if not show_plots:
+            plt.close(fig)
+
+    if not show_plots:
+        matplotlib.use(default_backend) # now we can restore the original backend
