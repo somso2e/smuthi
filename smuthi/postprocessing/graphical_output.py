@@ -127,28 +127,54 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         quantities_to_plot:     List of strings that specify what to plot. Select from 'E_x', 'E_y', 'E_z', 'norm(E)'
                                 The list may contain one or more of the following strings:
 
-                                'E_x'       real part of x-component of complex total electric field
-                                'E_y'       real part of y-component of complex total electric field
-                                'E_z'       real part of z-component of complex total electric field
-                                'norm(E)'   norm of complex total electric field
+                                'E_x'           real part of x-component of complex total electric field
+                                'E_y'           real part of y-component of complex total electric field
+                                'E_z'           real part of z-component of complex total electric field
+                                'norm(E)'       norm of complex total electric field
 
-                                'E_scat_x'       real part of x-component of complex scattered electric field
-                                'E_scat_y'       real part of y-component of complex scattered electric field
-                                'E_scat_z'       real part of z-component of complex scattered electric field
-                                'norm(E_scat)'   norm of complex scattered electric field
+                                'E_scat_x'      real part of x-component of complex scattered electric field
+                                'E_scat_y'      real part of y-component of complex scattered electric field
+                                'E_scat_z'      real part of z-component of complex scattered electric field
+                                'norm(E_scat)'  norm of complex scattered electric field
 
-                                'E_init_x'       real part of x-component of complex initial electric field
-                                'E_init_y'       real part of y-component of complex initial electric field
-                                'E_init_z'       real part of z-component of complex initial electric field
-                                'norm(E_init)'   norm of complex initial electric field
+                                'E_init_x'      real part of x-component of complex initial electric field
+                                'E_init_y'      real part of y-component of complex initial electric field
+                                'E_init_z'      real part of z-component of complex initial electric field
+                                'norm(E_init)'  norm of complex initial electric field
         show_plots (logical):   If True, plots are shown
         show_opts (dict):       List of dictionaries containing options to be passed to imshow for plotting.
-                                An optional extra dictionary entry called 'label' of type string is shown in
-                                the plot title and appended to the associated file if save_plots is True
+                                For each entry in quantities_to_plot, all show_opts dictionaries will be applied.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are made available (see matplotlib.pyplot.imshow documentation):
+                                'cmap'          defaults to 'inferno' for norm quantities and 'RdYlBu' otherwise
+                                'norm'          (None)
+                                'aspect'        ('equal')
+                                'interpolation' (None), also available: bilinear, bicubic, spline16, quadric, ...
+                                'alpha'         (None)
+                                'vmin'          (None), will be set to 0 for norm quantities and -vmax otherwise
+                                'vmax'          initialized with the max of the quantity to plot
+                                'origin'        ('lower')
+                                'extent'        calculated automatically based on plotting coordinate limits
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
         save_plots (logical):   If True, plots are exported to file.
         save_opts (dict):       List of dictionaries containing options to be passed to savefig.
-                                Passing 'gif' as one of the format values will result in an
-                                animation for the real part of field-type quantities
+                                For each entry in quantities_to_plot, all save_opts dictionaries will be applied.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'papertype'     (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+                                Passing 'gif' as one of the format values will result in an animation if the
+                                quantity to plot is of non-norm type
         save_data (logical):    If True, raw data are exported to file
         data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
         outputdir (str):        Path to directory where to save the export files
