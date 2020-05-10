@@ -2,20 +2,20 @@
 
 # -*- coding: utf-8 -*-
 import numpy as np
-import scipy.interpolate as interp
 import smuthi.postprocessing.scattered_field as sf
 import smuthi.postprocessing.internal_field as intf
 import smuthi.postprocessing.far_field as ff
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Ellipse, Rectangle
 from matplotlib.colors import LogNorm
+from itertools import cycle
 import tempfile
 import shutil
 import imageio
 import os
 import warnings
 import sys
-            
+
 
 def plot_layer_interfaces(dim1min, dim1max, layer_system):
     """Add lines to plot to display layer system interfaces
@@ -113,68 +113,97 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
-def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, save_animations=False, save_data=False,
-                    outputdir='.', xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0, resolution_step=25, 
-                    interpolate_step=None, interpolation_order=1, dpi=None, k_parallel='default',
-                    azimuthal_angles='default', simulation=None, max_field=None, min_norm_field=None,
+def show_near_field(simulation=None, quantities_to_plot=None,
+                    show_plots=True, show_opts=None, save_plots=False, save_opts=None,
+                    save_data=False, data_format='hdf5', outputdir='.',
+                    xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0,
+                    resolution_step=25, k_parallel='default', azimuthal_angles='default',
                     draw_circumscribing_sphere=True, show_internal_field=False):
     """Plot the electric near field along a plane. To plot along the xy-plane, specify zmin=zmax and so on.
 
     Args:
-        quantities_to_plot: List of strings that specify what to plot. Select from 'E_x', 'E_y', 'E_z', 'norm(E)'
-                            The list may contain one or more of the following strings:
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        quantities_to_plot:     List of strings that specify what to plot. Select from 'E_x', 'E_y', 'E_z', 'norm(E)'
+                                The list may contain one or more of the following strings:
 
-                                'E_x'       real part of x-component of complex total electric field
-                                'E_y'       real part of y-component of complex total electric field
-                                'E_z'       real part of z-component of complex total electric field
-                                'norm(E)'   norm of complex total electric field
+                                'E_x'           real part of x-component of complex total electric field
+                                'E_y'           real part of y-component of complex total electric field
+                                'E_z'           real part of z-component of complex total electric field
+                                'norm(E)'       norm of complex total electric field
 
-                                'E_scat_x'       real part of x-component of complex scattered electric field
-                                'E_scat_y'       real part of y-component of complex scattered electric field
-                                'E_scat_z'       real part of z-component of complex scattered electric field
-                                'norm(E_scat)'   norm of complex scattered electric field
+                                'E_scat_x'      real part of x-component of complex scattered electric field
+                                'E_scat_y'      real part of y-component of complex scattered electric field
+                                'E_scat_z'      real part of z-component of complex scattered electric field
+                                'norm(E_scat)'  norm of complex scattered electric field
 
-                                'E_init_x'       real part of x-component of complex initial electric field
-                                'E_init_y'       real part of y-component of complex initial electric field
-                                'E_init_z'       real part of z-component of complex initial electric field
-                                'norm(E_init)'   norm of complex initial electric field
-        save_plots (logical):   If True, plots are exported to file.
+                                'E_init_x'      real part of x-component of complex initial electric field
+                                'E_init_y'      real part of y-component of complex initial electric field
+                                'E_init_z'      real part of z-component of complex initial electric field
+                                'norm(E_init)'  norm of complex initial electric field
         show_plots (logical):   If True, plots are shown
-        save_animations (logical):  If True, animated gif-images are exported
-        save_data (logical):    If True, raw data are exported to file.
+        show_opts (dict list):  List of dictionaries containing options to be passed to imshow for plotting.
+                                For each entry in quantities_to_plot, all show_opts dictionaries will be applied.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are made available (see matplotlib.pyplot.imshow documentation):
+                                'cmap'          defaults to 'inferno' for norm quantities and 'RdYlBu' otherwise
+                                'norm'          (None)
+                                'aspect'        ('equal')
+                                'interpolation' (None), also available: bilinear, bicubic, spline16, quadric, ...
+                                'alpha'         (None)
+                                'vmin'          (None), will be set to 0 for norm quantities and -vmax otherwise
+                                'vmax'          initialized with the max of the quantity to plot
+                                'origin'        ('lower')
+                                'extent'        calculated automatically based on plotting coordinate limits
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (logical):   If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                For each entry in quantities_to_plot, all save_opts dictionaries will be applied.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+                                Passing 'gif' as one of the format values will result in an animation if the
+                                quantity to plot is of non-norm type
+        save_data (logical):    If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
         outputdir (str):        Path to directory where to save the export files
-        xmin (float):       Plot from that x (length unit)
-        xmax (float):       Plot up to that x (length unit)
-        ymin (float):       Plot from that y (length unit)
-        ymax (float):       Plot up to that y (length unit)
-        zmin (float):       Plot from that z (length unit)
-        zmax (float):       Plot up to that z (length unit)
+        xmin (float):           Plot from that x (length unit)
+        xmax (float):           Plot up to that x (length unit)
+        ymin (float):           Plot from that y (length unit)
+        ymax (float):           Plot up to that y (length unit)
+        zmin (float):           Plot from that z (length unit)
+        zmax (float):           Plot up to that z (length unit)
         resolution_step (float):     Compute the field with that spatial resolution (length unit,
                                      distance between computed points)
-        interpolate_step (float):    Use spline interpolation with that resolution to plot a smooth
-                                     field (length unit, distance between computed points)
-        interpolation_order (int):   Splines of that order are used to interpolate. Choose e.g. 1 for linear and 3 for
-                                     cubic spline interpolation.
-        dpi (scalar):           Resolution of saved images in dots per inch   
         k_parallel (numpy.ndarray or str):         in-plane wavenumbers for the plane wave expansion
                                                    if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):   azimuthal angles for the plane wave expansion
                                                    if 'default', use smuthi.fields.default_azimuthal_angles
-        simulation (smuthi.simulation.Simulation):  Simulation object
-        max_field (float):              If specified, truncate the color scale of the field plots at that value.
-        min_norm_field (float):         If specified, truncate the color scale of the norm field plots below that value.
         draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of
                                            particles.
         show_internal_field (bool):     If true, compute also the field inside the particles (only for spheres).
     """
     sys.stdout.write("Compute near field ...\n")
     sys.stdout.flush()
-    
-    if (not os.path.exists(outputdir)) and (save_plots or save_animations or save_data):
+
+    if (not os.path.exists(outputdir)) and (save_plots or save_data):
         os.makedirs(outputdir)
-    
+
     if quantities_to_plot is None:
         quantities_to_plot = ['norm(E)']
+    if show_opts is None:
+        show_opts = [{'interpolation':'none'}]
+    if save_opts is None:
+        save_opts = [{'format':'png'}]
 
     vacuum_wavelength = simulation.initial_field.vacuum_wavelength
     if xmin == xmax:
@@ -182,307 +211,253 @@ def show_near_field(quantities_to_plot=None, save_plots=False, show_plots=True, 
         dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
         yarr, zarr = np.meshgrid(dim1vec, dim2vec)
         xarr = yarr - yarr + xmin
-        dim1name = 'y (' + simulation.length_unit + ')'
-        dim2name = 'z (' + simulation.length_unit + ')'
+        titlestr = '$x$ = {} '.format(xmin) + simulation.length_unit
+        dim1name = '$y$ (' + simulation.length_unit + ')'
+        dim2name = '$z$ (' + simulation.length_unit + ')'
     elif ymin == ymax:
         dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
         dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
         xarr, zarr = np.meshgrid(dim1vec, dim2vec)
         yarr = xarr - xarr + ymin
-        dim1name = 'x (' + simulation.length_unit + ')'
-        dim2name = 'z (' + simulation.length_unit + ')'
+        titlestr = '$y$ = {} '.format(ymin) + simulation.length_unit
+        dim1name = '$x$ (' + simulation.length_unit + ')'
+        dim2name = '$z$ (' + simulation.length_unit + ')'
     else:
         dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
         dim2vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
         xarr, yarr = np.meshgrid(dim1vec, dim2vec)
         zarr = xarr - xarr + zmin
-        dim1name = 'x (' + simulation.length_unit + ')'
-        dim2name = 'y (' + simulation.length_unit + ')'
-        
-    scat_fld_exp = sf.scattered_field_piecewise_expansion(vacuum_wavelength, simulation.particle_list, 
+        titlestr = '$z$ = {} '.format(zmin) + simulation.length_unit
+        dim1name = '$x$ (' + simulation.length_unit + ')'
+        dim2name = '$y$ (' + simulation.length_unit + ')'
+
+    scat_fld_exp = sf.scattered_field_piecewise_expansion(vacuum_wavelength, simulation.particle_list,
                                                           simulation.layer_system, k_parallel, azimuthal_angles)
     sys.stdout.write("Evaluate fields ...\n")
     sys.stdout.flush()
-    e_x_scat_raw, e_y_scat_raw, e_z_scat_raw = scat_fld_exp.electric_field(xarr, yarr, zarr) 
-    
-    e_x_init_raw, e_y_init_raw, e_z_init_raw = simulation.initial_field.electric_field(xarr, yarr, zarr,
-                                                                                       simulation.layer_system)
+    e_x_scat, e_y_scat, e_z_scat = scat_fld_exp.electric_field(xarr, yarr, zarr)
+    e_x_init, e_y_init, e_z_init = simulation.initial_field.electric_field(xarr, yarr, zarr, simulation.layer_system)
 
     if show_internal_field:
         int_fld_exp = intf.internal_field_piecewise_expansion(vacuum_wavelength, simulation.particle_list,
                                                               simulation.layer_system)
-        e_x_int_raw, e_y_int_raw, e_z_int_raw = int_fld_exp.electric_field(xarr, yarr, zarr)
+        e_x_int, e_y_int, e_z_int = int_fld_exp.electric_field(xarr, yarr, zarr)
 
-    if interpolate_step is None:
-        e_x_scat, e_y_scat, e_z_scat = e_x_scat_raw, e_y_scat_raw, e_z_scat_raw
-        e_x_init, e_y_init, e_z_init = e_x_init_raw, e_y_init_raw, e_z_init_raw
-        if show_internal_field:
-            e_x_int, e_y_int, e_z_int = e_x_int_raw, e_y_int_raw, e_z_int_raw
-
-        dim1vecfine = dim1vec
-        dim2vecfine = dim2vec
-        interpolate_step = resolution_step
-    else:
-        sys.stdout.write("Evaluate interpolation ...\n")
-        sys.stdout.flush()
-
-        dim1vecfine = np.arange(dim1vec[0], dim1vec[-1] + interpolate_step/2, interpolate_step)
-        dim2vecfine = np.arange(dim2vec[0], dim2vec[-1] + interpolate_step/2, interpolate_step)
-
-        # interpolate scattered field
-        real_ex_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_scat_raw.real, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        imag_ex_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_scat_raw.imag, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        e_x_scat = (real_ex_scat_interpolant(dim2vecfine, dim1vecfine)
-                    + 1j * imag_ex_scat_interpolant(dim2vecfine, dim1vecfine))
-
-        real_ey_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_y_scat_raw.real, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        imag_ey_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_y_scat_raw.imag, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        e_y_scat = (real_ey_scat_interpolant(dim2vecfine, dim1vecfine)
-                    + 1j * imag_ey_scat_interpolant(dim2vecfine, dim1vecfine))
-
-        real_ez_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_z_scat_raw.real, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        imag_ez_scat_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_z_scat_raw.imag, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        e_z_scat = (real_ez_scat_interpolant(dim2vecfine, dim1vecfine)
-                    + 1j * imag_ez_scat_interpolant(dim2vecfine, dim1vecfine))
-
-        # interpolate initial field
-        real_ex_init_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_init_raw.real, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        imag_ex_init_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_init_raw.imag, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        e_x_init = (real_ex_init_interpolant(dim2vecfine, dim1vecfine)
-                    + 1j * imag_ex_init_interpolant(dim2vecfine, dim1vecfine))
-
-        real_ey_init_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_y_init_raw.real, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        imag_ey_init_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_y_init_raw.imag, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        e_y_init = (real_ey_init_interpolant(dim2vecfine, dim1vecfine)
-                    + 1j * imag_ey_init_interpolant(dim2vecfine, dim1vecfine))
-
-        real_ez_init_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_z_init_raw.real, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        imag_ez_init_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_z_init_raw.imag, 
-                                                              kx=interpolation_order, ky=interpolation_order)
-        e_z_init = (real_ez_init_interpolant(dim2vecfine, dim1vecfine)
-                    + 1j * imag_ez_init_interpolant(dim2vecfine, dim1vecfine))
-
-        # interpolate internal field
-        if show_internal_field:
-            real_ex_int_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_int_raw.real,
-                                                                 kx=interpolation_order, ky=interpolation_order)
-            imag_ex_int_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_x_int_raw.imag,
-                                                                  kx=interpolation_order, ky=interpolation_order)
-            e_x_int = (real_ex_int_interpolant(dim2vecfine, dim1vecfine)
-                        + 1j * imag_ex_int_interpolant(dim2vecfine, dim1vecfine))
-
-            real_ey_int_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_y_int_raw.real,
-                                                                  kx=interpolation_order, ky=interpolation_order)
-            imag_ey_int_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_y_int_raw.imag,
-                                                                  kx=interpolation_order, ky=interpolation_order)
-            e_y_int = (real_ey_int_interpolant(dim2vecfine, dim1vecfine)
-                        + 1j * imag_ey_int_interpolant(dim2vecfine, dim1vecfine))
-
-            real_ez_int_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_z_int_raw.real,
-                                                                  kx=interpolation_order, ky=interpolation_order)
-            imag_ez_int_interpolant = interp.RectBivariateSpline(dim2vec, dim1vec, e_z_int_raw.imag,
-                                                                  kx=interpolation_order, ky=interpolation_order)
-            e_z_int = (real_ez_int_interpolant(dim2vecfine, dim1vecfine)
-                        + 1j * imag_ez_int_interpolant(dim2vecfine, dim1vecfine))
-
-    if max_field is None:
-        vmin = None
-        vmax = None
-    else:
-        vmin = -max_field
-        vmax = max_field
-        
     sys.stdout.write("Generate plots ...\n")
     sys.stdout.flush()
-    
-    for jq, quantity in enumerate(quantities_to_plot):
 
-        filename = 'E'
+    if not show_plots:
+        import matplotlib
+        default_backend = matplotlib.get_backend()
+        matplotlib.use('Agg') # a non-gui backend to avoid opening figure windows
 
-        fig = plt.figure()
-        if 'scat' in quantity:
-            e_x, e_y, e_z = e_x_scat, e_y_scat, e_z_scat
-            field_type_string = 'scattered electric field'
-            filename = filename + '_scat'
-        elif 'init' in quantity:
-            e_x, e_y, e_z = e_x_init, e_y_init, e_z_init
-            field_type_string = 'initial electric field'
-            filename = filename + '_init'
-        elif 'intern' in quantity:
-            if not show_internal_field:
-                raise Exception("show_internal_field flag needs to be set to true!")
-            e_x, e_y, e_z = e_x_int, e_y_int, e_z_int
-            field_type_string = 'internal electric field'
-            filename = filename + '_intern'
-        else:
-            e_x, e_y, e_z = e_x_scat + e_x_init, e_y_scat + e_y_init, e_z_scat + e_z_init
-            if show_internal_field:
-                e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
-            field_type_string = 'total electric field'
+    step2 = resolution_step/2 # proper registration of particles and layers to the pixel grid
 
-        if 'norm' in quantity:
-            if min_norm_field is None:
-                vmin_norm = 0
+    for quantity in quantities_to_plot:
+
+        for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
+
+            filename = 'E'
+            label_str = show_opt.get('label','')
+
+            if 'scat' in quantity:
+                e_x, e_y, e_z = e_x_scat, e_y_scat, e_z_scat
+                field_type_string = 'scat'
+            elif 'init' in quantity:
+                e_x, e_y, e_z = e_x_init, e_y_init, e_z_init
+                field_type_string = 'init'
+            elif 'intern' in quantity:
+                if not show_internal_field:
+                    raise Exception("show_internal_field flag needs to be set to true!")
+                e_x, e_y, e_z = e_x_int, e_y_int, e_z_int
+                field_type_string = 'inter'
             else:
-                vmin_norm = min_norm_field
-            e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
-            filename = 'norm_' + filename
-            # plt.pcolormesh(dim1vecfine, dim2vecfine, np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2), vmin=0,
-            #                vmax=vmax, cmap='inferno')
-            step2 = interpolate_step/2
-            plt.imshow(e, vmin=vmin_norm, vmax=vmax,
-                       cmap='inferno',
-                       #cmap='jet',
-                       extent=[dim1vecfine.min()-step2, dim1vecfine.max()+step2,
-                               dim2vecfine.min()-step2, dim2vecfine.max()+step2],
-                               interpolation="quadric",
-                               #interpolation="none",
-                       origin='lower')
+                e_x, e_y, e_z = e_x_scat + e_x_init, e_y_scat + e_y_init, e_z_scat + e_z_init
+                if show_internal_field:
+                    e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
+                field_type_string = 'tot'
 
-            plt_title = 'norm of ' + field_type_string
-            plt.title(plt_title)
-        else:
-            if '_x' in quantity:
-                e = e_x
-                filename = filename + '_x'
-                plt_title = 'x-component of ' + field_type_string
-            elif '_y' in quantity:
-                e = e_y
-                filename = filename + '_y'
-                plt_title = 'y-component of ' + field_type_string
-            elif '_z' in quantity:
-                e = e_z
-                filename = filename + '_z'
-                plt_title = 'z-component of ' + field_type_string
+            fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+
+            if 'norm' in quantity:
+                e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
+                plt.imshow(e, vmin=show_opt.get('vmin', 0), vmax=show_opt.get('vmax',np.abs(e).max()),
+                           alpha=show_opt.get('alpha'), norm=show_opt.get('norm'),
+                           cmap=show_opt.get('cmap','inferno'), origin=show_opt.get('origin','lower'),
+                           interpolation=show_opt.get('interpolation','none'),
+                           extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                                          dim2vec.min()-step2, dim2vec.max()+step2]))
+                plt_title = '$|' + filename + '^{' + field_type_string + '}|$ at ' + titlestr \
+                            + ('' if label_str == '' else ' (' + label_str + ')')
+                filename = 'norm_' + filename
+                plt.title(plt_title)
             else:
-                print('Quantity:', quantity)
-                raise ValueError('field component not specified')
-            # plt.pcolormesh(dim1vecfine, dim2vecfine, e.real, vmin=vmin, vmax=vmax, cmap='RdYlBu')
-            step2 = interpolate_step/2
-            plt.imshow(e.real, vmin=vmin, vmax=vmax, cmap='RdYlBu',
-                       extent=[dim1vecfine.min()-step2, dim1vecfine.max()+step2,
-                               dim2vecfine.min()-step2, dim2vecfine.max()+step2],
-                               #interpolation="quadric",
-                               interpolation="none",
-                       origin='lower')
-            plt.title(plt_title)
+                if '_x' in quantity:
+                    e = e_x
+                    filename = filename + '_x'
+                elif '_y' in quantity:
+                    e = e_y
+                    filename = filename + '_y'
+                elif '_z' in quantity:
+                    e = e_z
+                    filename = filename + '_z'
+                else:
+                    print('Quantity:', quantity)
+                    raise ValueError('field component not specified')
+                vmax = show_opt.get('vmax',np.abs(e).max())
+                plt.imshow(e.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
+                           alpha=show_opt.get('alpha'), norm=show_opt.get('norm'),
+                           cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
+                           interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
+                           extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                                          dim2vec.min()-step2, dim2vec.max()+step2]))
+                plt_title = '$ ' + filename + '^{' + field_type_string + '}$' + ' at ' + titlestr \
+                            + ('' if label_str == '' else ' (' + label_str + ')')
+                plt.title(plt_title)
 
-        plt.colorbar()
-        plt.xlabel(dim1name)
-        plt.ylabel(dim2name)
+            plt.colorbar()
+            plt.xlabel(dim1name)
+            plt.ylabel(dim2name)
 
-        if not zmin == zmax:
-            plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+            if not zmin == zmax:
+                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
 
-        plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                       draw_circumscribing_sphere, not show_internal_field)
+            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                           draw_circumscribing_sphere, not show_internal_field)
 
-        plt.gca().set_aspect("equal")
+            label_str = '' if label_str == '' else '_' + label_str # prepend underscore
+            filename = filename + '_' + field_type_string + label_str
+            export_filename = outputdir + '/' + filename
+            if save_plots:
+                if save_opt.get('format') == 'gif':
+                    if 'norm' in quantity:
+                        plt.close(fig)
+                        continue # it seems like savefig does not accept 'gif' as a format, so we have to continue explicitly here
+                    tempdir = tempfile.mkdtemp()
+                    images = []
+                    for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
+                        tempfig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+                        e_t = e * np.exp(-1j * t * 2 * np.pi)
+                        plt.imshow(e_t.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
+                                   cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
+                                   interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
+                                   extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                                                  dim2vec.min()-step2, dim2vec.max()+step2]))
+                        plt.title(plt_title)
+                        plt.colorbar()
+                        plt.xlabel(dim1name)
+                        plt.ylabel(dim2name)
+                        if not zmin == zmax:
+                            plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                        plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                                       draw_circumscribing_sphere, not show_internal_field)
+                        tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
+                        plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
+                                    orientation=save_opt.get('orientation','portrait'),
+                                    transparent=save_opt.get('transparent',False),
+                                    bbox_inches=save_opt.get('bbox_inches','tight'),
+                                    pad_inches=save_opt.get('pad_inches',0.1))
+                        plt.close(tempfig)
+                        images.append(imageio.imread(tempfig_filename))
+                    imageio.mimsave(export_filename + '.gif', images, duration=0.1)
+                    shutil.rmtree(tempdir)
+                else:
+                    file_ext = '.' + save_opt.get('format','png') # default to png if not specified
+                    plt.savefig(export_filename + file_ext, dpi=save_opt.get('dpi'),
+                                orientation=save_opt.get('orientation','portrait'),
+                                transparent=save_opt.get('transparent',False),
+                                bbox_inches=save_opt.get('bbox_inches','tight'),
+                                pad_inches=save_opt.get('pad_inches',0.1))
 
-        export_filename = outputdir + '/' + filename
-        if save_plots:
-            plt.savefig(export_filename + '.png', dpi=dpi)
-            #plt.savefig(export_filename + '.pdf')
-        if save_animations:
-            if not 'norm' in quantity:
-                tempdir = tempfile.mkdtemp()
-                images = []
-                for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
-                    tempfig = plt.figure()
-                    e_t = e * np.exp(-1j * t * 2 * np.pi)
-                    # plt.pcolormesh(dim1vecfine, dim2vecfine, e_t.real, vmin=vmin, vmax=vmax, cmap='RdYlBu')
-                    step2 = interpolate_step/2
-                    plt.imshow(e_t.real, vmin=vmin, vmax=vmax, cmap='RdYlBu',
-                               extent=[dim1vecfine.min()-step2, dim1vecfine.max()+step2,
-                               dim2vecfine.min()-step2, dim2vecfine.max()+step2],
-                               #interpolation="quadric",
-                               interpolation="none",
-                            origin='lower')
-                    plt.title(plt_title)
-                    plt.colorbar()
-                    plt.xlabel(dim1name)
-                    plt.ylabel(dim2name)
-                    if not zmin == zmax:
-                        plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-                    plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                                   draw_circumscribing_sphere, not show_internal_field)
-                    plt.gca().set_aspect("equal")
-                    tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
-                    plt.savefig(tempfig_filename, dpi=dpi)
-                    plt.close(tempfig)
-                    images.append(imageio.imread(tempfig_filename))
-                imageio.mimsave(export_filename + '.gif', images, duration=0.1)
-                shutil.rmtree(tempdir)
-        if show_plots:
-            plt.draw()
-        else:
-            plt.close(fig)
+            if not show_plots:
+                plt.close(fig)
+
+    if not show_plots:
+        matplotlib.use(default_backend) # now we can restore the original backend
 
     if save_data:
-        import h5py
+        Ei = np.stack((e_x_init, e_y_init, e_z_init))
+        Es = np.stack((e_x_scat, e_y_scat, e_z_scat))
 
-        metadata = {'vacuum_wavelength': simulation.initial_field.vacuum_wavelength,
-                    'polar_angle': simulation.initial_field.polar_angle,
-                    'azimuthal_angle': simulation.initial_field.azimuthal_angle,
-                    'polarization': simulation.initial_field.polarization,}
+        if data_format.lower() == 'hdf5':
+            import h5py
 
-        Ei = np.stack((e_x_init_raw, e_y_init_raw, e_z_init_raw))
-        Es = np.stack((e_x_scat_raw, e_y_scat_raw, e_z_scat_raw))
-        with h5py.File(outputdir + '/data.hdf5', 'a') as f:
-            f.attrs.update(metadata)
-            g = f.require_group('near_field')
-            g.create_dataset('1st_dim_axis', data=dim1vec)
-            g.create_dataset('2nd_dim_axis', data=dim2vec)
-            g.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
-            g.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
+            metadata = {'vacuum_wavelength': simulation.initial_field.vacuum_wavelength,
+                        'polar_angle': simulation.initial_field.polar_angle,
+                        'azimuthal_angle': simulation.initial_field.azimuthal_angle,
+                        'polarization': simulation.initial_field.polarization,}
 
-        np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
-        np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
+            with h5py.File(outputdir + '/data.hdf5', 'a') as f:
+                f.attrs.update(metadata)
+                g = f.require_group('near_field')
+                g.create_dataset('1st_dim_axis', data=dim1vec)
+                g.create_dataset('2nd_dim_axis', data=dim2vec)
+                g.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
+                g.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
+        elif data_format.lower() == 'ascii':
+            np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
+            np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
 
-        fmt = list(np.repeat('%.15g %+.15gj', np.size(dim1vec)))
-        np.savetxt(outputdir + '/e_init_x.dat', Ei[0,], fmt=fmt, delimiter=',')
-        np.savetxt(outputdir + '/e_init_y.dat', Ei[1,], fmt=fmt, delimiter=',')
-        np.savetxt(outputdir + '/e_init_z.dat', Ei[2,], fmt=fmt, delimiter=',')
+            fmt = list(np.repeat('%.15g %+.15gj', np.size(dim1vec)))
+            np.savetxt(outputdir + '/e_init_x.dat', Ei[0,], fmt=fmt, delimiter=',')
+            np.savetxt(outputdir + '/e_init_y.dat', Ei[1,], fmt=fmt, delimiter=',')
+            np.savetxt(outputdir + '/e_init_z.dat', Ei[2,], fmt=fmt, delimiter=',')
 
-        np.savetxt(outputdir + '/e_scat_x.dat', Es[0,], fmt=fmt, delimiter=',')
-        np.savetxt(outputdir + '/e_scat_y.dat', Es[1,], fmt=fmt, delimiter=',')
-        np.savetxt(outputdir + '/e_scat_z.dat', Es[2,], fmt=fmt, delimiter=',')
+            np.savetxt(outputdir + '/e_scat_x.dat', Es[0,], fmt=fmt, delimiter=',')
+            np.savetxt(outputdir + '/e_scat_y.dat', Es[1,], fmt=fmt, delimiter=',')
+            np.savetxt(outputdir + '/e_scat_z.dat', Es[2,], fmt=fmt, delimiter=',')
+        else:
+            raise ValueError('Currently, only hdf5 or ascii output data formats are available')
 
 
-def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='scattered_far_field',
-                             outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
-                             azimuthal_angles='default', min_field=None, max_field=None):
+def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'scattered_far_field'}],
+                             save_plots=False, save_opts=None,
+                             save_data=False, data_format='hdf5', outputdir='.',
+                             flip_downward=True, split=True, log_scale=False,
+                             polar_angles='default', azimuthal_angles='default'):
     """Display and export the scattered far field.
 
     Args:
-        simulation(smuthi.simulation.Simulation):       simulation object
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        polar_angles (numpy.ndarray or str):            polar angles values (radian).
-                                                        if 'default', use smuthi.fields.default_polar_angles
-        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
-                                                        if 'default', use smuthi.fields.default_azimuthal_angles
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        show_plots (bool):                          Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):                        Path to the directory where files are to be saved
+        flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
+        polar_angles (numpy.ndarray or str):    Polar angles values (radian).
+                                                If 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
+                                                If 'default', use smuthi.fields.default_azimuthal_angles
     """
 
     infld = simulation.initial_field
@@ -494,34 +469,59 @@ def show_scattered_far_field(simulation, save_plots=False, show_plots=True, save
                                        polar_angles=polar_angles,
                                        azimuthal_angles=azimuthal_angles)
 
-    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
-                   min_field=min_field, max_field=max_field)
+    show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
+                   show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_total_far_field(simulation, save_plots=False, show_plots=True, save_data=False, tag='total_far_field',
-                         outputdir='.', flip_downward=True, split=True, log_scale=False, polar_angles='default',
-                         azimuthal_angles='default', min_field=None, max_field=None):
+def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total_far_field'}],
+                         save_plots=False, save_opts=None,
+                         save_data=False, data_format='hdf5', outputdir='.',
+                         flip_downward=True, split=True, log_scale=False,
+                         polar_angles='default', azimuthal_angles='default'):
     """Display and export the total far field. This function cannot be used if the inital field is a plane wave.
 
     Args:
-        simulation(smuthi.simulation.Simulation):       simulation object
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        polar_angles (numpy.ndarray or str):            polar angles values (radian).
-                                                        if 'default', use smuthi.fields.default_polar_angles
-        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
-                                                        if 'default', use smuthi.fields.default_azimuthal_angles
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        show_plots (bool):                          Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):                        Path to the directory where files are to be saved
+        flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
+        polar_angles (numpy.ndarray or str):    Polar angles values (radian).
+                                                If 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
+                                                If 'default', use smuthi.fields.default_azimuthal_angles
     """
     infld = simulation.initial_field
     plst = simulation.particle_list
@@ -532,35 +532,59 @@ def show_total_far_field(simulation, save_plots=False, show_plots=True, save_dat
                                    polar_angles=polar_angles,
                                    azimuthal_angles=azimuthal_angles)
 
-    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
-                   min_field=min_field, max_field=max_field)
+    show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
+                   show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_scattering_cross_section(simulation, save_plots=False, show_plots=True, save_data=False,
-                                  tag='scattering_cross_section', outputdir='.', flip_downward=True, split=True,
-                                  log_scale=False, polar_angles='default', azimuthal_angles='default', min_field=None,
-                                  max_field=None):
+def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'label':'scattering_cross_section'}],
+                                  save_plots=False, save_opts=None,
+                                  save_data=False, data_format='hdf5', outputdir='.',
+                                  flip_downward=True, split=True, log_scale=False,
+                                  polar_angles='default', azimuthal_angles='default'):
     """Display and export the differential scattering cross section.
 
     Args:
-        simulation(smuthi.simulation.Simulation):       simulation object
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        polar_angles (numpy.ndarray or str):            polar angles values (radian).
-                                                        if 'default', use smuthi.fields.default_polar_angles
-        azimuthal_angles (numpy.ndarray or str):        azimuthal angle values (radian)
-                                                        if 'default', use smuthi.fields.default_azimuthal_angles
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        show_plots (bool):                          Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):                        Path to the directory where files are to be saved
+        flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
+        polar_angles (numpy.ndarray or str):    Polar angles values (radian).
+                                                If 'default', use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
+                                                If 'default', use smuthi.fields.default_azimuthal_angles
     """
 
     infld = simulation.initial_field
@@ -572,89 +596,164 @@ def show_scattering_cross_section(simulation, save_plots=False, show_plots=True,
                                             polar_angles=polar_angles,
                                             azimuthal_angles=azimuthal_angles)
 
-    show_far_field(far_field=far_field, save_plots=save_plots, show_plots=show_plots, save_data=save_data, tag=tag,
-                   outputdir=outputdir, flip_downward=flip_downward, split=split, log_scale=log_scale,
-                   min_field=min_field, max_field=max_field)
+    show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
+                   show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_far_field(far_field, save_plots, show_plots, save_data=False, tag='far_field', outputdir='.',
-                   flip_downward=True, split=True, log_scale=False, min_field=None, max_field=None):
+def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}], save_plots=False, save_opts=None,
+                   save_data=False, data_format='hdf5', outputdir='.',
+                   flip_downward=True, split=True, log_scale=False):
     """Display and export the far field.
-    
+
     Args:
-        far_field (smuthi.field_expansion.FarField):    far field object to show and export
-        save_plots (bool):                              save images if true
-        show_plots (bool):                              display plots if true
-        save_data (bool):                               export data in ascii format if true
-        tag (str):                                      name to attribute files
-        outputdir (str):                                path to the directory where data to be stored
-        flip_downward (bool):                           represent downward directions as 0-90 deg instead of 90-180
-                                                        if true
-        split (bool):                                   show two different plots for upward and downward directions 
-                                                        if true
-        log_scale (bool):                               do plots in logarithmic scale if true
-        min_field(float):                               truncate colorscale from below at that value
-        max_field(float):                               truncate colorscale from above at that value
+        far_field (smuthi.field_expansion.FarField):    Far-field object to show and export
+        show_plots (bool):      Display plots if True
+        show_opts (dict list):  List of dictionaries containing options to be passed to pcolormesh for plotting.
+                                If save_plots=True, a 1:1 correspondence between show_opts and save_opts dictionaries
+                                is assumed. For simplicity, one can also provide a single show_opts entry that will
+                                be applied to all save_opts.
+                                The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
+                                'alpha'     (None)
+                                'cmap'      ('inferno')
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
+                                'vmin'      (None)
+                                'vmax'      (None)
+                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'linewidth' (None), applies only to 1D plots
+                                'linestyle' (None), applies only to 1D plots
+                                'marker'    (None), applies only to 1D plots
+                                An optional extra key called 'label' of type string is shown in the plot title
+                                and appended to the associated file if save_plots is True
+        save_plots (bool):      If True, plots are exported to file.
+        save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
+                                A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
+                                simplicity, one can also provide a single save_opts entry that will be applied to
+                                all show_opts.
+                                The following keys are made available (see matplotlib.pyplot.savefig documentation):
+                                'dpi'           (None)
+                                'orientation'   (None)
+                                'format'        ('png'), also available: eps, jpeg, jpg, pdf, ps, svg, tif, tiff ...
+                                'transparent'   (False)
+                                'bbox_inches'   ('tight')
+                                'pad_inches'    (0.1)
+        save_data (bool):       If True, raw data are exported to file
+        data_format (str):      Output data format string, 'hdf5' and 'ascii' formats are available
+        outputdir (str):        Path to the directory where files are to be saved
+        flip_downward (bool):   If True, represent downward directions as 0-90 deg instead of 90-180
+        split (bool):           If True, show two different plots for upward and downward directions
+        log_scale (bool):       If True, set a logarithmic scale
     """
-    
+
     if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
-        show_far_field(far_field.top(), save_plots, show_plots, save_data,
-                       tag+'_top', outputdir, True, False, log_scale, min_field, max_field)
-        show_far_field(far_field.bottom(), save_plots, show_plots, save_data,
-                       tag+'_bottom', outputdir, True, False, log_scale, min_field, max_field)
+        top_opts = show_opts
+        for d in top_opts:
+            d['label'] = d.get('label') + '_top'
+        show_far_field(far_field.top(), show_plots, top_opts, save_plots, save_opts,
+                       save_data, data_format, outputdir, True, False, log_scale)
+        bottom_opts = show_opts
+        for d in bottom_opts:
+            d['label'] = d.get('label') + '_bottom'
+        show_far_field(far_field.bottom(), show_plots, bottom_opts, save_plots, save_opts,
+                       save_data, data_format, outputdir, True, False, log_scale)
         return
-    
+
     if (not os.path.exists(outputdir)) and (save_plots or save_data):
         os.makedirs(outputdir)
-    
-    if save_data:
-        far_field.export(output_directory=outputdir, tag=tag)
-    
-    alpha_grid = far_field.alpha_grid()
-    beta_grid = far_field.beta_grid()*180/np.pi
 
-    # 2D polar plot of far field
-    fig = plt.figure()
-    ax = fig.add_subplot(111, polar=True)
+    if save_opts is None:
+        save_opts = [{'format':'png'}]
+
+    if save_data:
+        pa = far_field.polar_angles
+        aa = far_field.azimuthal_angles
+        label = show_opts[0].get('label') # WARNING: filenames are based only on the label in show_opts[0]
+        if data_format.lower() == 'hdf5':
+            import h5py
+
+            with h5py.File(outputdir + '/data.hdf5', 'a') as f:
+                g = f.require_group('far_field')
+                g.require_dataset('polar_angles', data=pa, shape=np.shape(pa), dtype=pa.dtype)
+                g.require_dataset('azimuthal_angles', data=aa, shape=np.shape(aa), dtype=aa.dtype)
+                g.create_dataset(label, data=far_field.signal, compression="gzip")
+                g.create_dataset(label + '_polar', data=far_field.azimuthal_integral(), compression="gzip")
+        elif data_format.lower() == 'ascii':
+            np.savetxt(outputdir + '/' + label + '_TE.dat', far_field.signal[0, :, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/' + label + '_TM.dat', far_field.signal[1, :, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/' + label + '_polar_TE.dat', far_field.azimuthal_integral()[0, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/' + label + '_polar_TM.dat', far_field.azimuthal_integral()[1, :],
+                       header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
+            np.savetxt(outputdir + '/polar_angles.dat', pa,
+                       header='Polar angles of the far field in radians.')
+            np.savetxt(outputdir + '/azimuthal_angles.dat', aa,
+                       header='Azimuthal angles of the far field in radians.')
+        else:
+            raise ValueError('Currently, only hdf5 or ascii output data formats are available')
+
+    alpha_grid = far_field.alpha_grid()
+    beta_grid = far_field.beta_grid() * 180 / np.pi
+    polar_array = far_field.polar_angles * 180 / np.pi
+    if flip_downward and all(far_field.polar_angles >= np.pi / 2):
+        beta_grid = 180 - beta_grid
+        polar_array = 180 - polar_array
 
     color_norm = None
     if log_scale:
         color_norm = LogNorm()
 
-    if flip_downward and all(far_field.polar_angles >= np.pi / 2):
-        pcm = ax.pcolormesh(alpha_grid, 180 - beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            cmap='inferno', norm=color_norm, vmin=min_field, vmax=max_field)
-    else:
+    if not show_plots:
+        import matplotlib
+        default_backend = matplotlib.get_backend()
+        matplotlib.use('Agg') # a non-gui backend to avoid opening figure windows
+
+    for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
+        # 2D polar plot of far field
+        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+        ax = fig.add_subplot(111, polar=True)
+
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            cmap='inferno', norm=color_norm, vmin=min_field, vmax=max_field)
+                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm), cmap=show_opt.get('cmap','inferno'),
+                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmin'), shading=show_opt.get('shading','flat'))
 
-    plt.colorbar(pcm, ax=ax)
-    plt.title(tag)
-    if save_plots:
-        plt.savefig(outputdir + '/' + tag + '.png')
-    if show_plots:
-        plt.draw()
-    else:
-        plt.close(fig)
+        plt.colorbar(pcm, ax=ax)
+        plt.title(show_opt.get('label').replace('_',' '))
+        if save_plots:
+            export_filename = outputdir + '/' + show_opt.get('label') + '.' + save_opt.get('format','png') # png unless specified
+            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation','portrait'),
+                        transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
+                        pad_inches=save_opt.get('pad_inches',0.1))
 
-    # 1D polar plot of far field
-    fig = plt.figure()
-    if flip_downward and all(far_field.polar_angles >= np.pi/2):
-        plt.plot(180 - far_field.polar_angles * 180 / np.pi, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180)
-    else:
-        plt.plot(far_field.polar_angles * 180 / np.pi, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180)
-    if log_scale:
-        plt.yscale('log')
-    plt.xlabel('polar angle (degree)')
-    if far_field.signal_type == 'differential scattering cross section':
-        plt.ylabel('d_CS/d_cos(beta)')
-    elif far_field.signal_type == 'intensity':
-        plt.ylabel('d_P/d_cos(beta)')
-    plt.grid(True)
-    plt.title(tag)
-    if save_plots:
-        plt.savefig(outputdir + '/' + tag + '_polar.png')
-    if show_plots:
-        plt.draw()
-    else:
-        plt.close(fig)
+        if not show_plots:
+            plt.close(fig)
+
+        # 1D polar plot of far field
+        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+
+        plt.plot(polar_array, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180, alpha=show_opt.get('alpha'),
+                 lw=show_opt.get('linewidth'), ls=show_opt.get('linestyle'), marker=show_opt.get('marker'))
+
+        plt.xlabel('polar angle (degree)')
+        if far_field.signal_type == 'differential scattering cross section':
+            plt.ylabel('d_CS/d_cos(beta)') # TODO: add units based on simulation.length_unit?
+        elif far_field.signal_type == 'intensity':
+            plt.ylabel('d_P/d_cos(beta)') # TODO: add units based on simulation.length_unit?
+
+        if log_scale:
+            plt.yscale('log')
+
+        plt.grid(True)
+        plt.title(show_opt.get('label').replace('_',' '))
+
+        if save_plots:
+            export_filename = outputdir + '/' + show_opt.get('label') + '_polar.' + save_opt.get('format','png')
+            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation','portrait'),
+                        transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
+                        pad_inches=save_opt.get('pad_inches',0.1))
+        if not show_plots:
+            plt.close(fig)
+
+    if not show_plots:
+        matplotlib.use(default_backend) # now we can restore the original backend
