@@ -180,7 +180,7 @@ def converge_m_max(particle,
             y = np.append(y, new_value)
             r = np.append(r, rel_diff)
             line1.set_data(x, y.real) # NOTE: assuming only real-valued detector quantities
-            line1.set_label('$l_{max} = %g$, $m_{max}$ run'%particle.l_max)
+            line1.set_label('$m_{max}$ for $l_{max} = %g$'%particle.l_max)
             line2.set_data(x, r)
             [ax.relim() for ax in ax]
             [ax.autoscale_view() for ax in ax]
@@ -523,6 +523,28 @@ def select_numerical_parameters(simulation,
                                                       integral truncation. This takes more time, but is required at
                                                       least in the case of flat particles near interfaces.
     """
+
+
+    def _open_figure(xlabel='x', ylabel='y', title=None, tolerance=None, allowedtolerance=None):
+        """
+        Inner utility function returning figure and axes handles
+        """
+
+        fig, ax_array = plt.subplots(2, 1, sharex=True, figsize=(6.4,8), gridspec_kw={'height_ratios': [3, 1]})
+        ax_array[1].set_xlabel(xlabel)
+        ax_array[0].set_ylabel(ylabel)
+        ax_array[1].set_ylabel('relative difference')
+        ax_array[0].set_title(title)
+        ax_array[1].set_yscale('log')
+        ax_array[1].axhline(tolerance, color='grey', linestyle='dashed', label='tolerance')
+        if allowedtolerance is not None:
+            ax_array[1].axhline(allowedtolerance, color='grey', linestyle='dotted', label='allowed tolerance')
+        ax_array[1].grid()
+        ax_array[1].legend()
+
+        return fig, ax_array
+
+
     print("")
     print("----------------------------------------")
     print("Starting automatic paramateter selection")
@@ -531,13 +553,7 @@ def select_numerical_parameters(simulation,
     if select_neff_max:
         if show_plot:
             plt.ion()
-            fig, ax_array = plt.subplots(2, 1, sharex=True, figsize=(6.4,8), gridspec_kw={'height_ratios': [3, 1]})
-            ax_array[1].set_xlabel('$l_{max}$')
-            ax_array[0].set_ylabel(detector)
-            ax_array[1].set_ylabel('relative difference')
-            ax_array[0].set_title('$n_{eff}^{max}$ convergence')
-            ax_array[1].set_yscale('log')
-            ax_array[1].grid()
+            _, ax_array = _open_figure('$l_{max}$', detector, '$n_{eff}^{max}$ selection', tolerance, 0.1*tolerance)
         else:
             ax_array = None
         converge_neff_max(simulation=simulation,
@@ -554,13 +570,7 @@ def select_numerical_parameters(simulation,
     if select_multipole_cutoff:
         if show_plot:
             plt.ion()
-            fig, ax_array = plt.subplots(2, 1, sharex=True, figsize=(6.4,8), gridspec_kw={'height_ratios': [3, 1]})
-            ax_array[1].set_xlabel('$m_{max}$')
-            ax_array[0].set_ylabel(detector)
-            ax_array[1].set_ylabel('relative difference')
-            ax_array[0].set_title('multipole cutoff convergence')
-            ax_array[1].set_yscale('log')
-            ax_array[1].grid()
+            _, ax_array = _open_figure('multipole order', detector, 'multipole cutoff selection', tolerance)
         else:
             ax_array = None
         converge_multipole_cutoff(simulation=simulation,
@@ -572,13 +582,7 @@ def select_numerical_parameters(simulation,
     if select_neff_resolution:
         if show_plot:
             plt.ion()
-            fig, ax_array = plt.subplots(2, 1, sharex=True, figsize=(6.4,8), gridspec_kw={'height_ratios': [3, 1]})
-            ax_array[1].set_xlabel('$n_{eff}$ resolution')
-            ax_array[0].set_ylabel(detector)
-            ax_array[1].set_ylabel('relative difference')
-            ax_array[0].set_title('$n_{eff}$ resolution convergence')
-            ax_array[1].set_yscale('log')
-            ax_array[1].grid()
+            _, ax_array = _open_figure('$\delta n_{eff}$', detector, '$\delta n_{eff}$ selection', tolerance)
         else:
             ax_array = None
         converge_neff_resolution(simulation=simulation,
@@ -588,3 +592,6 @@ def select_numerical_parameters(simulation,
                                  neff_imag=neff_imag,
                                  neff_max=neff_max,
                                  ax=ax_array)
+
+    if show_plot:
+        plt.ioff()
