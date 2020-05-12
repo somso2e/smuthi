@@ -19,19 +19,19 @@ In the second part of the script, the resulting parameters (`l_max`, `m_max`, `n
 
 .. list-table::
 
-    * - .. figure:: top_2d.png
+    * - .. figure:: top_2D.png
 
            ambient DSCS
 
-      - .. figure:: top_1d.png
+      - .. figure:: top_1D.png
 
            ambient DSCS (integrated over :math:`\alpha`)
 					 
-    * - .. figure:: bottom_2d.png
+    * - .. figure:: bottom_2D.png
 
            substrate DSCS
 
-      - .. figure:: bottom_1d.png
+      - .. figure:: bottom_1D.png
 
            substrate DSCS (integrated over :math:`\alpha`)
 
