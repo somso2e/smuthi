@@ -42,18 +42,33 @@ class CustomInstallCommand(install):
             
         if not os.environ.get('READTHEDOCS'):
             nfmds_sources_dirname = pkg_resources.resource_filename('smuthi.linearsystem.tmatrix.nfmds', 'NFM-DS')
+
+            # standard precision
             sys.stdout.write('\nCompiling sources at ' + nfmds_sources_dirname + ' ...')
             sys.stdout.flush()
             os.chdir(nfmds_sources_dirname + '/TMATSOURCES')
             
             sys.stdout.flush()
             try:
-                subprocess.check_call(['gfortran', 'TAXSYM_SMUTHI.f90', '-o', 'TAXSYM_SMUTHI' + executable_ending])
+                subprocess.check_call(['gfortran', 'TAXSYM_SMUTHI.f90', '-o', 'TAXSYM_SMUTHI_DOUBLE_PREC' + executable_ending])
                 sys.stdout.write(' done.\n')
                 sys.stdout.flush()
             except Exception as e:
                 warnings.warn('\n Compiling NFM-DS sources failed.\n', UserWarning)
 
+            # extended precision
+            sys.stdout.write('\nCompiling sources at ' + nfmds_sources_dirname + ' with extended precision ...')
+            os.rename('Parameters.f90', 'Parameters_standard.f90')
+            os.rename('Parameters_extended.f90', 'Parameters.f90')
+            try:
+                subprocess.check_call(['gfortran', 'TAXSYM_SMUTHI.f90', '-o', 'TAXSYM_SMUTHI_QUAD_PREC'
+                                       + executable_ending])
+                sys.stdout.write(' done.\n')
+                sys.stdout.flush()
+            except Exception as e:
+                warnings.warn('\n Compiling NFM-DS sources with extended precision failed.\n', UserWarning)
+            os.rename('Parameters.f90', 'Parameters_extended.f90')
+            os.rename('Parameters_standard.f90', 'Parameters.f90')
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()

@@ -151,41 +151,6 @@ class FarField:
         else:
             raise ValueError('far fields have overlapping polar angle domains')
 
-    def export(self, output_directory='.', tag='far_field'):
-        """Export far field information to text file in ASCII format.
-
-        Args:
-            output_directory (str): Path to folder where to store data.
-            tag (str):              Keyword to use in the naming of data files, allowing to assign them to this object.
-        """
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-
-        import h5py
-
-        pa = self.polar_angles
-        aa = self.azimuthal_angles
-
-        with h5py.File(output_directory + '/data.hdf5', 'a') as f:
-            g = f.require_group('far_field')
-            g.require_dataset('polar_angles', data=pa, shape=np.shape(pa), dtype=pa.dtype)
-            g.require_dataset('azimuthal_angles', data=aa, shape=np.shape(aa), dtype=aa.dtype)
-            g.create_dataset(tag, data=self.signal, compression="gzip")
-            g.create_dataset(tag + '_polar', data=self.azimuthal_integral(), compression="gzip")
-
-        np.savetxt(output_directory + '/' + tag + '_TE.dat', self.signal[0, :, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/' + tag + '_TM.dat', self.signal[1, :, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/' + tag + '_polar_TE.dat', self.azimuthal_integral()[0, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/' + tag + '_polar_TM.dat', self.azimuthal_integral()[1, :],
-                   header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
-        np.savetxt(output_directory + '/polar_angles.dat', self.polar_angles,
-                   header='Polar angles of the far field in radians.')
-        np.savetxt(output_directory + '/azimuthal_angles.dat', self.azimuthal_angles,
-                   header='Azimuthal angles of the far field in radians.')
-
 
 def pwe_to_ff_conversion(vacuum_wavelength, plane_wave_expansion):
     """Compute the far field of a plane wave expansion object.
@@ -417,8 +382,8 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
     return dscs
 
 
-def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles='default',
-                                   azimuthal_angles='default'):
+def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=None,
+                                   azimuthal_angles=None, angular_resolution = np.pi / 360.0):
     """Evaluate the total scattering cross section.
 
     Args:
@@ -426,16 +391,26 @@ def total_scattering_cross_section(initial_field, particle_list, layer_system, p
         particle_list (list):                     scattering particles
         layer_system (smuthi.layers.LayerSystem): stratified medium
         polar_angles (numpy.ndarray or str):        polar angles values (radian).
-                                                    if 'default', use smuthi.fields.default_polar_angles
+                                                    if string 'default' is provided, use
+                                                    smuthi.fields.default_polar_angles. Default is None.
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
-                                                    if 'default', use smuthi.fields.default_azimuthal_angles
+                                                    if string 'default' is provided, use
+                                                    smuthi.fields.default_azimuthal_angles. Default is None.
+        angular_resolution (float):                 If `polar_angles` or `azimuthal_angles` are None (default),
+                                                    use this angular sampling distance value to create equidistant
+                                                    arrays. Default: pi/360
 
     Returns:
         A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
         scattering (bottom hemisphere).
     """
-    dscs = scattering_cross_section(initial_field, particle_list, layer_system, polar_angles='default',
-                                    azimuthal_angles='default')
+    if polar_angles is None:
+        polar_angles = np.arange(0, np.pi + 0.5 * angular_resolution, angular_resolution)
+    if azimuthal_angles is None:
+        azimuthal_angles = np.arange(0, 2 * np.pi + 0.5 * angular_resolution, angular_resolution)
+
+    dscs = scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=polar_angles,
+                                    azimuthal_angles=azimuthal_angles)
     scs = dscs.integral()
     return scs[0] + scs[1]
 

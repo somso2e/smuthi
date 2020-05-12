@@ -45,12 +45,16 @@ class Particle:
         pass
 
     def is_inside(self, x, y, z):
-        """Virtual method to be overwritten"""
-        pass
+        """Virtual method to be overwritten.
+        Until all child classes implement it: return False
+        """
+        return False
 
     def is_outside(self, x, y, z):
-        """Virtual method to be overwritten"""
-        pass
+        """Virtual method to be overwritten.
+        Until all child classes implement it: return True
+        """
+        return True
     
     def automated_lmax_mmax_selection(self, vacuum_wavelength, ambient_medium,
                                       lmax_stop=20, max_rel_diff=1e-3):
@@ -161,6 +165,12 @@ class Spheroid(Particle):
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
         t_matrix_method (dict):     Dictionary containing the parameters for the algorithm to compute the T-matrix
+                                    It can contain the following key-valule pairs:
+                                    - "use discrete sources": Set to True if you want to enable discrete sources
+                                                              (default is False)
+                                    - "nint": NINT parameter of NFM-DS (default is 500)
+                                    - "nrank": NRANK parameter of NFM-DS (default is l_max + 10)
+                                    - "quadruple precision": Set to True for extended precision arithmetic in NFM-DS
     """
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1+0j, 
                  semi_axis_c=1, semi_axis_a=1, l_max=None, m_max=None, t_matrix_method=None):
@@ -200,6 +210,13 @@ class FiniteCylinder(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
+        t_matrix_method (dict):     Dictionary containing the parameters for the algorithm to compute the T-matrix
+                                    It can contain the following key-valule pairs:
+                                    - "use discrete sources": Set to True if you want to enable discrete sources
+                                                              (default is False)
+                                    - "nint": NINT parameter of NFM-DS (default is 500)
+                                    - "nrank": NRANK parameter of NFM-DS (default is l_max + 10)
+                                    - "quadruple precision": Set to True for extended precision arithmetic in NFM-DS
     """
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1+0j, 
                  cylinder_radius=1, cylinder_height=1, l_max=None, m_max=None, t_matrix_method=None):

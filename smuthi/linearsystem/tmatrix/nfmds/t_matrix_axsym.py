@@ -18,7 +18,8 @@ import sys
 
 @memo.Memoize
 def tmatrix_spheroid(vacuum_wavelength=None, layer_refractive_index=None, particle_refractive_index=None,
-                     semi_axis_c=None, semi_axis_a=None, l_max=None, m_max=None, use_ds=True, nint=None, nrank=None):
+                     semi_axis_c=None, semi_axis_a=None, l_max=None, m_max=None, use_ds=True, nint=None, nrank=None,
+                     quad_prec=False):
     """T-matrix for spheroid, using the TAXSYM.f90 routine from the NFM-DS.
 
     Args:
@@ -34,6 +35,7 @@ def tmatrix_spheroid(vacuum_wavelength=None, layer_refractive_index=None, partic
         nint (int):                                     Nint parameter for internal use of NFM-DS (number of points
                                                         along integral). Higher value is more accurate and takes longer
         nrank (int):                                    l_max used internally in NFM-DS
+        quad_prec (logical):                            use quadruple precision
 
     Returns:
         T-matrix as numpy.ndarray
@@ -42,13 +44,14 @@ def tmatrix_spheroid(vacuum_wavelength=None, layer_refractive_index=None, partic
     taxsym_write_input_spheroid(vacuum_wavelength=vacuum_wavelength, layer_refractive_index=layer_refractive_index,
                                 particle_refractive_index=particle_refractive_index, semi_axis_c=semi_axis_c,
                                 semi_axis_a=semi_axis_a, use_ds=use_ds, nint=nint, nrank=nrank, filename=filename)
-    taxsym_run()
+    taxsym_run(quad_prec)
     return taxsym_read_tmatrix(filename=filename, l_max=l_max, m_max=m_max)
 
 
 @memo.Memoize
 def tmatrix_cylinder(vacuum_wavelength=None, layer_refractive_index=None, particle_refractive_index=None,
-                     cylinder_height=None, cylinder_radius=None, l_max=None, m_max=None, use_ds=True, nint=None, nrank=None):
+                     cylinder_height=None, cylinder_radius=None, l_max=None, m_max=None, use_ds=True, nint=None,
+                     nrank=None, quad_prec=False):
     """Return T-matrix for finite cylinder, using the TAXSYM.f90 routine from the NFM-DS.
 
     Args:
@@ -64,6 +67,7 @@ def tmatrix_cylinder(vacuum_wavelength=None, layer_refractive_index=None, partic
         nint (int):                                     Nint parameter for internal use of NFM-DS (number of points
                                                         along integral). Higher value is more accurate and takes longer
         nrank (int):                                    l_max used internally in NFM-DS
+        quad_prec (logical):                            use quadruple precision
 
     Returns:
         T-matrix as numpy.ndarray
@@ -73,19 +77,27 @@ def tmatrix_cylinder(vacuum_wavelength=None, layer_refractive_index=None, partic
                                 particle_refractive_index=particle_refractive_index, cylinder_height=cylinder_height,
                                 cylinder_radius=cylinder_radius, use_ds=use_ds, nint=nint, nrank=nrank,
                                 filename=filename)
-    taxsym_run()
+    taxsym_run(quad_prec)
     return taxsym_read_tmatrix(filename=filename, l_max=l_max, m_max=m_max)
 
 
-def taxsym_run():
-    """Call TAXSYM.f90 routine."""
+def taxsym_run(quad_prec=False):
+    """Call TAXSYM.f90 routine.
+
+    Args:
+        quad_prec (logical):                            use quadruple precision
+    """
     nfmds.initialize_binary()
     cwd = os.getcwd()
     os.chdir(nfmds.nfmds_folder + '/TMATSOURCES')
+    if quad_prec:
+        exe_string = 'TAXSYM_SMUTHI_QUAD_PREC'
+    else:
+        exe_string = 'TAXSYM_SMUTHI_DOUBLE_PREC'
     with open('../nfmds.log', 'a') as nfmds_log:
         if sys.platform.startswith('win'):
             try:
-                subprocess.check_call('TAXSYM_SMUTHI.exe', stdout=nfmds_log, stderr=nfmds_log)
+                subprocess.check_call(exe_string + '.exe', stdout=nfmds_log, stderr=nfmds_log)
             except subprocess.CalledProcessError as e:
                 raise Exception("The command " + e.cmd + " has failed with returncode " + str(e.returncode) + "."
                                 + "\nOutput: " + str(e.output)
@@ -95,9 +107,9 @@ def taxsym_run():
                                 + "\n To learn more about the issue, browse to " + os.getcwd() + " and double-click the "
                                 + "TAXSYM_SMUTHI.exe")
         elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-            subprocess.check_call(['./TAXSYM_SMUTHI.out'], stdout=nfmds_log, stderr=nfmds_log)
+            subprocess.check_call(['./' + exe_string + '.out'], stdout=nfmds_log, stderr=nfmds_log)
         else:
-            raise AssertionError('Platform neither windows nor linux.')
+            raise AssertionError('Platform neither windows nor linux nor darwin.')
     os.chdir(cwd)
 
     

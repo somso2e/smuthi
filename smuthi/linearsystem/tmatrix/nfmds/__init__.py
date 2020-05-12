@@ -63,13 +63,30 @@ def initialize_binary():
             sys.stdout.write('Compiling sources ...')
             sys.stdout.flush()
             try:
-                subprocess.check_call(['gfortran', 'TAXSYM_SMUTHI.f90', '-o', 'TAXSYM_SMUTHI' + executable_ending])
+                subprocess.check_call(['gfortran', 'TAXSYM_SMUTHI.f90', '-o', 'TAXSYM_SMUTHI_DOUBLE_PREC' + executable_ending])
+                sys.stdout.write(' done.\n')
             except subprocess.CalledProcessError as e:
                 raise Exception("The command " + e.cmd + " has failed with returncode " + str(e.returncode) + "."
                                 + "\nOutput: " + str(e.output))
             except FileNotFoundError:
                 raise Exception("The compilation of the NFM-DS sources failed. Do you have gfortran installed?")
-            sys.stdout.write(' done.\n')
             sys.stdout.flush()
+
+            sys.stdout.write('Compiling sources with extended precision ...')
+            sys.stdout.flush()
+            os.rename('Parameters.f90', 'Parameters_standard.f90')
+            os.rename('Parameters_extended.f90', 'Parameters.f90')
+            try:
+                subprocess.check_call(['gfortran', 'TAXSYM_SMUTHI.f90', '-o', 'TAXSYM_SMUTHI_QUAD_PREC'
+                                       + executable_ending])
+                sys.stdout.write(' done.\n')
+                sys.stdout.flush()
+            except subprocess.CalledProcessError as e:
+                raise Exception("The command " + e.cmd + " has failed with returncode " + str(e.returncode) + "."
+                                + "\nOutput: " + str(e.output))
+            except FileNotFoundError:
+                raise Exception("The compilation of the NFM-DS sources failed. Do you have gfortran installed?")
+            os.rename('Parameters.f90', 'Parameters_extended.f90')
+            os.rename('Parameters_standard.f90', 'Parameters.f90')
             os.chdir(cwd)
     binary_initialized = True

@@ -147,7 +147,6 @@ class PostProcessing:
                                    ymax=item.get('ymax', 0), zmin=item.get('zmin', 0), zmax=item.get('zmax', 0),
                                    simulation=simulation, max_field=item.get('maximal field strength'),
                                    resolution_step=item.get('spatial resolution', 25),
-                                   max_particle_distance=item.get('maximal particle distance', float('inf')),
                                    interpolate_step=item.get('interpolation spatial resolution'))
 
                 sys.stdout.write("done. \n")
