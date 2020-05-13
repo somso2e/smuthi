@@ -76,10 +76,10 @@ def converge_l_max(particle,
         x = np.array([])
         y = np.array([])
         r = np.array([])
-        line1, = ax[0].plot(x,y,'.-')
-        line2, = ax[1].plot(x,r,'.-')
         init_x = particle.l_max
         init_y = current_value.real
+        line1, = ax[0].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'.-')
+        line2, = ax[1].plot(x,r,'.-')
 
     for _ in range(max_iter):
         old_l_max = particle.l_max
@@ -104,8 +104,7 @@ def converge_l_max(particle,
             line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
             line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
             line2.set_data(x, r)
-            [ax.relim() for ax in ax]
-            [ax.autoscale_view() for ax in ax]
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
             plt.draw()
             plt.pause(0.001)
             ax[0].legend()
@@ -340,7 +339,7 @@ def converge_neff_max(simulation,
         neff_max_offset=0,
         neff_resolution=neff_resolution)
 
-    neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength) # WARNING: check that this is correct!
+    neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength)
     simulation.neff_max = neff_max
     print("Starting value: neff_max=%f"%neff_max.real)
 
@@ -354,6 +353,17 @@ def converge_neff_max(simulation,
                                                       ax=ax)
     else:
         current_value = evaluate(simulation, detector)
+
+    if ax is not None:
+        x = np.array([])
+        y = np.array([])
+        r = np.array([])
+        init_x = neff_max.real
+        init_y = current_value.real
+        line1, = ax[-2].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'k.-')
+        line2, = ax[-1].plot(x,r,'k.-')
+        ax[-1].set_xlabel('$n_{eff}^{max}$')
+        ax[-2].set_title('$n_{eff}^{max}$ selection')
 
     for _ in range(max_iter):
         old_neff_max = neff_max
@@ -381,13 +391,25 @@ def converge_neff_max(simulation,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
+        if ax is not None:
+            x = np.append(x, neff_max.real)
+            y = np.append(y, new_value.real)
+            r = np.append(r, rel_diff)
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_label('$n_{eff}^{max}$')
+            line2.set_data(x, r)
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
+            plt.draw()
+            plt.pause(0.001)
+            [ax.legend() for ax in ax[::-2]]
+
         if rel_diff < tolerance:  # in this case: discard l_max increment
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
             titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance, neff_max.real)
-            ax[1].title.set_text(titlestr)
-            ax[1].title.set_color('g')
+            ax[-1].title.set_text(titlestr)
+            ax[-1].title.set_color('g')
             plt.draw()
             return current_value
         else:
@@ -395,8 +417,8 @@ def converge_neff_max(simulation,
             current_value = new_value
 
     log.write_red("No convergence achieved. Keep neff_max = %g" % neff_max.real)
-    ax[1].title.set_text(titlestr)
-    ax[1].title.set_color('r')
+    ax[-1].title.set_text(titlestr)
+    ax[-1].title.set_color('r')
     plt.draw()
 
     return None
@@ -444,10 +466,10 @@ def converge_neff_resolution(simulation,
         x = np.array([])
         y = np.array([])
         r = np.array([])
-        line1, = ax[0].plot(x,y,'.-')
-        line2, = ax[1].plot(x,r,'.-')
         init_x = neff_resolution
         init_y = current_value.real
+        line1, = ax[0].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'.-')
+        line2, = ax[1].plot(x,r,'.-')
 
     for _ in range(max_iter):
         old_neff_resolution = neff_resolution
@@ -476,8 +498,7 @@ def converge_neff_resolution(simulation,
                                    simulation.particle_list[0].m_max,
                                    neff_resolution))
             line2.set_data(x, r)
-            [ax.relim() for ax in ax]
-            [ax.autoscale_view() for ax in ax]
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
             plt.draw()
             plt.pause(0.001)
             ax[0].legend()
@@ -557,30 +578,30 @@ def select_numerical_parameters(simulation,
     """
 
 
-    def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None):
+    def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None, cols=1):
         """
         Inner utility function returning figure and axes handles initialized
         following a common template for all parameter selection runs.
 
         Args:
-            xlabel (string):    x axis label (common to both panels)
+            xlabel (string):    column-wise common x axis label
             ylabel (string):    y axis label for the detector quantity
-            title  (string):    title string for the detector panel
+            title  (string):    title string for the (lefmost, if cols=2) detector panel
             tol (float):        user-set tolerance level to be drawn in relative difference panel
             allowedtol (float): when specified, also draw the actual tolerance level for the current run
+            cols (int):         number of subplot columns. select_neff_max() accepts 2
         """
 
-        fig, ax_array = plt.subplots(2, 1, sharex=True, figsize=(6.4,8), gridspec_kw={'height_ratios': [3, 1]})
+        fig, ax_array = plt.subplots(2, cols, sharex='col', figsize=(cols*6.4,8), gridspec_kw={'height_ratios': [3, 1]})
+        ax_array = ax_array.flatten(order='F')
         ax_array[1].set_xlabel(xlabel)
         ax_array[0].set_ylabel(ylabel)
         ax_array[1].set_ylabel('relative difference')
         ax_array[0].set_title(title)
-        ax_array[1].set_yscale('log')
-        ax_array[1].axhline(tol, color='grey', linestyle='dashed', label='tolerance')
+        [ax.axhline(tol, color='grey', linestyle='dashed', label='tolerance') for ax in ax_array[::-2]]
         if allowedtol is not None:
             ax_array[1].axhline(allowedtol, color='grey', linestyle='dotted', label='allowed tolerance')
-        ax_array[1].grid()
-        ax_array[1].legend()
+        [( ax.set_yscale('log'), ax.grid(), ax.legend() ) for ax in ax_array[::-2]]
 
         return fig, ax_array
 
@@ -593,7 +614,7 @@ def select_numerical_parameters(simulation,
     if select_neff_max:
         if show_plot:
             plt.ion()
-            _, ax_array = _init_fig('$l_{max}$', detector, '$n_{eff}^{max}$ selection', tolerance, 0.1*tolerance)
+            _, ax_array = _init_fig('$l_{max}$', detector, 'multipole cutoff', tolerance, 0.1*tolerance, 2)
         else:
             ax_array = None
         converge_neff_max(simulation=simulation,
