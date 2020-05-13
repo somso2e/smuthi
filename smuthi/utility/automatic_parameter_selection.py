@@ -56,6 +56,7 @@ def converge_l_max(particle,
                                                       no convergence has been achieved.
         start_from_1 (logical):                       If true (default), start from `l_max=1`. Otherwise, start from the
                                                       current particle `l_max`.
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -145,6 +146,7 @@ def converge_m_max(particle,
         current_value (float):                        Start value of detector (for current settings). If not
                                                       specified the method starts with a simulation for the current
                                                       settings.
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -233,6 +235,7 @@ def converge_multipole_cutoff(simulation,
                                                       settings.
         converge_m (logical):                         If false, only converge `l_max`, but keep `m_max=l_max`. Default
                                                       is true.
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -321,6 +324,7 @@ def converge_neff_max(simulation,
         converge_lm (logical):                          If set to true, update multipole truncation during each step
                                                         (this takes longer time, but is necessary for critical use cases
                                                         like flat particles on a substrate)
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value for converged settings.
@@ -450,6 +454,7 @@ def converge_neff_resolution(simulation,
                                                       index).
         neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
                                                       index) - start value for iteration
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value for converged settings.
@@ -577,7 +582,6 @@ def select_numerical_parameters(simulation,
                                                       least in the case of flat particles near interfaces.
     """
 
-
     def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None, cols=1):
         """
         Inner utility function returning figure and axes handles initialized
@@ -591,7 +595,6 @@ def select_numerical_parameters(simulation,
             allowedtol (float): when specified, also draw the actual tolerance level for the current run
             cols (int):         number of subplot columns. select_neff_max() accepts 2
         """
-
         fig, ax_array = plt.subplots(2, cols, sharex='col', figsize=(cols*6.4,8), gridspec_kw={'height_ratios': [3, 1]})
         ax_array = ax_array.flatten(order='F')
         ax_array[1].set_xlabel(xlabel)
@@ -604,7 +607,6 @@ def select_numerical_parameters(simulation,
         [( ax.set_yscale('log'), ax.grid(), ax.legend() ) for ax in ax_array[::-2]]
 
         return fig, ax_array
-
 
     print("")
     print("----------------------------------------")
