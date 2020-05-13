@@ -56,7 +56,8 @@ def initialize_binary():
             executable_ending = '.exe'
         else:
             executable_ending = '.out'
-        if (not os.access(nfmds_folder + '/TMATSOURCES/TAXSYM_SMUTHI' + executable_ending, os.X_OK)
+        if (not (os.access(nfmds_folder + '/TMATSOURCES/TAXSYM_SMUTHI_DOUBLE_PREC' + executable_ending, os.X_OK)
+                 and os.access(nfmds_folder + '/TMATSOURCES/TAXSYM_SMUTHI_QUAD_PREC' + executable_ending, os.X_OK))
             and not os.environ.get('READTHEDOCS')):
             cwd = os.getcwd()
             os.chdir(nfmds_folder + '/TMATSOURCES')
