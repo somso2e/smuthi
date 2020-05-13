@@ -76,8 +76,8 @@ def converge_l_max(particle,
         x = np.array([])
         y = np.array([])
         r = np.array([])
-        line1, = ax[0].plot(x,y)
-        line2, = ax[1].plot(x,r)
+        line1, = ax[0].plot(x,y,'.-')
+        line2, = ax[1].plot(x,r,'.-')
 
     for _ in range(max_iter):
         old_l_max = particle.l_max
@@ -160,8 +160,8 @@ def converge_m_max(particle,
         x = np.array([])
         y = np.array([])
         r = np.array([])
-        line1, = ax[0].plot(x,y)
-        line2, = ax[1].plot(x,r)
+        line1, = ax[0].plot(x,y,'.-')
+        line2, = ax[1].plot(x,r,'.-')
 
     for m_max in range(particle.m_max, -1, -1):
         old_m_max = particle.m_max
@@ -440,8 +440,8 @@ def converge_neff_resolution(simulation,
         x = np.array([])
         y = np.array([])
         r = np.array([])
-        line1, = ax[0].plot(x,y)
-        line2, = ax[1].plot(x,r)
+        line1, = ax[0].plot(x,y,'.-')
+        line2, = ax[1].plot(x,r,'.-')
 
     for _ in range(max_iter):
         old_neff_resolution = neff_resolution
