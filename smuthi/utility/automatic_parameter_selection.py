@@ -78,6 +78,8 @@ def converge_l_max(particle,
         r = np.array([])
         line1, = ax[0].plot(x,y,'.-')
         line2, = ax[1].plot(x,r,'.-')
+        init_x = particle.l_max
+        init_y = current_value.real
 
     for _ in range(max_iter):
         old_l_max = particle.l_max
@@ -99,7 +101,7 @@ def converge_l_max(particle,
             x = np.append(x, particle.l_max)
             y = np.append(y, new_value)
             r = np.append(r, rel_diff)
-            line1.set_data(x, y.real) # NOTE: assuming only real-valued detector quantities
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
             line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
             line2.set_data(x, r)
             [ax.relim() for ax in ax]
@@ -162,6 +164,8 @@ def converge_m_max(particle,
         r = np.array([])
         line1, = ax[0].plot(x,y,'.-')
         line2, = ax[1].plot(x,r,'.-')
+        init_x = particle.m_max
+        init_y = current_value.real
 
     for m_max in range(particle.m_max, -1, -1):
         old_m_max = particle.m_max
@@ -179,7 +183,7 @@ def converge_m_max(particle,
             x = np.append(x, particle.m_max)
             y = np.append(y, new_value)
             r = np.append(r, rel_diff)
-            line1.set_data(x, y.real) # NOTE: assuming only real-valued detector quantities
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
             line1.set_label('$m_{max}$ for $l_{max} = %g$'%particle.l_max)
             line2.set_data(x, r)
             [ax.relim() for ax in ax]
@@ -442,6 +446,8 @@ def converge_neff_resolution(simulation,
         r = np.array([])
         line1, = ax[0].plot(x,y,'.-')
         line2, = ax[1].plot(x,r,'.-')
+        init_x = neff_resolution
+        init_y = current_value.real
 
     for _ in range(max_iter):
         old_neff_resolution = neff_resolution
@@ -463,7 +469,7 @@ def converge_neff_resolution(simulation,
             x = np.append(x, neff_resolution)
             y = np.append(y, new_value)
             r = np.append(r, rel_diff)
-            line1.set_data(x, y.real) # NOTE: assuming only real-valued detector quantities
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y.real))
             line1.set_label('$n_{{eff}}^{{max}} = {}$, $l_{{max}} = {}$, $m_{{max}} = {}$'.\
                             format(neff_max.real.round(decimals=2),
                                    simulation.particle_list[0].l_max,
