@@ -381,7 +381,7 @@ def converge_neff_max(simulation,
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
-            titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance/10, neff_max.real)
+            titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance, neff_max.real)
             ax[1].title.set_text(titlestr)
             ax[1].title.set_color('g')
             plt.draw()
