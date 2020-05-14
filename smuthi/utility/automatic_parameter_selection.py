@@ -2,6 +2,7 @@
 
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 import smuthi.fields as flds
 import smuthi.postprocessing.far_field as ff
 from smuthi.fields import angular_frequency
@@ -36,7 +37,8 @@ def converge_l_max(particle,
                    detector="extinction cross section",
                    tolerance=1e-3,
                    max_iter=100,
-                   start_from_1=True):
+                   start_from_1=True,
+                   ax=None):
     """Find suitable multipole cutoff degree `l_max` for a given particle and simulation. The routine starts with the
     current `l_max` of the particle. The value of `l_max` is successively incremented in a loop until the resulting
     relative change in the detector value is smaller than the specified tolerance. The method updates the input
@@ -54,6 +56,7 @@ def converge_l_max(particle,
                                                       no convergence has been achieved.
         start_from_1 (logical):                       If true (default), start from `l_max=1`. Otherwise, start from the
                                                       current particle `l_max`.
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -70,6 +73,15 @@ def converge_l_max(particle,
 
     current_value = evaluate(simulation, detector)
 
+    if ax is not None:
+        x = np.array([])
+        y = np.array([])
+        r = np.array([])
+        init_x = particle.l_max
+        init_y = current_value.real
+        line1, = ax[0].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'.-')
+        line2, = ax[1].plot(x,r,'.-')
+
     for _ in range(max_iter):
         old_l_max = particle.l_max
         particle.l_max = old_l_max + 1  # l_max increment
@@ -84,6 +96,19 @@ def converge_l_max(particle,
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
+
+        if ax is not None:
+            neff_max = simulation.neff_max
+            x = np.append(x, particle.l_max)
+            y = np.append(y, new_value)
+            r = np.append(r, rel_diff)
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
+            line2.set_data(x, r)
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
+            plt.draw()
+            plt.pause(0.001)
+            ax[0].legend()
 
         if rel_diff < tolerance:  # in this case: discard l_max increment
             particle.l_max = old_l_max
@@ -101,7 +126,8 @@ def converge_m_max(particle,
                    simulation,
                    detector="extinction cross section",
                    tolerance=1e-3,
-                   current_value=None):
+                   current_value=None,
+                   ax=None):
     """Find suitable multipole cutoff order `m_max` for a given particle and simulation. The routine starts with the
     current `l_max` of the particle, i.e. with `m_max=l_max`. The value of `m_max` is successively decremented in a loop
     until the resulting relative change in the detector value is larger than the specified tolerance. The method updates
@@ -120,6 +146,7 @@ def converge_m_max(particle,
         current_value (float):                        Start value of detector (for current settings). If not
                                                       specified the method starts with a simulation for the current
                                                       settings.
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -132,6 +159,15 @@ def converge_m_max(particle,
     if current_value is None:
         current_value = evaluate(simulation, detector)
 
+    if ax is not None:
+        x = np.array([])
+        y = np.array([])
+        r = np.array([])
+        line1, = ax[0].plot(x,y,'.-')
+        line2, = ax[1].plot(x,r,'.-')
+        init_x = particle.m_max
+        init_y = current_value.real
+
     for m_max in range(particle.m_max, -1, -1):
         old_m_max = particle.m_max
         particle.m_max = m_max
@@ -143,14 +179,36 @@ def converge_m_max(particle,
         print("New detector value:", new_value)
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
+
+        if ax is not None:
+            x = np.append(x, particle.m_max)
+            y = np.append(y, new_value)
+            r = np.append(r, rel_diff)
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_label('$m_{max}$ for $l_{max} = %g$'%particle.l_max)
+            line2.set_data(x, r)
+            [ax.relim() for ax in ax]
+            [ax.autoscale_view() for ax in ax]
+            plt.draw()
+            plt.pause(0.001)
+            ax[0].legend()
+
         if rel_diff > tolerance:  # in this case: discard m_max decrement
             particle.m_max = old_m_max
-            log.write_green("Relative difference larger than tolerance. Keep m_max = %i"%particle.m_max)
+            log.write_green("Relative difference larger than tolerance. Keep m_max = %g"%particle.m_max)
+            titlestr = "relative diff < {:g}, keep $m_{{max}} = {:g}$".format(tolerance, particle.m_max)
+            ax[1].title.set_text(titlestr)
+            ax[1].title.set_color('g')
+            plt.draw()
             return current_value
         else:
+            titlestr = "no convergence achieved, keep $m_{{max}} = {:g}$".format(particle.m_max)
             current_value = new_value
 
-    log.write_red("No convergence achieved. Keep m_max = %i" % particle.m_max)
+    log.write_red("No convergence achieved. Keep m_max = %g" % particle.m_max)
+    ax[1].title.set_text(titlestr)
+    ax[1].title.set_color('r')
+    plt.draw()
 
 
 def converge_multipole_cutoff(simulation,
@@ -158,7 +216,8 @@ def converge_multipole_cutoff(simulation,
                               tolerance=1e-3,
                               max_iter=100,
                               current_value=None,
-                              converge_m=True):
+                              converge_m=True,
+                              ax=None):
     """Find suitable multipole cutoff degree `l_max` and order `m_max` for all particles in a given simulation object.
     The method updates the input simulation object with the so determined multipole truncation values.
 
@@ -176,6 +235,7 @@ def converge_multipole_cutoff(simulation,
                                                       settings.
         converge_m (logical):                         If false, only converge `l_max`, but keep `m_max=l_max`. Default
                                                       is true.
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -193,14 +253,16 @@ def converge_multipole_cutoff(simulation,
                                            simulation,
                                            detector,
                                            tolerance,
-                                           max_iter)
+                                           max_iter,
+                                           ax=ax)
 
             if converge_m:
                 current_value = converge_m_max(particle,
                                                simulation,
                                                detector,
                                                tolerance,
-                                               current_value)
+                                               current_value,
+                                               ax=ax)
 
     return current_value
 
@@ -240,7 +302,8 @@ def converge_neff_max(simulation,
                       neff_imag=1e-2,
                       neff_resolution=2e-3,
                       neff_max_increment=0.5,
-                      converge_lm=True):
+                      converge_lm=True,
+                      ax=None):
     """Find a suitable truncation value for the multiple scattering Sommerfeld integral contour and update the
     simulation object accordingly.
 
@@ -261,6 +324,7 @@ def converge_neff_max(simulation,
         converge_lm (logical):                          If set to true, update multipole truncation during each step
                                                         (this takes longer time, but is necessary for critical use cases
                                                         like flat particles on a substrate)
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value for converged settings.
@@ -280,6 +344,7 @@ def converge_neff_max(simulation,
         neff_resolution=neff_resolution)
 
     neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength)
+    simulation.neff_max = neff_max
     print("Starting value: neff_max=%f"%neff_max.real)
 
     if converge_lm:
@@ -288,9 +353,21 @@ def converge_neff_max(simulation,
                                                       detector=detector,
                                                       tolerance=tolerance/10,  # otherwise, results flucutate by tolerance and convergence check is compromised
                                                       max_iter=max_iter,
-                                                      converge_m=False)
+                                                      converge_m=False,
+                                                      ax=ax)
     else:
         current_value = evaluate(simulation, detector)
+
+    if ax is not None:
+        x = np.array([])
+        y = np.array([])
+        r = np.array([])
+        init_x = neff_max.real
+        init_y = current_value.real
+        line1, = ax[-2].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'k.-')
+        line2, = ax[-1].plot(x,r,'k.-')
+        ax[-1].set_xlabel('$n_{eff}^{max}$')
+        ax[-2].set_title('$n_{eff}^{max}$ selection')
 
     for _ in range(max_iter):
         old_neff_max = neff_max
@@ -307,7 +384,8 @@ def converge_neff_max(simulation,
                                                       tolerance=tolerance/10,
                                                       max_iter=max_iter,
                                                       current_value=current_value,
-                                                      converge_m=False)
+                                                      converge_m=False,
+                                                      ax=ax)
         else:
             new_value = evaluate(simulation, detector)
 
@@ -317,15 +395,36 @@ def converge_neff_max(simulation,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
+        if ax is not None:
+            x = np.append(x, neff_max.real)
+            y = np.append(y, new_value.real)
+            r = np.append(r, rel_diff)
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_label('$n_{eff}^{max}$')
+            line2.set_data(x, r)
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
+            plt.draw()
+            plt.pause(0.001)
+            [ax.legend() for ax in ax[::-2]]
+
         if rel_diff < tolerance:  # in this case: discard l_max increment
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
-            log.write_green("Relative difference smaller than tolerance. Keep neff_max = %f"%neff_max.real)
+            log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
+            titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance, neff_max.real)
+            ax[-1].title.set_text(titlestr)
+            ax[-1].title.set_color('g')
+            plt.draw()
             return current_value
         else:
+            titlestr = "no convergence achieved, keep $n_{{eff}}^{{max}} = {:g}$".format(neff_max.real)
             current_value = new_value
 
-    log.write_red("No convergence achieved. Keep neff_max = %i"%neff_max)
+    log.write_red("No convergence achieved. Keep neff_max = %g" % neff_max.real)
+    ax[-1].title.set_text(titlestr)
+    ax[-1].title.set_color('r')
+    plt.draw()
+
     return None
 
 
@@ -335,7 +434,8 @@ def converge_neff_resolution(simulation,
                        max_iter=20,
                        neff_imag=1e-2,
                        neff_max=None,
-                       neff_resolution=1e-2):
+                       neff_resolution=1e-2,
+                       ax=None):
     """Find a suitable discretization step size for the multiple scattering Sommerfeld integral contour and update the
     simulation object accordingly.
 
@@ -354,6 +454,7 @@ def converge_neff_resolution(simulation,
                                                       index).
         neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
                                                       index) - start value for iteration
+        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value for converged settings.
@@ -365,6 +466,15 @@ def converge_neff_resolution(simulation,
     update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
     print("Starting value: neff_resolution=%f" % neff_resolution)
     current_value = evaluate(simulation, detector)
+
+    if ax is not None:
+        x = np.array([])
+        y = np.array([])
+        r = np.array([])
+        init_x = neff_resolution
+        init_y = current_value.real
+        line1, = ax[0].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'.-')
+        line2, = ax[1].plot(x,r,'.-')
 
     for _ in range(max_iter):
         old_neff_resolution = neff_resolution
@@ -382,15 +492,40 @@ def converge_neff_resolution(simulation,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
+        if ax is not None:
+            x = np.append(x, neff_resolution)
+            y = np.append(y, new_value)
+            r = np.append(r, rel_diff)
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y.real))
+            line1.set_label('$n_{{eff}}^{{max}} = {}$, $l_{{max}} = {}$, $m_{{max}} = {}$'.\
+                            format(neff_max.real.round(decimals=2),
+                                   simulation.particle_list[0].l_max,
+                                   simulation.particle_list[0].m_max,
+                                   neff_resolution))
+            line2.set_data(x, r)
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
+            plt.draw()
+            plt.pause(0.001)
+            ax[0].legend()
+
         if rel_diff < tolerance:  # in this case: discard halfed neff_resolution
             neff_resolution = old_neff_resolution
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
-            log.write_green("Relative difference smaller than tolerance. Keep neff_resolution = %f" % neff_resolution)
+            log.write_green("Relative difference smaller than tolerance. Keep neff_resolution = %g" % neff_resolution)
+            titlestr = "relative diff < {:g}, keep $\delta n_{{eff}} = {:g}$".format(tolerance, neff_resolution)
+            ax[1].title.set_text(titlestr)
+            ax[1].title.set_color('g')
+            plt.draw()
             return current_value
         else:
+            titlestr = "no convergence achieved, keep $\delta n_{{eff}} = {:g}$".format(neff_max.real)
             current_value = new_value
 
-    log.write_red("No convergence achieved. Keep neff_resolution = %i" % neff_resolution)
+    log.write_red("No convergence achieved. Keep neff_resolution = %g" % neff_resolution)
+    ax[1].title.set_text(titlestr)
+    ax[1].title.set_color('r')
+    plt.draw()
+
     return None
 
 
@@ -405,7 +540,8 @@ def select_numerical_parameters(simulation,
                                 neff_max=None,
                                 select_neff_resolution=True,
                                 select_multipole_cutoff=True,
-                                relative_convergence=True):
+                                relative_convergence=True,
+                                show_plot=True):
     """Trigger automatic selection routines for various numerical parameters.
 
     Args:
@@ -445,12 +581,44 @@ def select_numerical_parameters(simulation,
                                                       integral truncation. This takes more time, but is required at
                                                       least in the case of flat particles near interfaces.
     """
+
+    def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None, cols=1):
+        """
+        Inner utility function returning figure and axes handles initialized
+        following a common template for all parameter selection runs.
+
+        Args:
+            xlabel (string):    column-wise common x axis label
+            ylabel (string):    y axis label for the detector quantity
+            title  (string):    title string for the (lefmost, if cols=2) detector panel
+            tol (float):        user-set tolerance level to be drawn in relative difference panel
+            allowedtol (float): when specified, also draw the actual tolerance level for the current run
+            cols (int):         number of subplot columns. select_neff_max() accepts 2
+        """
+        fig, ax_array = plt.subplots(2, cols, sharex='col', figsize=(cols*6.4,8), gridspec_kw={'height_ratios': [3, 1]})
+        ax_array = ax_array.flatten(order='F')
+        ax_array[1].set_xlabel(xlabel)
+        ax_array[0].set_ylabel(ylabel)
+        ax_array[1].set_ylabel('relative difference')
+        ax_array[0].set_title(title)
+        [ax.axhline(tol, color='grey', linestyle='dashed', label='tolerance') for ax in ax_array[::-2]]
+        if allowedtol is not None:
+            ax_array[1].axhline(allowedtol, color='grey', linestyle='dotted', label='allowed tolerance')
+        [( ax.set_yscale('log'), ax.grid(), ax.legend() ) for ax in ax_array[::-2]]
+
+        return fig, ax_array
+
     print("")
     print("----------------------------------------")
     print("Starting automatic paramateter selection")
     print("----------------------------------------")
 
     if select_neff_max:
+        if show_plot:
+            plt.ion()
+            _, ax_array = _init_fig('$l_{max}$', detector, 'multipole cutoff', tolerance, 0.1*tolerance, 2)
+        else:
+            ax_array = None
         converge_neff_max(simulation=simulation,
                           detector=detector,
                           tolerance=tolerance,
@@ -458,19 +626,35 @@ def select_numerical_parameters(simulation,
                           neff_imag=neff_imag,
                           neff_resolution=neff_resolution,
                           neff_max_increment=neff_max_increment,
-                          converge_lm=relative_convergence)
-        neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength)
+                          converge_lm=relative_convergence,
+                          ax=ax_array)
+        neff_max = simulation.neff_max
 
     if select_multipole_cutoff:
+        if show_plot:
+            plt.ion()
+            _, ax_array = _init_fig('multipole order', detector, 'multipole cutoff selection', tolerance)
+        else:
+            ax_array = None
         converge_multipole_cutoff(simulation=simulation,
                                   detector=detector,
                                   tolerance=tolerance,
-                                  max_iter=max_iter)
+                                  max_iter=max_iter,
+                                  ax=ax_array)
 
     if select_neff_resolution:
+        if show_plot:
+            plt.ion()
+            _, ax_array = _init_fig('$\delta n_{eff}$', detector, '$\delta n_{eff}$ selection', tolerance)
+        else:
+            ax_array = None
         converge_neff_resolution(simulation=simulation,
                                  detector=detector,
                                  tolerance=tolerance,
                                  max_iter=max_iter,
                                  neff_imag=neff_imag,
-                                 neff_max=neff_max)
+                                 neff_max=neff_max,
+                                 ax=ax_array)
+
+    if show_plot:
+        plt.ioff()
