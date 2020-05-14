@@ -196,19 +196,21 @@ def converge_m_max(particle,
         if rel_diff > tolerance:  # in this case: discard m_max decrement
             particle.m_max = old_m_max
             log.write_green("Relative difference larger than tolerance. Keep m_max = %g"%particle.m_max)
-            titlestr = "relative diff < {:g}, keep $m_{{max}} = {:g}$".format(tolerance, particle.m_max)
-            ax[1].title.set_text(titlestr)
-            ax[1].title.set_color('g')
-            plt.draw()
+            if ax is not None:
+                titlestr = "relative diff < {:g}, keep $m_{{max}} = {:g}$".format(tolerance, particle.m_max)
+                ax[1].title.set_text(titlestr)
+                ax[1].title.set_color('g')
+                plt.draw()
             return current_value
         else:
             titlestr = "no convergence achieved, keep $m_{{max}} = {:g}$".format(particle.m_max)
             current_value = new_value
 
     log.write_red("No convergence achieved. Keep m_max = %g" % particle.m_max)
-    ax[1].title.set_text(titlestr)
-    ax[1].title.set_color('r')
-    plt.draw()
+    if ax is not None:
+        ax[1].title.set_text(titlestr)
+        ax[1].title.set_color('r')
+        plt.draw()
 
 
 def converge_multipole_cutoff(simulation,
@@ -411,19 +413,21 @@ def converge_neff_max(simulation,
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
-            titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance, neff_max.real)
-            ax[-1].title.set_text(titlestr)
-            ax[-1].title.set_color('g')
-            plt.draw()
+            if ax is not None:
+                titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance, neff_max.real)
+                ax[-1].title.set_text(titlestr)
+                ax[-1].title.set_color('g')
+                plt.draw()
             return current_value
         else:
             titlestr = "no convergence achieved, keep $n_{{eff}}^{{max}} = {:g}$".format(neff_max.real)
             current_value = new_value
 
     log.write_red("No convergence achieved. Keep neff_max = %g" % neff_max.real)
-    ax[-1].title.set_text(titlestr)
-    ax[-1].title.set_color('r')
-    plt.draw()
+    if ax is not None:
+        ax[-1].title.set_text(titlestr)
+        ax[-1].title.set_color('r')
+        plt.draw()
 
     return None
 
@@ -512,19 +516,21 @@ def converge_neff_resolution(simulation,
             neff_resolution = old_neff_resolution
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_resolution = %g" % neff_resolution)
-            titlestr = "relative diff < {:g}, keep $\delta n_{{eff}} = {:g}$".format(tolerance, neff_resolution)
-            ax[1].title.set_text(titlestr)
-            ax[1].title.set_color('g')
-            plt.draw()
+            if ax is not None:
+                titlestr = "relative diff < {:g}, keep $\delta n_{{eff}} = {:g}$".format(tolerance, neff_resolution)
+                ax[1].title.set_text(titlestr)
+                ax[1].title.set_color('g')
+                plt.draw()
             return current_value
         else:
             titlestr = "no convergence achieved, keep $\delta n_{{eff}} = {:g}$".format(neff_max.real)
             current_value = new_value
 
     log.write_red("No convergence achieved. Keep neff_resolution = %g" % neff_resolution)
-    ax[1].title.set_text(titlestr)
-    ax[1].title.set_color('r')
-    plt.draw()
+    if ax is not None:
+        ax[1].title.set_text(titlestr)
+        ax[1].title.set_color('r')
+        plt.draw()
 
     return None
 
