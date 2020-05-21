@@ -300,6 +300,7 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
 def converge_neff_max(simulation,
                       detector="extinction cross section",
                       tolerance=1e-3,
+                      tolerance_factor=0.1,
                       max_iter=20,
                       neff_imag=1e-2,
                       neff_resolution=2e-3,
@@ -316,16 +317,19 @@ def converge_neff_max(simulation,
                                                       Alternatively, use "extinction cross section" (default) to have
                                                       the extinction cross section as the detector value.
         tolerance (float):                            Relative tolerance for the detector value change.
+        tolerance_factor (float):                     During neff selection, a smaller tolerance should be allowed to
+                                                      avoid fluctuations of the order of ~tolerance which would
+                                                      compromise convergence
         max_iter (int):                               Break convergence loops after that number of iterations, even if
                                                       no convergence has been achieved.
-        neff_imag (float):                              Extent of the contour into the negative imaginary direction
-                                                        (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_resolution (float):                        Discretization of the contour (in terms of eff. refractive
-                                                        index).
-        neff_max_increment (float):                     Increment the neff_max parameter with that step size
-        converge_lm (logical):                          If set to true, update multipole truncation during each step
-                                                        (this takes longer time, but is necessary for critical use cases
-                                                        like flat particles on a substrate)
+        neff_imag (float):                            Extent of the contour into the negative imaginary direction
+                                                      (in terms of effective refractive index, n_eff=kappa/omega).
+        neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
+                                                      index).
+        neff_max_increment (float):                   Increment the neff_max parameter with that step size
+        converge_lm (logical):                        If set to true, update multipole truncation during each step
+                                                      (this takes longer time, but is necessary for critical use cases
+                                                      like flat particles on a substrate)
         ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
 
     Returns:
@@ -353,7 +357,7 @@ def converge_neff_max(simulation,
         with log.LoggerIndented():
             current_value = converge_multipole_cutoff(simulation=simulation,
                                                       detector=detector,
-                                                      tolerance=tolerance/10,  # otherwise, results flucutate by tolerance and convergence check is compromised
+                                                      tolerance=tolerance*tolerance_factor,
                                                       max_iter=max_iter,
                                                       converge_m=False,
                                                       ax=ax)
@@ -383,7 +387,7 @@ def converge_neff_max(simulation,
             with log.LoggerIndented():
                 new_value = converge_multipole_cutoff(simulation=simulation,
                                                       detector=detector,
-                                                      tolerance=tolerance/10,
+                                                      tolerance=tolerance*tolerance_factor,
                                                       max_iter=max_iter,
                                                       current_value=current_value,
                                                       converge_m=False,
@@ -538,6 +542,7 @@ def converge_neff_resolution(simulation,
 def select_numerical_parameters(simulation,
                                 detector="extinction cross section",
                                 tolerance=1e-3,
+                                tolerance_factor=0.1,
                                 max_iter=20,
                                 neff_imag=1e-2,
                                 neff_resolution=1e-2,
@@ -558,6 +563,9 @@ def select_numerical_parameters(simulation,
                                                       Alternatively, use "extinction cross section" (default) to have
                                                       the extinction cross section as the detector value.
         tolerance (float):                            Relative tolerance for the detector value change.
+        tolerance_factor (float):                     During neff selection, a smaller tolerance should be allowed to
+                                                      avoid fluctuations of the order of ~tolerance which would
+                                                      compromise convergence
         max_iter (int):                               Break convergence loops after that number of iterations, even if
                                                       no convergence has been achieved.
         neff_imag (float):                            Extent of the contour into the negative imaginary direction
@@ -619,6 +627,9 @@ def select_numerical_parameters(simulation,
     print("Starting automatic paramateter selection")
     print("----------------------------------------")
 
+    if tolerance_factor <= 0 or tolerance_factor > 1:
+        raise ValueError('please provide 0 < tolerance_factor <= 1')
+
     if select_neff_max:
         if show_plot:
             plt.ion()
@@ -628,6 +639,7 @@ def select_numerical_parameters(simulation,
         converge_neff_max(simulation=simulation,
                           detector=detector,
                           tolerance=tolerance,
+                          tolerance_factor=tolerance_factor,
                           max_iter=max_iter,
                           neff_imag=neff_imag,
                           neff_resolution=neff_resolution,
