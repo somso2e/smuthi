@@ -32,8 +32,7 @@ def evaluate(simulation, detector):
         return detector(simulation)
 
 
-def converge_l_max(particle,
-                   simulation,
+def converge_l_max(simulation,
                    detector="extinction cross section",
                    tolerance=1e-3,
                    tolerance_steps=2,
@@ -46,7 +45,6 @@ def converge_l_max(particle,
     particle object with the `l_max` value for which convergence has been achieved.
 
     Args:
-        particle (smuthi.particles.Particle):       Particle for which the l_max is incremented
         simulation (smuthi.simulation.Simulation):  Simulation object containing the particle
         detector (function or string):              Function that accepts a simulation object and returns a detector
                                                     value the change of which is used to define convergence.
@@ -64,19 +62,29 @@ def converge_l_max(particle,
     Returns:
         Detector value of converged or break-off parameter settings.
       """
+
+    def update_lmax_mmax(simulation, l_max):
+        """ Assign the same l_max and m_max = l_max to all particles in simulation """
+        for particle in simulation.particle_list:
+            particle.l_max = l_max
+            particle.m_max = l_max
+        return simulation
+
     print("")
     print("------------------------")
     log.write_blue("Searching suitable l_max")
 
     if start_from_1:
-        particle.l_max = 1
-        particle.m_max = 1
+        l_max = 1
+        simulation = update_lmax_mmax(simulation, l_max)
+    else:
+        l_max = simulation.particle_list[0].l_max # assuming that all particles have the same l_max
 
-    print("Start value: l_max=%i" % particle.l_max)
+    print("Start value: l_max=%i" % l_max)
 
     current_value = evaluate(simulation, detector)
 
-    x = np.array([particle.l_max])
+    x = np.array([l_max])
     y = np.array([current_value.real])
     r = np.array([])
     if ax is not None:
@@ -84,12 +92,12 @@ def converge_l_max(particle,
         line2, = ax[1].plot(x[1:], r, '.-')
 
     for _ in range(max_iter):
-        old_l_max = particle.l_max
-        particle.l_max = old_l_max + 1  # l_max increment
-        particle.m_max = particle.l_max
+        old_l_max = l_max
+        l_max += 1  # l_max increment
+        simulation = update_lmax_mmax(simulation, l_max)
 
         print("---------------------------------------")
-        print("Try l_max = %i and m_max=%i" % (particle.l_max, particle.m_max))
+        print("Try l_max = %i and m_max=%i" % (l_max, l_max))
 
         new_value = evaluate(simulation, detector)
         rel_diff = abs(new_value - current_value) / abs(current_value)
@@ -99,7 +107,7 @@ def converge_l_max(particle,
         print("Allowed tolerance:  ", tolerance)
 
         neff_max = simulation.neff_max
-        x = np.append(x, particle.l_max)
+        x = np.append(x, l_max)
         y = np.append(y, new_value.real)
         r = np.append(r, rel_diff)
         if ax is not None:
@@ -112,19 +120,17 @@ def converge_l_max(particle,
             ax[0].legend()
 
         if np.all(r[-tolerance_steps:] < tolerance):  # in this case: discard l_max increment
-            particle.l_max = old_l_max
-            particle.m_max = old_l_max
-            log.write_green("Relative difference smaller than tolerance. Keep l_max = %i" % particle.l_max)
+            simulation = update_lmax_mmax(simulation, old_l_max)
+            log.write_green("Relative difference smaller than tolerance. Keep l_max = %i" % old_l_max)
             return current_value
         else:
             current_value = new_value
 
-    log.write_red("No convergence achieved. Keep l_max = %i"%particle.l_max)
+    log.write_red("No convergence achieved. Keep l_max = %i"%l_max)
     return current_value
 
 
-def converge_m_max(particle,
-                   simulation,
+def converge_m_max(simulation,
                    detector="extinction cross section",
                    tolerance=1e-3,
                    tolerance_steps=2,
@@ -136,7 +142,6 @@ def converge_m_max(particle,
     the input particle object with the so determined `m_max`.
 
     Args:
-        particle (smuthi.particles.Particle):       Particle for which suitable m_max is searched
         simulation (smuthi.simulation.Simulation):  Simulation object containing the particle
         detector (function or string):              Function that accepts a simulation object and returns a detector
                                                     value the change of which is used to define convergence.
@@ -155,26 +160,34 @@ def converge_m_max(particle,
     Returns:
         Detector value of converged or break-off parameter settings.
     """
+
+    def update_mmax(simulation, m_max):
+        """ Assign the same m_max to all particles in simulation """
+        for particle in simulation.particle_list:
+            particle.m_max = m_max
+        return simulation
+
     print("")
     print("------------------------")
     log.write_blue("Searching suitable m_max")
-    print("Start value: m_max=%i"%particle.m_max)
+    m_max = simulation.particle_list[0].m_max # assuming that all particles have the same l_max
+    print("Start value: m_max=%i"%m_max)
 
     if current_value is None:
         current_value = evaluate(simulation, detector)
 
-    x = np.array([particle.m_max])
+    x = np.array([m_max])
     y = np.array([current_value.real])
     r = np.array([])
     if ax is not None:
         line1, = ax[0].plot(x, y, '.-')
         line2, = ax[1].plot(x[1:], r, '.-')
 
-    for m_max in range(particle.m_max, -1, -1):
-        old_m_max = particle.m_max
-        particle.m_max = m_max
+    for m_max in range(m_max, -1, -1):
+        old_m_max = simulation.particle_list[0].m_max
+        simulation = update_mmax(simulation, m_max)
         print("---------------------------------------")
-        print("Try m_max=%i"%particle.m_max)
+        print("Try m_max=%i"%m_max)
         new_value = evaluate(simulation, detector)
         rel_diff = abs(new_value - current_value) / abs(current_value)
         print("Old detector value:", current_value)
@@ -182,12 +195,12 @@ def converge_m_max(particle,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
-        x = np.append(x, particle.m_max)
+        x = np.append(x, m_max)
         y = np.append(y, new_value.real)
         r = np.append(r, rel_diff)
         if ax is not None:
             line1.set_data(x, y)
-            line1.set_label('$m_{max}$ for $l_{max} = %g$'%particle.l_max)
+            line1.set_label('$m_{max}$ for $l_{max} = %g$'%simulation.particle_list[0].l_max)
             line2.set_data(x[1:], r)
             [ax.relim() for ax in ax]
             [ax.autoscale_view() for ax in ax]
@@ -196,19 +209,19 @@ def converge_m_max(particle,
             ax[0].legend()
 
         if np.any(r > tolerance):  # in this case: discard m_max decrement
-            particle.m_max = old_m_max
-            log.write_green("Relative difference larger than tolerance. Keep m_max = %g"%particle.m_max)
+            simulation = update_mmax(simulation, old_m_max)
+            log.write_green("Relative difference larger than tolerance. Keep m_max = %g"%old_m_max)
             if ax is not None:
-                titlestr = "relative diff < {:g}, keep $m_{{max}} = {:g}$".format(tolerance, particle.m_max)
+                titlestr = "relative diff < {:g}, keep $m_{{max}} = {:g}$".format(tolerance, old_m_max)
                 ax[1].title.set_text(titlestr)
                 ax[1].title.set_color('g')
                 plt.draw()
             return current_value
         else:
-            titlestr = "no convergence achieved, keep $m_{{max}} = {:g}$".format(particle.m_max)
+            titlestr = "no convergence achieved, keep $m_{{max}} = {:g}$".format(m_max)
             current_value = new_value
 
-    log.write_red("No convergence achieved. Keep m_max = %g" % particle.m_max)
+    log.write_red("No convergence achieved. Keep m_max = %g" % m_max)
     if ax is not None:
         ax[1].title.set_text(titlestr)
         ax[1].title.set_color('r')
@@ -251,27 +264,21 @@ def converge_multipole_cutoff(simulation,
     print("-----------------------------------")
     log.write_blue("Searching suitable multipole cutoff")
 
-    for i, particle in enumerate(simulation.particle_list):
-        print("")
-        print("-------------------------------")
-        log.write_blue("Checking particle number %i"%i)
-        with log.LoggerIndented():
-            current_value = converge_l_max(particle,
-                                           simulation,
+    with log.LoggerIndented():
+        current_value = converge_l_max(simulation,
+                                       detector,
+                                       tolerance,
+                                       tolerance_steps,
+                                       max_iter,
+                                       ax=ax)
+
+        if converge_m:
+            current_value = converge_m_max(simulation,
                                            detector,
                                            tolerance,
                                            tolerance_steps,
-                                           max_iter,
+                                           current_value,
                                            ax=ax)
-
-            if converge_m:
-                current_value = converge_m_max(particle,
-                                               simulation,
-                                               detector,
-                                               tolerance,
-                                               tolerance_steps,
-                                               current_value,
-                                               ax=ax)
 
     return current_value
 
