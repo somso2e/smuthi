@@ -36,6 +36,7 @@ def converge_l_max(particle,
                    simulation,
                    detector="extinction cross section",
                    tolerance=1e-3,
+                   tolerance_steps=2,
                    max_iter=100,
                    start_from_1=True,
                    ax=None):
@@ -45,18 +46,20 @@ def converge_l_max(particle,
     particle object with the `l_max` value for which convergence has been achieved.
 
     Args:
-        particle (smuthi.particles.Particle):         Particle for which the l_max is incremented
-        simulation (smuthi.simulation.Simulation):    Simulation object containing the particle
-        detector (function or string):                Function that accepts a simulation object and returns a detector
-                                                      value the change of which is used to define convergence.
-                                                      Alternatively, use "extinction cross section" (default) to have
-                                                      the extinction cross section as the detector value.
-        tolerance (float):                            Relative tolerance for the detector value change.
-        max_iter (int):                               Break convergence loop after that number of iterations, even if
-                                                      no convergence has been achieved.
-        start_from_1 (logical):                       If true (default), start from `l_max=1`. Otherwise, start from the
-                                                      current particle `l_max`.
-        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
+        particle (smuthi.particles.Particle):       Particle for which the l_max is incremented
+        simulation (smuthi.simulation.Simulation):  Simulation object containing the particle
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        tolerance_steps (int):                      Number of consecutive steps at which the tolerance must be met,
+                                                    valid for neff selection and multipole truncation. Default: 2
+        max_iter (int):                             Break convergence loop after that number of iterations, even if
+                                                    no convergence has been achieved.
+        start_from_1 (logical):                     If true (default), start from `l_max=1`. Otherwise, start from the
+                                                    current particle `l_max`.
+        ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -73,14 +76,12 @@ def converge_l_max(particle,
 
     current_value = evaluate(simulation, detector)
 
+    x = np.array([particle.l_max])
+    y = np.array([current_value.real])
+    r = np.array([])
     if ax is not None:
-        x = np.array([])
-        y = np.array([])
-        r = np.array([])
-        init_x = particle.l_max
-        init_y = current_value.real
-        line1, = ax[0].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'.-')
-        line2, = ax[1].plot(x,r,'.-')
+        line1, = ax[0].plot(x, y, '.-')
+        line2, = ax[1].plot(x[1:], r, '.-')
 
     for _ in range(max_iter):
         old_l_max = particle.l_max
@@ -97,20 +98,20 @@ def converge_l_max(particle,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
+        neff_max = simulation.neff_max
+        x = np.append(x, particle.l_max)
+        y = np.append(y, new_value.real)
+        r = np.append(r, rel_diff)
         if ax is not None:
-            neff_max = simulation.neff_max
-            x = np.append(x, particle.l_max)
-            y = np.append(y, new_value)
-            r = np.append(r, rel_diff)
-            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_data(x, y)
             line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
-            line2.set_data(x, r)
+            line2.set_data(x[1:], r)
             [( ax.relim(), ax.autoscale_view()) for ax in ax]
             plt.draw()
             plt.pause(0.001)
             ax[0].legend()
 
-        if rel_diff < tolerance:  # in this case: discard l_max increment
+        if np.all(r[-tolerance_steps:] < tolerance):  # in this case: discard l_max increment
             particle.l_max = old_l_max
             particle.m_max = old_l_max
             log.write_green("Relative difference smaller than tolerance. Keep l_max = %i" % particle.l_max)
@@ -126,6 +127,7 @@ def converge_m_max(particle,
                    simulation,
                    detector="extinction cross section",
                    tolerance=1e-3,
+                   tolerance_steps=2,
                    current_value=None,
                    ax=None):
     """Find suitable multipole cutoff order `m_max` for a given particle and simulation. The routine starts with the
@@ -134,19 +136,21 @@ def converge_m_max(particle,
     the input particle object with the so determined `m_max`.
 
     Args:
-        particle (smuthi.particles.Particle):         Particle for which suitable m_max is searched
-        simulation (smuthi.simulation.Simulation):    Simulation object containing the particle
-        detector (function or string):                Function that accepts a simulation object and returns a detector
-                                                      value the change of which is used to define convergence.
-                                                      Alternatively, use "extinction cross section" (default) to have
-                                                      the extinction cross section as the detector value.
-        tolerance (float):                            Relative tolerance for the detector value change.
-        max_iter (int):                               Break convergence loop after that number of iterations, even if
-                                                      no convergence has been achieved.
-        current_value (float):                        Start value of detector (for current settings). If not
-                                                      specified the method starts with a simulation for the current
-                                                      settings.
-        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
+        particle (smuthi.particles.Particle):       Particle for which suitable m_max is searched
+        simulation (smuthi.simulation.Simulation):  Simulation object containing the particle
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        tolerance_steps (int):                      Number of consecutive steps at which the tolerance must be met,
+                                                    valid for neff selection and multipole truncation. Default: 2
+        max_iter (int):                             Break convergence loop after that number of iterations, even if
+                                                    no convergence has been achieved.
+        current_value (float):                      Start value of detector (for current settings). If not
+                                                    specified the method starts with a simulation for the current
+                                                    settings.
+        ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -159,14 +163,12 @@ def converge_m_max(particle,
     if current_value is None:
         current_value = evaluate(simulation, detector)
 
+    x = np.array([particle.m_max])
+    y = np.array([current_value.real])
+    r = np.array([])
     if ax is not None:
-        x = np.array([])
-        y = np.array([])
-        r = np.array([])
-        line1, = ax[0].plot(x,y,'.-')
-        line2, = ax[1].plot(x,r,'.-')
-        init_x = particle.m_max
-        init_y = current_value.real
+        line1, = ax[0].plot(x, y, '.-')
+        line2, = ax[1].plot(x[1:], r, '.-')
 
     for m_max in range(particle.m_max, -1, -1):
         old_m_max = particle.m_max
@@ -180,20 +182,20 @@ def converge_m_max(particle,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
+        x = np.append(x, particle.m_max)
+        y = np.append(y, new_value.real)
+        r = np.append(r, rel_diff)
         if ax is not None:
-            x = np.append(x, particle.m_max)
-            y = np.append(y, new_value)
-            r = np.append(r, rel_diff)
-            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_data(x, y)
             line1.set_label('$m_{max}$ for $l_{max} = %g$'%particle.l_max)
-            line2.set_data(x, r)
+            line2.set_data(x[1:], r)
             [ax.relim() for ax in ax]
             [ax.autoscale_view() for ax in ax]
             plt.draw()
             plt.pause(0.001)
             ax[0].legend()
 
-        if rel_diff > tolerance:  # in this case: discard m_max decrement
+        if np.any(r > tolerance):  # in this case: discard m_max decrement
             particle.m_max = old_m_max
             log.write_green("Relative difference larger than tolerance. Keep m_max = %g"%particle.m_max)
             if ax is not None:
@@ -216,6 +218,7 @@ def converge_m_max(particle,
 def converge_multipole_cutoff(simulation,
                               detector="extinction cross section",
                               tolerance=1e-3,
+                              tolerance_steps=2,
                               max_iter=100,
                               current_value=None,
                               converge_m=True,
@@ -224,20 +227,22 @@ def converge_multipole_cutoff(simulation,
     The method updates the input simulation object with the so determined multipole truncation values.
 
     Args:
-        simulation (smuthi.simulation.Simulation):    Simulation object
-        detector (function or string):                Function that accepts a simulation object and returns a detector
-                                                      value the change of which is used to define convergence.
-                                                      Alternatively, use "extinction cross section" (default) to have
-                                                      the extinction cross section as the detector value.
-        tolerance (float):                            Relative tolerance for the detector value change.
-        max_iter (int):                               Break convergence loops after that number of iterations, even if
-                                                      no convergence has been achieved.
-        current_value (float):                        Start value of detector (for current settings). If not
-                                                      specified the method starts with a simulation for the current
-                                                      settings.
-        converge_m (logical):                         If false, only converge `l_max`, but keep `m_max=l_max`. Default
-                                                      is true.
-        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        tolerance_steps (int):                      Number of consecutive steps at which the tolerance must be met,
+                                                    valid for neff selection and multipole truncation. Default: 2
+        max_iter (int):                             Break convergence loops after that number of iterations, even if
+                                                    no convergence has been achieved.
+        current_value (float):                      Start value of detector (for current settings). If not
+                                                    specified the method starts with a simulation for the current
+                                                    settings.
+        converge_m (logical):                       If false, only converge `l_max`, but keep `m_max=l_max`. Default
+                                                    is true.
+        ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value of converged or break-off parameter settings.
@@ -255,6 +260,7 @@ def converge_multipole_cutoff(simulation,
                                            simulation,
                                            detector,
                                            tolerance,
+                                           tolerance_steps,
                                            max_iter,
                                            ax=ax)
 
@@ -263,6 +269,7 @@ def converge_multipole_cutoff(simulation,
                                                simulation,
                                                detector,
                                                tolerance,
+                                               tolerance_steps,
                                                current_value,
                                                ax=ax)
 
@@ -282,7 +289,7 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
         neff_max_offset (float):                        If no value for `neff_max` is specified, use the last estimated
                                                         singularity location plus this value (in terms of effective
                                                         refractive index).
-        neff_resolution (float):                              Discretization of the contour (in terms of eff. refractive
+        neff_resolution (float):                        Discretization of the contour (in terms of eff. refractive
                                                         index).
         update_default_contours (logical)               If true, overwrite the default contours in smuthi.fields module.
                                                         Otherwise, overwrite simulation.k_parallel array
@@ -301,6 +308,7 @@ def converge_neff_max(simulation,
                       detector="extinction cross section",
                       tolerance=1e-3,
                       tolerance_factor=0.1,
+                      tolerance_steps=2,
                       max_iter=20,
                       neff_imag=1e-2,
                       neff_resolution=2e-3,
@@ -311,26 +319,28 @@ def converge_neff_max(simulation,
     simulation object accordingly.
 
     Args:
-        simulation (smuthi.simulation.Simulation):    Simulation object
-        detector (function or string):                Function that accepts a simulation object and returns a detector
-                                                      value the change of which is used to define convergence.
-                                                      Alternatively, use "extinction cross section" (default) to have
-                                                      the extinction cross section as the detector value.
-        tolerance (float):                            Relative tolerance for the detector value change.
-        tolerance_factor (float):                     During neff selection, a smaller tolerance should be allowed to
-                                                      avoid fluctuations of the order of ~tolerance which would
-                                                      compromise convergence
-        max_iter (int):                               Break convergence loops after that number of iterations, even if
-                                                      no convergence has been achieved.
-        neff_imag (float):                            Extent of the contour into the negative imaginary direction
-                                                      (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
-                                                      index).
-        neff_max_increment (float):                   Increment the neff_max parameter with that step size
-        converge_lm (logical):                        If set to true, update multipole truncation during each step
-                                                      (this takes longer time, but is necessary for critical use cases
-                                                      like flat particles on a substrate)
-        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        tolerance_factor (float):                   During neff selection, a smaller tolerance should be allowed to
+                                                    avoid fluctuations of the order of ~tolerance which would
+                                                    compromise convergence. Default: 0.1
+        tolerance_steps (int):                      Number of consecutive steps at which the tolerance must be met,
+                                                    valid for neff selection and multipole truncation. Default: 2
+        max_iter (int):                             Break convergence loops after that number of iterations, even if
+                                                    no convergence has been achieved.
+        neff_imag (float):                          Extent of the contour into the negative imaginary direction
+                                                    (in terms of effective refractive index, n_eff=kappa/omega).
+        neff_resolution (float):                    Discretization of the contour (in terms of eff. refractive
+                                                    index).
+        neff_max_increment (float):                 Increment the neff_max parameter with that step size
+        converge_lm (logical):                      If set to true, update multipole truncation during each step
+                                                    (this takes longer time, but is necessary for critical use cases
+                                                    like flat particles on a substrate)
+        ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value for converged settings.
@@ -358,20 +368,19 @@ def converge_neff_max(simulation,
             current_value = converge_multipole_cutoff(simulation=simulation,
                                                       detector=detector,
                                                       tolerance=tolerance*tolerance_factor,
+                                                      tolerance_steps=2,
                                                       max_iter=max_iter,
                                                       converge_m=False,
                                                       ax=ax)
     else:
         current_value = evaluate(simulation, detector)
 
+    x = np.array([neff_max.real])
+    y = np.array([current_value.real])
+    r = np.array([])
     if ax is not None:
-        x = np.array([])
-        y = np.array([])
-        r = np.array([])
-        init_x = neff_max.real
-        init_y = current_value.real
-        line1, = ax[-2].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'k.-')
-        line2, = ax[-1].plot(x,r,'k.-')
+        line1, = ax[-2].plot(x, y, 'k.-')
+        line2, = ax[-1].plot(x[1:], r, 'k.-')
         ax[-1].set_xlabel('$n_{eff}^{max}$')
         ax[-2].set_title('$n_{eff}^{max}$ selection')
 
@@ -388,6 +397,7 @@ def converge_neff_max(simulation,
                 new_value = converge_multipole_cutoff(simulation=simulation,
                                                       detector=detector,
                                                       tolerance=tolerance*tolerance_factor,
+                                                      tolerance_steps=2,
                                                       max_iter=max_iter,
                                                       current_value=current_value,
                                                       converge_m=False,
@@ -401,19 +411,19 @@ def converge_neff_max(simulation,
         print("Relative difference:", rel_diff)
         print("Allowed tolerance:  ", tolerance)
 
+        x = np.append(x, neff_max.real)
+        y = np.append(y, new_value.real)
+        r = np.append(r, rel_diff)
         if ax is not None:
-            x = np.append(x, neff_max.real)
-            y = np.append(y, new_value.real)
-            r = np.append(r, rel_diff)
-            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y))
+            line1.set_data(x, y)
             line1.set_label('$n_{eff}^{max}$')
-            line2.set_data(x, r)
+            line2.set_data(x[1:], r)
             [( ax.relim(), ax.autoscale_view()) for ax in ax]
             plt.draw()
             plt.pause(0.001)
             [ax.legend() for ax in ax[::-2]]
 
-        if rel_diff < tolerance:  # in this case: discard l_max increment
+        if np.all(r[-tolerance_steps:] < tolerance):  # in this case: discard l_max increment
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
@@ -543,6 +553,7 @@ def select_numerical_parameters(simulation,
                                 detector="extinction cross section",
                                 tolerance=1e-3,
                                 tolerance_factor=0.1,
+                                tolerance_steps=2,
                                 max_iter=20,
                                 neff_imag=1e-2,
                                 neff_resolution=1e-2,
@@ -556,44 +567,46 @@ def select_numerical_parameters(simulation,
     """Trigger automatic selection routines for various numerical parameters.
 
     Args:
-        simulation (smuthi.simulation.Simulation):    Simulation object from which parameters are read and into which
-                                                      results are stored.
-        detector (function or string):                Function that accepts a simulation object and returns a detector
-                                                      value the change of which is used to define convergence.
-                                                      Alternatively, use "extinction cross section" (default) to have
-                                                      the extinction cross section as the detector value.
-        tolerance (float):                            Relative tolerance for the detector value change.
-        tolerance_factor (float):                     During neff selection, a smaller tolerance should be allowed to
-                                                      avoid fluctuations of the order of ~tolerance which would
-                                                      compromise convergence
-        max_iter (int):                               Break convergence loops after that number of iterations, even if
-                                                      no convergence has been achieved.
-        neff_imag (float):                            Extent of the contour into the negative imaginary direction
-                                                      (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
-                                                      index) - if `select_neff_resolution` is true, this value will be
-                                                      eventually overwritten. However, it is required in any case.
-                                                      Default: 1e-2
-        select_neff_max (logical):                    If set to true (default), the Sommerfeld integral truncation parameter
-                                                      `neff_max` is determined automatically with the help of a
-                                                      Cauchy convergence criterion.
-        neff_max_increment (float):                   Only needed if `select_neff_max` is true.
-                                                      Step size with which `neff_max` is incremented.
-        neff_max (float):                             Only needed if `select_neff_max` is false.
-                                                      Truncation value of contour (in terms of effective refractive
-                                                      index).
-        select_neff_resolution (logical):             If set to true (default), the Sommerfeld integral discretization
-                                                      parameter `neff_resolution` is determined automatically with the help of
-                                                      a Cauchy convergence criterion.
-        select_multipole_cutoff (logical):            If set to true (default), the multipole expansion cutoff
-                                                      parameters `l_max` and `m_max` are determined automatically with
-                                                      the help of a Cauchy convergence criterion.
-        relative_convergence (logical):               If set to true (default), the `neff_max` convergence and the
-                                                      `l_max` and `m_max` convergence routine are performed in the
-                                                      spirit of relative convergence, i.e., the multipole expansion
-                                                      convergence is checked again for each value of the Sommerfeld
-                                                      integral truncation. This takes more time, but is required at
-                                                      least in the case of flat particles near interfaces.
+        simulation (smuthi.simulation.Simulation):  Simulation object from which parameters are read and into which
+                                                    results are stored.
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        tolerance_factor (float):                   During neff selection, a smaller tolerance should be allowed to
+                                                    avoid fluctuations of the order of ~tolerance which would
+                                                    compromise convergence. Default: 0.1
+        tolerance_steps (int):                      Number of consecutive steps at which the tolerance must be met,
+                                                    valid for neff selection and multipole truncation. Default: 2
+        max_iter (int):                             Break convergence loops after that number of iterations, even if
+                                                    no convergence has been achieved.
+        neff_imag (float):                          Extent of the contour into the negative imaginary direction
+                                                    (in terms of effective refractive index, n_eff=kappa/omega).
+        neff_resolution (float):                    Discretization of the contour (in terms of eff. refractive
+                                                    index) - if `select_neff_resolution` is true, this value will be
+                                                    eventually overwritten. However, it is required in any case.
+                                                    Default: 1e-2
+        select_neff_max (logical):                  If set to true (default), the Sommerfeld integral truncation
+                                                    parameter `neff_max` is determined automatically with the help
+                                                    of a Cauchy convergence criterion.
+        neff_max_increment (float):                 Only needed if `select_neff_max` is true.
+                                                    Step size with which `neff_max` is incremented.
+        neff_max (float):                           Only needed if `select_neff_max` is false.
+                                                    Truncation value of contour (in terms of effective refractive
+                                                    index).
+        select_neff_resolution (logical):           If set to true (default), the Sommerfeld integral discretization
+                                                    parameter `neff_resolution` is determined automatically with the
+                                                    help of a Cauchy convergence criterion.
+        select_multipole_cutoff (logical):          If set to true (default), the multipole expansion cutoff
+                                                    parameters `l_max` and `m_max` are determined automatically with
+                                                    the help of a Cauchy convergence criterion.
+        relative_convergence (logical):             If set to true (default), the `neff_max` convergence and the
+                                                    `l_max` and `m_max` convergence routine are performed in the
+                                                    spirit of relative convergence, i.e., the multipole expansion
+                                                    convergence is checked again for each value of the Sommerfeld
+                                                    integral truncation. This takes more time, but is required at
+                                                    least in the case of flat particles near interfaces.
     """
 
     def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None, cols=1):
@@ -640,6 +653,7 @@ def select_numerical_parameters(simulation,
                           detector=detector,
                           tolerance=tolerance,
                           tolerance_factor=tolerance_factor,
+                          tolerance_steps=tolerance_steps,
                           max_iter=max_iter,
                           neff_imag=neff_imag,
                           neff_resolution=neff_resolution,
