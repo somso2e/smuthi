@@ -38,6 +38,7 @@ def converge_l_max(simulation,
                    tolerance_steps=2,
                    max_iter=100,
                    start_from_1=True,
+                   target_value=None,
                    ax=None):
     """Find suitable multipole cutoff degree `l_max` for a given particle and simulation. The routine starts with the
     current `l_max` of the particle. The value of `l_max` is successively incremented in a loop until the resulting
@@ -57,6 +58,8 @@ def converge_l_max(simulation,
                                                     no convergence has been achieved.
         start_from_1 (logical):                     If true (default), start from `l_max=1`. Otherwise, start from the
                                                     current particle `l_max`.
+        target_value (float):                       If available (typically from preceding neff selection procedure),
+                                                    use as target detector value
         ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
@@ -82,12 +85,14 @@ def converge_l_max(simulation,
 
     print("Start value: l_max=%i" % l_max)
 
-    current_value = evaluate(simulation, detector)
+    current_value = evaluate(simulation, detector) if target_value is None else target_value
 
     x = np.array([l_max])
     y = np.array([current_value.real])
     r = np.array([])
     if ax is not None:
+        if target_value is not None:
+            ax[0].axhline(target_value, color='black', linestyle='dashed', label='target value')
         line1, = ax[0].plot(x, y, '.-')
         line2, = ax[1].plot(x[1:], r, '.-')
 
@@ -124,7 +129,7 @@ def converge_l_max(simulation,
             log.write_green("Relative difference smaller than tolerance. Keep l_max = %i" % old_l_max)
             return current_value
         else:
-            current_value = new_value
+            current_value = new_value if target_value is None else target_value
 
     log.write_red("No convergence achieved. Keep l_max = %i"%l_max)
     return current_value
@@ -134,7 +139,7 @@ def converge_m_max(simulation,
                    detector="extinction cross section",
                    tolerance=1e-3,
                    tolerance_steps=2,
-                   current_value=None,
+                   target_value=None,
                    ax=None):
     """Find suitable multipole cutoff order `m_max` for a given particle and simulation. The routine starts with the
     current `l_max` of the particle, i.e. with `m_max=l_max`. The value of `m_max` is successively decremented in a loop
@@ -152,9 +157,8 @@ def converge_m_max(simulation,
                                                     valid for neff selection and multipole truncation. Default: 2
         max_iter (int):                             Break convergence loop after that number of iterations, even if
                                                     no convergence has been achieved.
-        current_value (float):                      Start value of detector (for current settings). If not
-                                                    specified the method starts with a simulation for the current
-                                                    settings.
+        target_value (float):                       If available (typically from preceding neff selection procedure),
+                                                    use as target detector value
         ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
@@ -173,8 +177,7 @@ def converge_m_max(simulation,
     m_max = simulation.particle_list[0].m_max # assuming that all particles have the same l_max
     print("Start value: m_max=%i"%m_max)
 
-    if current_value is None:
-        current_value = evaluate(simulation, detector)
+    current_value = evaluate(simulation, detector) if target_value is None else target_value
 
     x = np.array([])
     y = np.array([])
@@ -219,7 +222,7 @@ def converge_m_max(simulation,
             return current_value
         else:
             titlestr = "no convergence achieved, keep $m_{{max}} = {:g}$".format(m_max)
-            current_value = new_value
+            current_value = new_value if target_value is None else target_value
 
     log.write_red("No convergence achieved. Keep m_max = %g" % m_max)
     if ax is not None:
@@ -235,6 +238,7 @@ def converge_multipole_cutoff(simulation,
                               max_iter=100,
                               current_value=None,
                               converge_m=True,
+                              target_value=None,
                               ax=None):
     """Find suitable multipole cutoff degree `l_max` and order `m_max` for all particles in a given simulation object.
     The method updates the input simulation object with the so determined multipole truncation values.
@@ -242,19 +246,21 @@ def converge_multipole_cutoff(simulation,
     Args:
         simulation (smuthi.simulation.Simulation):  Simulation object
         detector (function or string):              Function that accepts a simulation object and returns a detector
-                                                    value the change of which is used to define convergence.
+                                                    value the change of which is used to define convergence
                                                     Alternatively, use "extinction cross section" (default) to have
-                                                    the extinction cross section as the detector value.
-        tolerance (float):                          Relative tolerance for the detector value change.
+                                                    the extinction cross section as the detector value
+        tolerance (float):                          Relative tolerance for the detector value change
         tolerance_steps (int):                      Number of consecutive steps at which the tolerance must be met,
-                                                    valid for neff selection and multipole truncation. Default: 2
+                                                    valid for neff selection and multipole truncation. Default: 1
         max_iter (int):                             Break convergence loops after that number of iterations, even if
-                                                    no convergence has been achieved.
+                                                    no convergence has been achieved
         current_value (float):                      Start value of detector (for current settings). If not
                                                     specified the method starts with a simulation for the current
-                                                    settings.
+                                                    settings
         converge_m (logical):                       If false, only converge `l_max`, but keep `m_max=l_max`. Default
-                                                    is true.
+                                                    is true
+        target_value (float):                       If available (typically from preceding neff selection procedure),
+                                                    use as target detector value
         ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
@@ -270,15 +276,17 @@ def converge_multipole_cutoff(simulation,
                                        tolerance,
                                        tolerance_steps,
                                        max_iter,
-                                       ax=ax)
+                                       True, # start_from_1
+                                       target_value,
+                                       ax)
 
         if converge_m:
             current_value = converge_m_max(simulation,
                                            detector,
                                            tolerance,
                                            tolerance_steps,
-                                           current_value,
-                                           ax=ax)
+                                           current_value, # passing current_value as the target_value
+                                           ax)
 
     return current_value
 
@@ -439,7 +447,8 @@ def converge_neff_max(simulation,
                 ax[-1].title.set_text(titlestr)
                 ax[-1].title.set_color('g')
                 plt.draw()
-            return current_value
+
+            return new_value # probably the best estimate, or should we use (current_value + new_value)/2 (?)
         else:
             titlestr = "no convergence achieved, keep $n_{{eff}}^{{max}} = {:g}$".format(neff_max.real)
             current_value = new_value
@@ -450,7 +459,7 @@ def converge_neff_max(simulation,
         ax[-1].title.set_color('r')
         plt.draw()
 
-    return None
+    return new_value # see previous comment
 
 
 def converge_neff_resolution(simulation,
@@ -656,18 +665,20 @@ def select_numerical_parameters(simulation,
             _, ax_array = _init_fig('$l_{max}$', detector, 'multipole cutoff', tolerance, 0.1*tolerance, 2)
         else:
             ax_array = None
-        converge_neff_max(simulation=simulation,
-                          detector=detector,
-                          tolerance=tolerance,
-                          tolerance_factor=tolerance_factor,
-                          tolerance_steps=tolerance_steps,
-                          max_iter=max_iter,
-                          neff_imag=neff_imag,
-                          neff_resolution=neff_resolution,
-                          neff_max_increment=neff_max_increment,
-                          converge_lm=relative_convergence,
-                          ax=ax_array)
+        target_value = converge_neff_max(simulation=simulation,
+                                         detector=detector,
+                                         tolerance=tolerance,
+                                         tolerance_factor=tolerance_factor,
+                                         tolerance_steps=tolerance_steps,
+                                         max_iter=max_iter,
+                                         neff_imag=neff_imag,
+                                         neff_resolution=neff_resolution,
+                                         neff_max_increment=neff_max_increment,
+                                         converge_lm=relative_convergence,
+                                         ax=ax_array)
         neff_max = simulation.neff_max
+    else:
+        target_value = None
 
     if select_multipole_cutoff:
         if show_plot:
@@ -678,7 +689,9 @@ def select_numerical_parameters(simulation,
         converge_multipole_cutoff(simulation=simulation,
                                   detector=detector,
                                   tolerance=tolerance,
+                                  tolerance_steps=tolerance_steps,
                                   max_iter=max_iter,
+                                  target_value=target_value,
                                   ax=ax_array)
 
     if select_neff_resolution:
