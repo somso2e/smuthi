@@ -176,12 +176,12 @@ def converge_m_max(simulation,
     if current_value is None:
         current_value = evaluate(simulation, detector)
 
-    x = np.array([m_max])
-    y = np.array([current_value.real])
+    x = np.array([])
+    y = np.array([])
     r = np.array([])
     if ax is not None:
         line1, = ax[0].plot(x, y, '.-')
-        line2, = ax[1].plot(x[1:], r, '.-')
+        line2, = ax[1].plot(x, r, '.-')
 
     for m_max in range(m_max, -1, -1):
         old_m_max = simulation.particle_list[0].m_max
@@ -201,7 +201,7 @@ def converge_m_max(simulation,
         if ax is not None:
             line1.set_data(x, y)
             line1.set_label('$m_{max}$ for $l_{max} = %g$'%simulation.particle_list[0].l_max)
-            line2.set_data(x[1:], r)
+            line2.set_data(x, r)
             [ax.relim() for ax in ax]
             [ax.autoscale_view() for ax in ax]
             plt.draw()
