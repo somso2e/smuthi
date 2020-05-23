@@ -448,7 +448,7 @@ def converge_neff_max(simulation,
                 ax[-1].title.set_color('g')
                 plt.draw()
 
-            return old_value # most accurate result for given neff_max
+            return current_value # most accurate result for old_neff_max
         else:
             titlestr = "no convergence achieved, keep $n_{{eff}}^{{max}} = {:g}$".format(neff_max.real)
             current_value = new_value
@@ -459,7 +459,7 @@ def converge_neff_max(simulation,
         ax[-1].title.set_color('r')
         plt.draw()
 
-    return new_value # see previous comment
+    return current_value
 
 
 def converge_neff_resolution(simulation,
