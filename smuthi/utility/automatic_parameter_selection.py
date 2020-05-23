@@ -534,8 +534,8 @@ def converge_neff_resolution(simulation,
             y = np.append(y, new_value)
             r = np.append(r, rel_diff)
             line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y.real))
-            line1.set_label('$n_{{eff}}^{{max}} = {}$, $l_{{max}} = {}$, $m_{{max}} = {}$'.\
-                            format(neff_max.real.round(decimals=2),
+            line1.set_label('$n_{{eff}}^{{max}} = {:g}$, $l_{{max}} = {}$, $m_{{max}} = {}$'.\
+                            format(simulation.neff_max.real,
                                    simulation.particle_list[0].l_max,
                                    simulation.particle_list[0].m_max,
                                    neff_resolution))
@@ -686,6 +686,7 @@ def select_numerical_parameters(simulation,
                                          ax=ax_array)
         neff_max = simulation.neff_max
     else:
+        simulation.neff_max = neff_max
         target_value = None
 
     if select_multipole_cutoff:
