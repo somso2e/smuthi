@@ -438,7 +438,7 @@ def converge_neff_max(simulation,
             plt.pause(0.001)
             [ax.legend() for ax in ax[::-2]]
 
-        if np.all(r[-tolerance_steps:] < tolerance):  # in this case: discard l_max increment
+        if np.all(r[-tolerance_steps:] < tolerance):  # in this case: discard neff_max increment
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
             log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
