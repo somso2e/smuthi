@@ -428,8 +428,8 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
-                                'vmin'      (None)
-                                'vmax'      (None)
+                                'vmin'      (None), applies only to 2D plots
+                                'vmax'      (None), applies only to 2D plots
                                 'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
@@ -492,8 +492,8 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
-                                'vmin'      (None)
-                                'vmax'      (None)
+                                'vmin'      (None), applies only to 2D plots
+                                'vmax'      (None), applies only to 2D plots
                                 'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
@@ -555,8 +555,8 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
-                                'vmin'      (None)
-                                'vmax'      (None)
+                                'vmin'      (None), applies only to 2D plots
+                                'vmax'      (None), applies only to 2D plots
                                 'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
@@ -617,8 +617,8 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
-                                'vmin'      (None)
-                                'vmax'      (None)
+                                'vmin'      (None), applies only to 2D plots
+                                'vmax'      (None), applies only to 2D plots
                                 'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
@@ -700,10 +700,6 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         beta_grid = 180 - beta_grid
         polar_array = 180 - polar_array
 
-    color_norm = None
-    if log_scale:
-        color_norm = LogNorm()
-
     if not show_plots:
         import matplotlib
         default_backend = matplotlib.get_backend()
@@ -711,12 +707,16 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
 
     for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
         # 2D polar plot of far field
+        color_norm = None
+        if log_scale:
+            color_norm = LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
+
         fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
         ax = fig.add_subplot(111, polar=True)
 
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
                             alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm), cmap=show_opt.get('cmap','inferno'),
-                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmin'), shading=show_opt.get('shading','flat'))
+                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'), shading=show_opt.get('shading','flat'))
 
         plt.colorbar(pcm, ax=ax)
         plt.title(show_opt.get('label').replace('_',' '))
