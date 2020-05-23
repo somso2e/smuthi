@@ -374,6 +374,8 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
     if not show_plots:
         matplotlib.use(default_backend) # now we can restore the original backend
+    else:
+        plt.show(block=False)
 
     if save_data:
         Ei = np.stack((e_x_init, e_y_init, e_z_init))
@@ -757,3 +759,5 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
 
     if not show_plots:
         matplotlib.use(default_backend) # now we can restore the original backend
+    else:
+        plt.show(block=False)
