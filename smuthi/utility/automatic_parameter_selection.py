@@ -353,7 +353,7 @@ def converge_neff_max(simulation,
         neff_resolution (float):                    Discretization of the contour (in terms of eff. refractive
                                                     index).
         neff_max_increment (float):                 Increment the neff_max parameter with that step size
-        neff_max_offset (float):                    Start n_eff selection from the last estimated singularity
+        neff_max_offset (float):                    Start neff_max selection from the last estimated singularity
                                                     location plus this value (in terms of effective refractive index)
         converge_lm (logical):                      If set to true, update multipole truncation during each step
                                                     (this takes longer time, but is necessary for critical use cases
