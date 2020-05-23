@@ -448,7 +448,7 @@ def converge_neff_max(simulation,
                 ax[-1].title.set_color('g')
                 plt.draw()
 
-            return new_value # probably the best estimate, or should we use (current_value + new_value)/2 (?)
+            return old_value # most accurate result for given neff_max
         else:
             titlestr = "no convergence achieved, keep $n_{{eff}}^{{max}} = {:g}$".format(neff_max.real)
             current_value = new_value
