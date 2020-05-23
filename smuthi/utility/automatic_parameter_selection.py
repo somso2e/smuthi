@@ -12,10 +12,10 @@ import smuthi.utility.logging as log
 def evaluate(simulation, detector):
     """Run a simulation and evaluate the detector.
     Args:
-        simulation (smuthi.simulation.Simulation):    simulation object
-        detector (method or str):                     Specify a method that accepts a simulation as input and returns
-                                                      a float. Otherwise, type "extinction cross section" to use the
-                                                      extinction cross section as a detector.
+        simulation (smuthi.simulation.Simulation):  simulation object
+        detector (method or str):                   Specify a method that accepts a simulation as input and returns
+                                                    a float. Otherwise, type "extinction cross section" to use the
+                                                    extinction cross section as a detector.
 
     Returns:
         The detector value (float)
@@ -296,18 +296,18 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
     contours.
 
     Args:
-        simulation (smuthi.simulation.Simulation):      Simulation object
-        neff_imag (float):                              Extent of the contour into the negative imaginary direction
-                                                        (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_max (float):                               Truncation value of contour (in terms of effective refractive
-                                                        index).
-        neff_max_offset (float):                        If no value for `neff_max` is specified, use the last estimated
-                                                        singularity location plus this value (in terms of effective
-                                                        refractive index).
-        neff_resolution (float):                        Discretization of the contour (in terms of eff. refractive
-                                                        index).
-        update_default_contours (logical)               If true, overwrite the default contours in smuthi.fields module.
-                                                        Otherwise, overwrite simulation.k_parallel array
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        neff_imag (float):                          Extent of the contour into the negative imaginary direction
+                                                    (in terms of effective refractive index, n_eff=kappa/omega).
+        neff_max (float):                           Truncation value of contour (in terms of effective refractive
+                                                    index).
+        neff_max_offset (float):                    If no value for `neff_max` is specified, use the last estimated
+                                                    singularity location plus this value (in terms of effective
+                                                    refractive index).
+        neff_resolution (float):                    Discretization of the contour (in terms of effective refractive
+                                                    index).
+        update_default_contours (logical)           If true, overwrite the default contours in smuthi.fields module.
+                                                    Otherwise, overwrite simulation.k_parallel array
     """
     simulation.neff_imag = neff_imag
     simulation.neff_max = neff_max
@@ -328,6 +328,7 @@ def converge_neff_max(simulation,
                       neff_imag=1e-2,
                       neff_resolution=2e-3,
                       neff_max_increment=0.5,
+                      neff_max_offset=0,
                       converge_lm=True,
                       ax=None):
     """Find a suitable truncation value for the multiple scattering Sommerfeld integral contour and update the
@@ -352,6 +353,8 @@ def converge_neff_max(simulation,
         neff_resolution (float):                    Discretization of the contour (in terms of eff. refractive
                                                     index).
         neff_max_increment (float):                 Increment the neff_max parameter with that step size
+        neff_max_offset (float):                    Start n_eff selection from the last estimated singularity
+                                                    location plus this value (in terms of effective refractive index)
         converge_lm (logical):                      If set to true, update multipole truncation during each step
                                                     (this takes longer time, but is necessary for critical use cases
                                                     like flat particles on a substrate)
@@ -365,13 +368,13 @@ def converge_neff_max(simulation,
     print("---------------------------")
     log.write_blue("Searching suitable neff_max")
 
-    update_contour(simulation=simulation, neff_imag=neff_imag, neff_max_offset=0, neff_resolution=neff_resolution)
+    update_contour(simulation=simulation, neff_imag=neff_imag, neff_max_offset=neff_max_offset, neff_resolution=neff_resolution)
 
     simulation.k_parallel = flds.reasonable_Sommerfeld_kpar_contour(
         vacuum_wavelength=simulation.initial_field.vacuum_wavelength,
         layer_refractive_indices=simulation.layer_system.refractive_indices,
         neff_imag=neff_imag,
-        neff_max_offset=0,
+        neff_max_offset=neff_max_offset,
         neff_resolution=neff_resolution)
 
     neff_max = simulation.k_parallel[-1] / angular_frequency(simulation.initial_field.vacuum_wavelength)
@@ -470,25 +473,25 @@ def converge_neff_resolution(simulation,
                        neff_max=None,
                        neff_resolution=1e-2,
                        ax=None):
-    """Find a suitable discretization step size for the multiple scattering Sommerfeld integral contour and update the
-    simulation object accordingly.
+    """Find a suitable discretization step size for the multiple scattering Sommerfeld integral contour and update
+    the simulation object accordingly.
 
     Args:
-        simulation (smuthi.simulation.Simulation):    Simulation object
-        detector (function or string):                Function that accepts a simulation object and returns a detector
-                                                      value the change of which is used to define convergence.
-                                                      Alternatively, use "extinction cross section" (default) to have
-                                                      the extinction cross section as the detector value.
-        tolerance (float):                            Relative tolerance for the detector value change.
-        max_iter (int):                               Break convergence loops after that number of iterations, even if
-                                                      no convergence has been achieved.
-        neff_imag (float):                            Extent of the contour into the negative imaginary direction
-                                                      (in terms of effective refractive index, n_eff=kappa/omega).
-        neff_max (float):                             Truncation value of contour (in terms of effective refractive
-                                                      index).
-        neff_resolution (float):                      Discretization of the contour (in terms of eff. refractive
-                                                      index) - start value for iteration
-        ax (np.array of AxesSubplot):                 Array of AxesSubplots where to live-plot convergence output
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        max_iter (int):                             Break convergence loops after that number of iterations, even if
+                                                    no convergence has been achieved.
+        neff_imag (float):                          Extent of the contour into the negative imaginary direction
+                                                    (in terms of effective refractive index, n_eff=kappa/omega).
+        neff_max (float):                           Truncation value of contour (in terms of effective refractive
+                                                    index).
+        neff_resolution (float):                    Discretization of the contour (in terms of eff. refractive
+                                                    index) - start value for iteration
+        ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
         Detector value for converged settings.
@@ -575,6 +578,7 @@ def select_numerical_parameters(simulation,
                                 neff_resolution=1e-2,
                                 select_neff_max=True,
                                 neff_max_increment=0.5,
+                                neff_max_offset=0,
                                 neff_max=None,
                                 select_neff_resolution=True,
                                 select_multipole_cutoff=True,
@@ -598,7 +602,7 @@ def select_numerical_parameters(simulation,
         max_iter (int):                             Break convergence loops after that number of iterations, even if
                                                     no convergence has been achieved.
         neff_imag (float):                          Extent of the contour into the negative imaginary direction
-                                                    (in terms of effective refractive index, n_eff=kappa/omega).
+                                                    (in terms of effective refractive index, n_eff=kappa/omega)
         neff_resolution (float):                    Discretization of the contour (in terms of eff. refractive
                                                     index) - if `select_neff_resolution` is true, this value will be
                                                     eventually overwritten. However, it is required in any case.
@@ -608,6 +612,9 @@ def select_numerical_parameters(simulation,
                                                     of a Cauchy convergence criterion.
         neff_max_increment (float):                 Only needed if `select_neff_max` is true.
                                                     Step size with which `neff_max` is incremented.
+        neff_max_offset (float):                    Only needed if `select_neff_max` is true.
+                                                    Start n_eff selection from the last estimated singularity
+                                                    location plus this value (in terms of effective refractive index)
         neff_max (float):                           Only needed if `select_neff_max` is false.
                                                     Truncation value of contour (in terms of effective refractive
                                                     index).
@@ -674,6 +681,7 @@ def select_numerical_parameters(simulation,
                                          neff_imag=neff_imag,
                                          neff_resolution=neff_resolution,
                                          neff_max_increment=neff_max_increment,
+                                         neff_max_offset=neff_max_offset,
                                          converge_lm=relative_convergence,
                                          ax=ax_array)
         neff_max = simulation.neff_max
