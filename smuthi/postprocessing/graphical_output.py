@@ -471,6 +471,8 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                        polar_angles=polar_angles,
                                        azimuthal_angles=azimuthal_angles)
 
+    [d.setdefault('label','scattered_far_field') for d in show_opts]
+
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
                    flip_downward=flip_downward, split=split, log_scale=log_scale)
@@ -533,6 +535,8 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                    layer_system=lsys,
                                    polar_angles=polar_angles,
                                    azimuthal_angles=azimuthal_angles)
+
+    [d.setdefault('label','total_far_field') for d in show_opts]
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
@@ -597,6 +601,8 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                             layer_system=lsys,
                                             polar_angles=polar_angles,
                                             azimuthal_angles=azimuthal_angles)
+
+    [d.setdefault('label','scattering_cross_section') for d in show_opts]
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
