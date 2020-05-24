@@ -7,7 +7,6 @@
 #*****************************************************************************#
 
 import numpy as np
-import matplotlib.pyplot as plt
 import smuthi.simulation
 import smuthi.initial_field
 import smuthi.layers
@@ -89,8 +88,8 @@ simulation.run()
 
 # show far field
 smuthi.postprocessing.graphical_output.show_scattering_cross_section(simulation,
-                                                                     log_scale=True,
-                                                                     min_field=1e2,   # play with these parameters
-                                                                     max_field=1e5)   # to get an appealing result
-plt.show()
-
+                                                                     show_plots=True,
+                                                                     show_opts=[{'label':'scattering_cross_section',
+                                                                                 'vmin':1e2,    # play with these parameters
+                                                                                 'vmax':1e5}],  # to get an appealing result
+                                                                     log_scale=True)
