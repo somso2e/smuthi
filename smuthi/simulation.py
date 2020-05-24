@@ -11,6 +11,7 @@ import shutil
 import pickle
 import numpy as np
 import smuthi
+import warnings
 
 
 class Simulation:
@@ -91,7 +92,8 @@ class Simulation:
                  output_dir='smuthi_output',
                  save_after_run=False,
                  log_to_file=False,
-                 log_to_terminal=True):
+                 log_to_terminal=True,
+                 check_circumscribing_spheres=False):
 
         # initialize attributes
         self.layer_system = layer_system
@@ -113,6 +115,7 @@ class Simulation:
         self.post_processing = None
         self.length_unit = length_unit
         self.save_after_run = save_after_run
+        self.check_circumscribing_spheres = check_circumscribing_spheres
 
         # output
         timestamp = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
@@ -190,6 +193,21 @@ class Simulation:
                                                coupling_matrix_lookup_resolution=self.coupling_matrix_lookup_resolution,
                                                interpolator_kind=self.coupling_matrix_interpolator_kind)
     
+    def circumscribing_spheres_disjoint(self):
+        number_of_particles=len(self.particle_list)
+        for i in range(number_of_particles):
+            for j in range(i+1,number_of_particles):
+                pos1 = np.array(self.particle_list[i].position)
+                r1 = self.particle_list[i].circumscribing_sphere_radius()
+                pos2 = np.array(self.particle_list[j].position)
+                r2 = self.particle_list[j].circumscribing_sphere_radius()
+                if np.linalg.norm(pos1-pos2) < r1+r2:
+                    sys.stdout.write(f"Particles {i} and {j} at positions {pos1} and {pos2} have "
+                                     f"crossing circumscribing spheres of radius {r1} and {r2}\n")
+                    sys.stdout.flush()
+                    return False
+        return True
+
     def set_default_Sommerfeld_contour(self):
         """Set the default Sommerfeld k_parallel array"""
 
@@ -240,6 +258,10 @@ class Simulation:
     def run(self):
         """Start the simulation."""
         self.print_simulation_header()
+
+        # check for circumscribing sphere collisions.
+        if self.check_circumscribing_spheres and not self.circumscribing_spheres_disjoint():
+            warnings.warn("Particles with circumscribing spheres detected.")
 
         # check if default contours exists, otherwise set them
         if smuthi.fields.default_Sommerfeld_k_parallel_array is None or self.overwrite_default_contours:
