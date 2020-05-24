@@ -1,11 +1,11 @@
 import unittest
 import numpy as np
 import sympy.physics.wigner
-from numba import cffi_support
+from numba.core.typing import cffi_utils
 from pywigxjpf_ffi import ffi, lib
 import pywigxjpf_ffi
 
-cffi_support.register_module(pywigxjpf_ffi)
+cffi_utils.register_module(pywigxjpf_ffi)
 pywigxjpf_ffi.lib.wig3jj
 
 lib.wig_table_init(100, 9)
