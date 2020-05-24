@@ -654,15 +654,13 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
     """
 
     if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
-        top_opts = show_opts
-        for d in top_opts:
+        for d in show_opts:
             d['label'] = d.get('label') + '_top'
-        show_far_field(far_field.top(), show_plots, top_opts, save_plots, save_opts,
+        show_far_field(far_field.top(), show_plots, show_opts, save_plots, save_opts,
                        save_data, data_format, outputdir, True, False, log_scale)
-        bottom_opts = show_opts
-        for d in bottom_opts:
-            d['label'] = d.get('label') + '_bottom'
-        show_far_field(far_field.bottom(), show_plots, bottom_opts, save_plots, save_opts,
+        for d in show_opts:
+            d['label'] = d.get('label').rstrip('_top') + '_bottom'
+        show_far_field(far_field.bottom(), show_plots, show_opts, save_plots, save_opts,
                        save_data, data_format, outputdir, True, False, log_scale)
         return
 
