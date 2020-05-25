@@ -192,7 +192,7 @@ plt.pcolormesh(x_plane, y_plane, comsol_real_ey.reshape(x_plane.shape),
                vmin=vmin, vmax=vmax, cmap='RdYlBu')
 plt.xlim((x_plane.min(), x_plane.max()))
 plt.ylim((y_plane.min(), y_plane.max()))
-plt.axes().set_aspect('equal')
+plt.gca().set_aspect('equal')
 plt.xlabel('x (nm)')
 plt.ylabel('y (nm)')
 plt.title(r'real E_y along probing plane, Comsol')
