@@ -5,13 +5,11 @@
 #*****************************************************************************#
 
 import numpy as np
-import matplotlib.pyplot as plt
 import smuthi.simulation
 import smuthi.initial_field
 import smuthi.layers
 import smuthi.particles
-import smuthi.postprocessing.far_field
-import smuthi.postprocessing.graphical_output
+import smuthi.postprocessing.far_field as ff
 
 
 # In this file, all lengths are given in nanometers
@@ -45,9 +43,9 @@ simulation = smuthi.simulation.Simulation(layer_system=two_layers,
 simulation.run()
 
 # evaluate the scattering cross section
-scs = smuthi.postprocessing.far_field.total_scattering_cross_section(initial_field=plane_wave,
-                                                                     particle_list=one_sphere,
-                                                                     layer_system=two_layers)
+scs = ff.total_scattering_cross_section(initial_field=plane_wave,
+                                        particle_list=one_sphere,
+                                        layer_system=two_layers)
 
 print("\n****************************************************")
 print("Scattering cross section: %e µm^2"%(scs/1e6))

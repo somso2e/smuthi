@@ -11,8 +11,8 @@ import smuthi.simulation
 import smuthi.initial_field
 import smuthi.layers
 import smuthi.particles
-import smuthi.postprocessing.far_field
-import smuthi.postprocessing.graphical_output
+import smuthi.postprocessing.far_field as ff
+import smuthi.postprocessing.graphical_output as go
 import smuthi.utility.cuda as cu
 
 
@@ -50,7 +50,7 @@ def simulate_N_spheres(number_of_spheres=100,
     plane_wave = smuthi.initial_field.PlaneWave(vacuum_wavelength=550,
                                                 polar_angle=np.pi,  # from top
                                                 azimuthal_angle=0,
-                                                polarization=0)  # 0=TE 1=TM
+                                                polarization=0)     # 0=TE 1=TM
     
     spheres_list = vogel_spiral(number_of_spheres)
     
@@ -85,22 +85,19 @@ def simulate_N_spheres(number_of_spheres=100,
     if make_illustrations:
         azimuthal_angles = np.arange(0, 360.5, 0.5, dtype=float) * np.pi / 180
         polar_angles = np.arange(0, 180.25, 0.25, dtype=float) * np.pi / 180
-        dscs = smuthi.postprocessing.far_field.scattering_cross_section(
-            initial_field=plane_wave,
-            particle_list=spheres_list,
-            layer_system=two_layers,
-            polar_angles=polar_angles,
-            azimuthal_angles=azimuthal_angles,
-        )
+        dscs = ff.scattering_cross_section(initial_field=plane_wave,
+                                           particle_list=spheres_list,
+                                           layer_system=two_layers,
+                                           polar_angles=polar_angles,
+                                           azimuthal_angles=azimuthal_angles)
 
         # display differential scattering cross section
-        smuthi.postprocessing.graphical_output.show_far_field(
-            far_field=dscs,
-            save_plots=True,
-            show_plots=True,
-            save_data=False,
-            tag='dscs_%ispheres'%number_of_spheres,
-            log_scale=True)
+        go.show_far_field(far_field=dscs,
+                          save_plots=True,
+                          show_plots=True,
+                          save_data=False,
+                          show_opts=[{'label':'dscs_%i spheres'%number_of_spheres}],
+                          log_scale=True)
 
         xlim = max([abs(sphere.position[0]) for sphere in spheres_list]) * 1.1
         plt.figure()
@@ -110,8 +107,7 @@ def simulate_N_spheres(number_of_spheres=100,
         plt.ylim([-xlim, xlim])
         plt.gca().set_aspect("equal")
         plt.title("Vogel spiral with %i spheres" % number_of_spheres)
-        smuthi.postprocessing.graphical_output.plot_particles(
-            -1e5, 1e5, -1e5, 1e5, 0, 0, spheres_list, 1000, False)
+        go.plot_particles(-1e5, 1e5, -1e5, 1e5, 100, 100, spheres_list, True, False)
         plt.savefig("vogel_spiral_%i.png" % number_of_spheres)
 
     return [(ecs["top"] + ecs["bottom"]).real, preparation_time, solution_time]

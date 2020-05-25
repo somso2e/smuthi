@@ -5,13 +5,11 @@
 #*****************************************************************************#
 
 import numpy as np
-import matplotlib.pyplot as plt
 import smuthi.simulation
 import smuthi.initial_field
 import smuthi.layers
 import smuthi.particles
-import smuthi.postprocessing.far_field
-import smuthi.postprocessing.graphical_output
+import smuthi.postprocessing.graphical_output as go
 
 
 # In this file, all lengths are given in nanometers
@@ -39,9 +37,9 @@ def vogel_spiral(number_of_spheres):
 
 # Initial field
 plane_wave = smuthi.initial_field.PlaneWave(vacuum_wavelength=550,
-                                            polar_angle=np.pi * 0.8,    # oblique incidence from top
+                                            polar_angle=0.8*np.pi,  # oblique incidence from top
                                             azimuthal_angle=0,
-                                            polarization=0)             # 0=TE 1=TM
+                                            polarization=0)         # 0=TE 1=TM
 
 # Initialize and run simulation
 simulation = smuthi.simulation.Simulation(layer_system=two_layers,
@@ -50,16 +48,14 @@ simulation = smuthi.simulation.Simulation(layer_system=two_layers,
 simulation.run()
 
 # plot the scattered far field
-smuthi.postprocessing.graphical_output.show_scattering_cross_section(simulation,
-                                                                     log_scale=True,
-                                                                     min_field=1e2,   # play with these parameters
-                                                                     max_field=1e5)   # to get an appealing result
+go.show_scattering_cross_section(simulation,
+                                 log_scale=True,
+                                 show_opts=[{'vmin':1e2,   # play with these parameters
+                                             'vmax':1e5}]) # to get an appealing result
 
 # note: if the initial field is not a plane wave, we would not use "show_scattering_cross_section", but
 # "show_scattered_far_field". E.g.:
-#smuthi.postprocessing.graphical_output.show_scattered_far_field(simulation,
-#                                                                log_scale=True,
-#                                                                min_field=1e2,   # play with these parameters
-#                                                                max_field=1e5)   # to get an appealing result
-
-plt.show()
+# go.show_scattered_far_field(simulation,
+#                             log_scale=True,
+#                             show_opts=[{'vmin':1e2,   # play with these parameters
+#                                         'vmax':1e5}]) # to get an appealing result
