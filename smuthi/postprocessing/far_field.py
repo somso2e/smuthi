@@ -339,10 +339,10 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
     """Evaluate and display the differential scattering cross section as a function of solid angle.
 
     Args:
-        initial_field (smuthi.initial.PlaneWave): Initial Plane wave
-        particle_list (list):                     scattering particles
-        layer_system (smuthi.layers.LayerSystem): stratified medium
-        polar_angles (numpy.ndarray or str):        polar angles values (radian). 
+        initial_field (smuthi.initial.PlaneWave):   Initial Plane wave
+        particle_list (list):                       scattering particles
+        layer_system (smuthi.layers.LayerSystem):   stratified medium
+        polar_angles (numpy.ndarray or str):        polar angles values (radian).
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
@@ -382,32 +382,27 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
     return dscs
 
 
-def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=None,
-                                   azimuthal_angles=None, angular_resolution = np.pi / 360.0):
+def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles='default',
+                                   azimuthal_angles='default'):
     """Evaluate the total scattering cross section.
 
     Args:
-        initial_field (smuthi.initial.PlaneWave): Initial Plane wave
-        particle_list (list):                     scattering particles
-        layer_system (smuthi.layers.LayerSystem): stratified medium
-        polar_angles (numpy.ndarray or str):        polar angles values (radian).
-                                                    if string 'default' is provided, use
-                                                    smuthi.fields.default_polar_angles. Default is None.
-        azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
-                                                    if string 'default' is provided, use
-                                                    smuthi.fields.default_azimuthal_angles. Default is None.
-        angular_resolution (float):                 If `polar_angles` or `azimuthal_angles` are None (default),
-                                                    use this angular sampling distance value to create equidistant
-                                                    arrays. Default: pi/360
+        initial_field (smuthi.initial.PlaneWave):   Initial Plane wave
+        particle_list (list):                       scattering particles
+        layer_system (smuthi.layers.LayerSystem):   stratified medium
+        polar_angles (numpy.ndarray or str):        polar angles values (radian, default None).
+                                                    If None, use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian, default None).
+                                                    If None, use smuthi.fields.default_azimuthal_angles
 
     Returns:
         A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
         scattering (bottom hemisphere).
     """
-    if polar_angles is None:
-        polar_angles = np.arange(0, np.pi + 0.5 * angular_resolution, angular_resolution)
-    if azimuthal_angles is None:
-        azimuthal_angles = np.arange(0, 2 * np.pi + 0.5 * angular_resolution, angular_resolution)
+    if type(polar_angles) == str and polar_angles == 'default':
+        polar_angles = flds.default_polar_angles
+    if type(azimuthal_angles) == str and azimuthal_angles == 'default':
+        azimuthal_angles = flds.default_azimuthal_angles
 
     dscs = scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=polar_angles,
                                     azimuthal_angles=azimuthal_angles)
