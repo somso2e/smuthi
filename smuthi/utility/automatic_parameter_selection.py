@@ -537,8 +537,7 @@ def converge_neff_resolution(simulation,
             line1.set_label('$n_{{eff}}^{{max}} = {:g}$, $l_{{max}} = {}$, $m_{{max}} = {}$'.\
                             format(simulation.neff_max.real,
                                    simulation.particle_list[0].l_max,
-                                   simulation.particle_list[0].m_max,
-                                   neff_resolution))
+                                   simulation.particle_list[0].m_max))
             line2.set_data(x, r)
             [( ax.relim(), ax.autoscale_view()) for ax in ax]
             plt.draw()
