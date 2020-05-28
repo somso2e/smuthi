@@ -194,19 +194,29 @@ class Simulation:
                                                interpolator_kind=self.coupling_matrix_interpolator_kind)
     
     def circumscribing_spheres_disjoint(self):
-        number_of_particles=len(self.particle_list)
-        for i in range(number_of_particles):
-            for j in range(i+1,number_of_particles):
-                pos1 = np.array(self.particle_list[i].position)
-                r1 = self.particle_list[i].circumscribing_sphere_radius()
-                pos2 = np.array(self.particle_list[j].position)
-                r2 = self.particle_list[j].circumscribing_sphere_radius()
-                if np.linalg.norm(pos1-pos2) < r1+r2:
-                    sys.stdout.write(f"Particles {i} and {j} at positions {pos1} and {pos2} have "
-                                     f"crossing circumscribing spheres of radius {r1} and {r2}\n")
-                    sys.stdout.flush()
-                    return False
-        return True
+        """Check if all circumscribing spheres are disjoint"""
+        from scipy.spatial.distance import pdist, cdist, squareform
+        pos = np.array([p.position for p in self.particle_list])
+        csr = np.array([p.circumscribing_sphere_radius() for p in self.particle_list])
+        try: # fully vectorized but memory expensive, finds all overlapping pairs
+            distmatrix = squareform(pdist(pos))
+            r1, r2 = np.meshgrid(csr, csr)
+            overlap = np.triu(distmatrix < r1+r2, k=1)
+            pidx = np.where(overlap)
+            s = 's' if np.count_nonzero(overlap) > 1 else '' # pluralize message string
+            msg = f'the circumscribing sphere of particle{s} {pidx[0]} overlaps with that of particle{s} {pidx[1]}\n'
+        except MemoryError: # less vectorized, more time consuming, stops at first overlap detected
+            for i in range(len(self.particle_list)):
+                dists = cdist(np.expand_dims(pos[i,:],0), pos[i+1:,])
+                overlap = np.squeeze(dists < csr[i] + csr[i+1:])
+                if overlap.any():
+                    pidx = np.where(overlap)
+                    msg = f'found overlap between circumscribing sphere of particle {i} and particle {i+1+pidx[0][0]}\n'
+                    break
+        if overlap.any():
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+        return not overlap.any()
 
     def set_default_Sommerfeld_contour(self):
         """Set the default Sommerfeld k_parallel array"""
