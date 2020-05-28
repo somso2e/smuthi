@@ -574,6 +574,105 @@ def converge_neff_resolution(simulation,
     return None
 
 
+def converge_angular_resolution(simulation,
+                                detector="extinction cross section",
+                                tolerance=1e-3,
+                                max_iter=20,
+                                ax=None):
+    """Find a suitable discretization step size for the default angular arrays used for plane wave expansions.
+
+    Args:
+        simulation (smuthi.simulation.Simulation):  Simulation object
+        detector (function or string):              Function that accepts a simulation object and returns a detector
+                                                    value the change of which is used to define convergence.
+                                                    Alternatively, use "extinction cross section" (default) to have
+                                                    the extinction cross section as the detector value.
+        tolerance (float):                          Relative tolerance for the detector value change.
+        max_iter (int):                             Break convergence loops after that number of iterations, even if
+                                                    no convergence has been achieved.
+        ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
+
+    Returns:
+        Detector value for converged settings.
+    """
+
+    def _update_angular_arrays(ar):
+        aa = np.arange(0, 360 + 0.5*ar, ar, dtype=float) * np.pi / 180
+        pa = np.arange(0, 180 + 0.5*ar, ar, dtype=float) * np.pi / 180
+        flds.default_polar_angles = pa
+        flds.default_azimuthal_angles = aa
+
+    print("")
+    print("-----------------------")
+    log.write_blue("Find suitable angular_resolution")
+
+    angular_resolution = 1 # or maybe better to derive it directly from the default arrays ?
+    print("Starting value: angular_resolution=%f degrees" % angular_resolution)
+    current_value = evaluate(simulation, detector)
+
+    if ax is not None:
+        x = np.array([])
+        y = np.array([])
+        r = np.array([])
+        init_x = angular_resolution
+        init_y = current_value.real
+        line1, = ax[0].plot(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y),'.-')
+        line2, = ax[1].plot(x,r,'.-')
+
+    for _ in range(max_iter):
+        old_angular_resolution = angular_resolution
+        angular_resolution = angular_resolution / 2.0
+        _update_angular_arrays(angular_resolution)
+
+        print("---------------------------------------")
+        print("Try angular_resolution = %f degrees" % angular_resolution)
+
+        new_value = evaluate(simulation, detector)
+
+        rel_diff = abs(new_value - current_value) / abs(current_value)
+        print("Old detector value:", current_value)
+        print("New detector value:", new_value)
+        print("Relative difference:", rel_diff)
+        print("Allowed tolerance:  ", tolerance)
+
+        if ax is not None:
+            x = np.append(x, angular_resolution)
+            y = np.append(y, new_value)
+            r = np.append(r, rel_diff)
+            line1.set_data(np.insert(x, 0, init_x), np.insert(y.real, 0, init_y.real))
+            line1.set_label('$n_{{eff}}^{{max}} = {:g}$, $l_{{max}} = {}$, $m_{{max}} = {}$, $\delta n_{{eff}} = {}$'.\
+                            format(simulation.neff_max.real,
+                                   simulation.particle_list[0].l_max,
+                                   simulation.particle_list[0].m_max,
+                                   simulation.neff_resolution))
+            line2.set_data(x, r)
+            [( ax.relim(), ax.autoscale_view()) for ax in ax]
+            plt.draw()
+            plt.pause(0.001)
+            ax[0].legend()
+
+        if rel_diff < tolerance:  # in this case: discard halfed neff_resolution
+            _update_angular_arrays(old_angular_resolution)
+            log.write_green("Relative difference smaller than tolerance. Keep angular_resolution = %g" % old_angular_resolution)
+            if ax is not None:
+                titlestr = "relative diff < {:g}, keep $\delta \\theta = {:g}$ deg".format(tolerance, old_angular_resolution)
+                ax[1].title.set_text(titlestr)
+                ax[1].title.set_color('g')
+                plt.draw()
+            return current_value
+        else:
+            titlestr = "no convergence achieved, keep $\delta \\theta = {:g}$ deg".format(angular_resolution)
+            current_value = new_value
+
+    log.write_red("No convergence achieved. Keep angular_resolution = %g deg" % angular_resolution)
+    if ax is not None:
+        ax[1].title.set_text(titlestr)
+        ax[1].title.set_color('r')
+        plt.draw()
+
+    return None
+
+
 def select_numerical_parameters(simulation,
                                 detector="extinction cross section",
                                 tolerance=1e-3,
@@ -587,6 +686,7 @@ def select_numerical_parameters(simulation,
                                 neff_max_offset=0,
                                 neff_max=None,
                                 select_neff_resolution=True,
+                                select_angular_resolution=False,
                                 select_multipole_cutoff=True,
                                 relative_convergence=True,
                                 show_plot=True):
@@ -627,6 +727,9 @@ def select_numerical_parameters(simulation,
         select_neff_resolution (logical):           If set to true (default), the Sommerfeld integral discretization
                                                     parameter `neff_resolution` is determined automatically with the
                                                     help of a Cauchy convergence criterion.
+        select_angular_resolution (logical):        If set to true, the angular resolution step for the default polar
+                                                    and azimuthal angles is determined automatically according to a
+                                                    Cauchy convergenge criterion.
         select_multipole_cutoff (logical):          If set to true (default), the multipole expansion cutoff
                                                     parameters `l_max` and `m_max` are determined automatically with
                                                     the help of a Cauchy convergence criterion.
@@ -722,6 +825,18 @@ def select_numerical_parameters(simulation,
                                  neff_imag=neff_imag,
                                  neff_max=neff_max,
                                  ax=ax_array)
+
+    if select_angular_resolution:
+        if show_plot:
+            plt.ion()
+            _, ax_array = _init_fig('$\delta \\theta$ [deg]', detector, 'angular resolution selection', tolerance)
+        else:
+            ax_array = None
+        converge_angular_resolution(simulation=simulation,
+                                    detector=detector,
+                                    tolerance=tolerance,
+                                    max_iter=max_iter,
+                                    ax=ax_array)
 
     if show_plot:
         plt.ioff()
