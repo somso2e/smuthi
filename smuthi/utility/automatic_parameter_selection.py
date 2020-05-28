@@ -26,6 +26,13 @@ def evaluate(simulation, detector):
                                               particle_list=sim.particle_list,
                                               layer_system=sim.layer_system)
             return ecs["top"] + ecs["bottom"]
+    elif detector == "total scattering cross section":
+        def detector(sim):
+            scs = ff.total_scattering_cross_section(initial_field=sim.initial_field,
+                                                    particle_list=sim.particle_list,
+                                                    layer_system=sim.layer_system)
+            return scs
+
 
     with log.LoggerMuted():
         simulation.run()
