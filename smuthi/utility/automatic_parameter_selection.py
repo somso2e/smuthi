@@ -92,7 +92,7 @@ def converge_l_max(simulation,
 
     print("Start value: l_max=%i" % l_max)
 
-    current_value = evaluate(simulation, detector) if target_value is None else target_value
+    current_value = evaluate(simulation, detector)
 
     x = np.array([l_max])
     y = np.array([current_value.real])
@@ -102,6 +102,11 @@ def converge_l_max(simulation,
             ax[0].axhline(target_value, color='black', linestyle='dashed', label='target value')
         line1, = ax[0].plot(x, y, '.-')
         line2, = ax[1].plot(x[1:], r, '.-')
+
+    if target_value is not None:
+        rel_diff = abs(target_value - current_value) / abs(current_value)
+        current_value = target_value
+        r = np.append(r, rel_diff)
 
     for _ in range(max_iter):
         old_l_max = l_max
@@ -125,7 +130,10 @@ def converge_l_max(simulation,
         if ax is not None:
             line1.set_data(x, y)
             line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
-            line2.set_data(x[1:], r)
+            if target_value is not None:
+                line2.set_data(x, r)
+            else:
+                line2.set_data(x[1:], r)
             [( ax.relim(), ax.autoscale_view()) for ax in ax]
             plt.draw()
             plt.pause(0.001)
