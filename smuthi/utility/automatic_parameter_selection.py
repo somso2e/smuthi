@@ -661,7 +661,7 @@ def converge_angular_resolution(simulation,
 
         if rel_diff < tolerance:  # in this case: discard halfed neff_resolution
             _update_angular_arrays(old_angular_resolution)
-            log.write_green("Relative difference smaller than tolerance. Keep angular_resolution = %g" % old_angular_resolution)
+            log.write_green("Relative difference smaller than tolerance. Keep angular_resolution = %g deg" % old_angular_resolution)
             if ax is not None:
                 titlestr = "relative diff < {:g}, keep $\delta \\theta = {:g}$ deg".format(tolerance, old_angular_resolution)
                 ax[1].title.set_text(titlestr)
