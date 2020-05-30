@@ -32,7 +32,14 @@ def evaluate(simulation, detector):
                                                     particle_list=sim.particle_list,
                                                     layer_system=sim.layer_system)
             return scs
-
+    elif detector == "integrated scattered far field":
+        def detector(sim):
+            # _, _, scff = ff.total_far_field(initial_field=sim.initial_field,
+            scff = ff.scattered_far_field(vacuum_wavelength=sim.initial_field.vacuum_wavelength,
+                                          particle_list=sim.particle_list,
+                                          layer_system=sim.layer_system)
+            iscff = scff.integral()
+            return iscff[0] + iscff[1]
 
     with log.LoggerMuted():
         simulation.run()
