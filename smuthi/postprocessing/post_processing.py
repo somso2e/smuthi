@@ -153,9 +153,9 @@ class PostProcessing:
                 sys.stdout.flush()
 
 
-def evaluate_cross_section(polar_angles='default', azimuthal_angles='default', initial_field=None, particle_list=None,
-                           layer_system=None, outputdir=None, show_plots=None, save_plots=None, save_data=None,
-                           length_unit=None):
+def evaluate_cross_section(polar_angles='default', azimuthal_angles='default', angular_resolution=None,
+                           initial_field=None, particle_list=None, layer_system=None,
+                           outputdir=None, show_plots=None, save_plots=None, save_data=None, length_unit=None):
     """Compute differential scattering cross section as well as extinction cross sections.
 
     Args:
@@ -163,6 +163,7 @@ def evaluate_cross_section(polar_angles='default', azimuthal_angles='default', i
                                               if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    array of azimuthal angles for differential cross section
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
         initial_field (smuthi.initial.InitialField):    initial field object
         particle_list (list):   list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem): stratified medium
@@ -177,9 +178,8 @@ def evaluate_cross_section(polar_angles='default', azimuthal_angles='default', i
 
 
     """
-    scattering_cross_section = farf.scattering_cross_section(initial_field=initial_field, polar_angles=polar_angles,
-                                                             azimuthal_angles=azimuthal_angles,
-                                                             particle_list=particle_list, layer_system=layer_system)
+    scattering_cross_section = farf.scattering_cross_section(initial_field, particle_list, layer_system
+                                                             polar_angles, azimuthal_angles, angular_resolution)
 
     if save_data:
         scattering_cross_section.export(output_directory=outputdir, tag='dsc')

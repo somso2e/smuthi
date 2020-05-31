@@ -103,7 +103,7 @@ class Simulation:
         self.particle_list = particle_list
         self.initial_field = initial_field
         self.k_parallel = k_parallel
-        self.angular_resolution- = angular_resolution
+        self.angular_resolution = angular_resolution
         self.neff_waypoints = neff_waypoints
         self.neff_imag = neff_imag
         self.neff_max = neff_max
@@ -238,7 +238,7 @@ class Simulation:
     def set_default_angles(self):
         """Set the default polar and azimuthal angular arrays for pre-processing (i.e., initial field expansion)"""
 
-        flds.default_azimuthal_angles, flds.default_polar_angles =
+        flds.default_azimuthal_angles, flds.default_polar_angles = \
         flds.angular_arrays(angular_resolution=self.angular_resolution)
 
     def set_default_initial_field_contour(self):

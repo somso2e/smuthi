@@ -117,7 +117,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     show_plots=True, show_opts=None, save_plots=False, save_opts=None,
                     save_data=False, data_format='hdf5', outputdir='.',
                     xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0,
-                    resolution_step=25, k_parallel='default', azimuthal_angles='default',
+                    resolution_step=25, k_parallel='default', azimuthal_angles='default', angular_resolution=None,
                     draw_circumscribing_sphere=True, show_internal_field=False):
     """Plot the electric near field along a plane. To plot along the xy-plane, specify zmin=zmax and so on.
 
@@ -188,6 +188,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                                    if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):   azimuthal angles for the plane wave expansion
                                                    if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
         draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of
                                            particles.
         show_internal_field (bool):     If true, compute also the field inside the particles (only for spheres).
@@ -231,8 +232,9 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$y$ (' + simulation.length_unit + ')'
 
-    scat_fld_exp = sf.scattered_field_piecewise_expansion(vacuum_wavelength, simulation.particle_list,
-                                                          simulation.layer_system, k_parallel, azimuthal_angles)
+    scat_fld_exp = sf.scattered_field_piecewise_expansion(vacuum_wavelength,
+                                                          simulation.particle_list, simulation.layer_system,
+                                                          k_parallel, azimuthal_angles, angular_resolution)
     sys.stdout.write("Evaluate fields ...\n")
     sys.stdout.flush()
     e_x_scat, e_y_scat, e_z_scat = scat_fld_exp.electric_field(xarr, yarr, zarr)
@@ -416,7 +418,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                              save_plots=False, save_opts=None,
                              save_data=False, data_format='hdf5', outputdir='.',
                              flip_downward=True, split=True, log_scale=False,
-                             polar_angles='default', azimuthal_angles='default'):
+                             polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Display and export the scattered far field.
 
     Args:
@@ -460,6 +462,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
     """
 
     infld = simulation.initial_field
@@ -469,7 +472,8 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                        particle_list=plst,
                                        layer_system=lsys,
                                        polar_angles=polar_angles,
-                                       azimuthal_angles=azimuthal_angles)
+                                       azimuthal_angles=azimuthal_angles,
+                                       angular_resolution=angular_resolution)
 
     [d.setdefault('label','scattered_far_field') for d in show_opts]
 
@@ -482,7 +486,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                          save_plots=False, save_opts=None,
                          save_data=False, data_format='hdf5', outputdir='.',
                          flip_downward=True, split=True, log_scale=False,
-                         polar_angles='default', azimuthal_angles='default'):
+                         polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Display and export the total far field. This function cannot be used if the inital field is a plane wave.
 
     Args:
@@ -526,6 +530,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
     """
     infld = simulation.initial_field
     plst = simulation.particle_list
@@ -534,7 +539,8 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                    particle_list=plst,
                                    layer_system=lsys,
                                    polar_angles=polar_angles,
-                                   azimuthal_angles=azimuthal_angles)
+                                   azimuthal_angles=azimuthal_angles,
+                                   angular_resolution=angular_resolution)
 
     [d.setdefault('label','total_far_field') for d in show_opts]
 
@@ -547,7 +553,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                   save_plots=False, save_opts=None,
                                   save_data=False, data_format='hdf5', outputdir='.',
                                   flip_downward=True, split=True, log_scale=False,
-                                  polar_angles='default', azimuthal_angles='default'):
+                                  polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Display and export the differential scattering cross section.
 
     Args:
@@ -591,6 +597,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
     """
 
     infld = simulation.initial_field
@@ -600,7 +607,8 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                             particle_list=plst,
                                             layer_system=lsys,
                                             polar_angles=polar_angles,
-                                            azimuthal_angles=azimuthal_angles)
+                                            azimuthal_angles=azimuthal_angles,
+                                            angular_resolution=angular_resolution)
 
     [d.setdefault('label','scattering_cross_section') for d in show_opts]
 
