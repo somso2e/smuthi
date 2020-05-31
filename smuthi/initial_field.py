@@ -609,6 +609,7 @@ class DipoleCollection(InitialField):
                                                           If 'default', use smuthi.fields.default_initial_field_k_parallel_array
         azimuthal_angles_array (numpy.ndarray or str):    Azimuthal angles for plane wave expansions
                                                           If 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
         compute_swe_by_pwe (bool):    If True, the initial field coefficients are computed through a plane wave
                                       expansion of the whole dipole collection field. This is slower for few dipoles
                                       and particles, but can become faster than the default for many dipoles and
@@ -617,7 +618,7 @@ class DipoleCollection(InitialField):
                                                 whole scattered field. This is slower for few dipoles,  but can be
                                                 faster than the default for many dipoles (default=False).
     """
-    def __init__(self, vacuum_wavelength, k_parallel_array='default', azimuthal_angles_array='default',
+    def __init__(self, vacuum_wavelength, k_parallel_array='default', azimuthal_angles_array='default', angular_resolution=None,
                  compute_swe_by_pwe=False, compute_dissipated_power_by_pwe=False):
         InitialField.__init__(self, vacuum_wavelength=vacuum_wavelength)
         self.dipole_list = []
@@ -625,7 +626,11 @@ class DipoleCollection(InitialField):
         self.compute_dissipated_power_by_pwe = compute_dissipated_power_by_pwe
 
         self.k_parallel_array = k_parallel_array
-        self.azimuthal_angles_array = azimuthal_angles_array
+
+        if angular_resolution is not None:
+            self.azimuthal_angles_array, _ = flds.angular_arrays(angular_resolution)
+        if type(azimuthal_angles_array) == str and azimuthal_angles_array == 'default':
+            self.azimuthal_angles_array = flds.default_azimuthal_angles
 
     def append(self, dipole):
         """Add dipole to collection.
@@ -693,7 +698,8 @@ class DipoleCollection(InitialField):
         pfe = self.piecewise_field_expansion(layer_system=layer_system)
         return pfe.electric_field(x, y, z)
 
-    def dissipated_power(self, particle_list, layer_system, k_parallel='default', azimuthal_angles='default'):
+    def dissipated_power(self, particle_list, layer_system, k_parallel='default',
+                         azimuthal_angles='default', angular_resolution=None):
         r"""Compute the power that the dipole collection feeds into the system.
 
         It is computed according to
@@ -716,6 +722,7 @@ class DipoleCollection(InitialField):
                                          smuthi.fields.default_initial_field_k_parallel_array
             azimuthal_angles (ndarray or str): array of azimuthal angles for plane wave expansions. If 'default', use
                                                smuthi.fields.default_azimuthal_angles
+            angular_resolution (float):
 
         Returns:
             dissipated power of each dipole (list of floats)
@@ -725,7 +732,8 @@ class DipoleCollection(InitialField):
             return self.dissipated_power_alternative(particle_list,
                                                      layer_system,
                                                      k_parallel,
-                                                     azimuthal_angles)
+                                                     azimuthal_angles,
+                                                     angular_resolution)
 
         sys.stdout.write('Dipole array dissipated power evaluation:\n')
         sys.stdout.flush()
@@ -768,7 +776,7 @@ class DipoleCollection(InitialField):
         return power_list
 
     def dissipated_power_alternative(self, particle_list, layer_system, k_parallel='default',
-                                     azimuthal_angles='default'):
+                                     azimuthal_angles='default', angular_resolution=None):
         r"""Compute the power that the dipole collection feeds into the system.
 
         It is computed according to
@@ -790,6 +798,7 @@ class DipoleCollection(InitialField):
                                          smuthi.fields.default_initial_field_k_parallel_array
             azimuthal_angles (ndarray or str): array of azimuthal angles for plane wave expansions. If 'default', use
                                                smuthi.fields.default_azimuthal_angles
+           angular_resolution (float):
 
         Returns:
             dissipated power of each dipole (list of floats)
@@ -800,7 +809,9 @@ class DipoleCollection(InitialField):
         if k_parallel == 'default':
             k_parallel = flds.default_initial_field_k_parallel_array
 
-        if azimuthal_angles == 'default':
+        if angular_resolution is not None:
+            azimuthal_angles, _ = flds.angular_arrays(angular_resolution)
+        if type(azimuthal_angles) == str and azimuthal_angles == 'default':
             azimuthal_angles = flds.default_azimuthal_angles
 
         power_list = []
@@ -811,7 +822,7 @@ class DipoleCollection(InitialField):
 
         layer_numbers = set([layer_system.layer_number(z) for z in z_positions])
         scat_fld_exp = sf.scattered_field_piecewise_expansion(self.vacuum_wavelength, particle_list, layer_system,
-                                                              k_parallel, azimuthal_angles, layer_numbers)
+                                                              k_parallel, azimuthal_angles, angular_resolution, layer_numbers)
 
         e_x_scat, e_y_scat, e_z_scat = scat_fld_exp.electric_field(x_positions, y_positions, z_positions)
 

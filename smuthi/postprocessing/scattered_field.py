@@ -19,6 +19,7 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
                                                     if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
         layer_numbers (list):                       if specified, append only plane wave expansions for these layers
 
 
@@ -72,7 +73,7 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
 
 
 def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_number, k_parallel='default',
-                        azimuthal_angles='default', include_direct=True, include_layer_response=True):
+                        azimuthal_angles='default', angular_resolution=None, include_direct=True, include_layer_response=True):
     """Calculate the plane wave expansion of the scattered field of a set of particles.
 
     Args:
@@ -84,6 +85,7 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
                                                     if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):
         include_direct (bool):              If True, include the direct scattered field
         include_layer_response (bool):      If True, include the layer system response
 
@@ -97,6 +99,8 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
     if type(k_parallel) == str and k_parallel == 'default':
         k_parallel = flds.default_Sommerfeld_k_parallel_array
 
+    if angular_resolution is not None:
+        azimuthal_angles, _ = flds.angular_arrays(angular_resolution)
     if type(azimuthal_angles) == str and azimuthal_angles == 'default':
         azimuthal_angles = flds.default_azimuthal_angles
 
