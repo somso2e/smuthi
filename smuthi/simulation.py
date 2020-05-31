@@ -21,39 +21,41 @@ class Simulation:
         layer_system (smuthi.layers.LayerSystem):               stratified medium
         particle_list (list):                                   list of smuthi.particles.Particle objects
         initial_field (smuthi.initial_field.InitialField):      initial field object
-        k_parallel (numpy.ndarray or str):               in-plane wavenumber for Sommerfeld integrals and field
-                                                         expansions. if 'default', use
-                                                         smuthi.fields.default_Sommerfeld_k_parallel_array
-        neff_waypoints (list or ndarray):                Used to set default k_parallel arrays.
-                                                         Corner points through which the contour runs
-                                                         This quantity is dimensionless (effective
-                                                         refractive index, will be multiplied by vacuum
-                                                         wavenumber)
-                                                         :ref:`MultipoleCutOffAnchor`
-                                                         If not provided, reasonable waypoints are estimated.
-        neff_imag (float):                               Used to set default k_parallel arrays.
-                                                         Extent of the contour into the negative imaginary direction
-                                                         (in terms of effective refractive index, n_eff=kappa/omega).
-                                                         Only needed when no neff_waypoints are provided
-        neff_max (float):                                Used to set default k_parallel arrays.
-                                                         Truncation value of contour (in terms of effective refractive
-                                                         index). Only needed when no neff_waypoints are
-                                                         provided
-        neff_max_offset (float):                         Used to set default k_parallel arrays.
-                                                         Use the last estimated singularity location plus this value
-                                                         (in terms of effective refractive index). Default=1
-                                                         Only needed when no `neff_waypoints` are provided
-                                                         and if no value for `neff_max` is specified.
-        neff_resolution(float):                          Used to set default k_parallel arrays.
-                                                         Resolution of contour, again in terms of effective refractive
-                                                         index
-        neff_minimal_branchpoint_distance (float):       Used to set default k_parallel arrays.
-                                                         Minimal distance that contour points shall have from
-                                                         branchpoint singularities (in terms of effective
-                                                         refractive index). This is only relevant if not deflected
-                                                         into imaginary. Default: One fifth of neff_resolution
-        overwrite_default_contours (bool):               If true (default), the default contours are written even if
-                                                         they have already been defined before
+        k_parallel (numpy.ndarray or str):              in-plane wavenumber for Sommerfeld integrals and field
+                                                        expansions. if 'default', use
+                                                        smuthi.fields.default_Sommerfeld_k_parallel_array
+        angular_resolution (float):                     If provided, angular arrays are generated with this angular
+                                                        resolution (expressed in degrees) over the default angular range
+        neff_waypoints (list or ndarray):               Used to set default k_parallel arrays.
+                                                        Corner points through which the contour runs
+                                                        This quantity is dimensionless (effective
+                                                        refractive index, will be multiplied by vacuum
+                                                        wavenumber)
+                                                        :ref:`MultipoleCutOffAnchor`
+                                                        If not provided, reasonable waypoints are estimated.
+        neff_imag (float):                              Used to set default k_parallel arrays.
+                                                        Extent of the contour into the negative imaginary direction
+                                                        (in terms of effective refractive index, n_eff=kappa/omega).
+                                                        Only needed when no neff_waypoints are provided
+        neff_max (float):                               Used to set default k_parallel arrays.
+                                                        Truncation value of contour (in terms of effective refractive
+                                                        index). Only needed when no neff_waypoints are
+                                                        provided
+        neff_max_offset (float):                        Used to set default k_parallel arrays.
+                                                        Use the last estimated singularity location plus this value
+                                                        (in terms of effective refractive index). Default=1
+                                                        Only needed when no `neff_waypoints` are provided
+                                                        and if no value for `neff_max` is specified.
+        neff_resolution(float):                         Used to set default k_parallel arrays.
+                                                        Resolution of contour, again in terms of effective refractive
+                                                        index
+        neff_minimal_branchpoint_distance (float):      Used to set default k_parallel arrays.
+                                                        Minimal distance that contour points shall have from
+                                                        branchpoint singularities (in terms of effective
+                                                        refractive index). This is only relevant if not deflected
+                                                        into imaginary. Default: One fifth of neff_resolution
+        overwrite_default_contours (bool):              If true (default), the default contours are written even if
+                                                        they have already been defined before
         solver_type (str):                      What solver type to use?
                                                 Options: 'LU' for LU factorization, 'gmres' for GMRES iterative solver
         coupling_matrix_lookup_resolution (float or None): If type float, compute particle coupling by interpolation of

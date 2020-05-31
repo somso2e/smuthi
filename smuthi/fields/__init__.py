@@ -131,7 +131,7 @@ used in Sommerfeld integrals or in plane wave expansions whenever no other
 arrays for the specification of the wavevectors are explicitly stated."""
 
 def angular_arrays(angular_resolution=0.5):
-    """ Return azimuthal and polar angular arrays with a certain angular resolution (expressed in degrees)"""
+    """Return azimuthal and polar angular arrays with a certain angular resolution (expressed in degrees)"""
     default_azimuthal_angles = np.arange(0, 360+0.5*angular_resolution, angular_resolution, dtype=float) * np.pi / 180
     default_polar_angles = np.arange(0, 180+0.5*angular_resolution, angular_resolution, dtype=float) * np.pi / 180
     return default_azimuthal_angles, default_polar_angles

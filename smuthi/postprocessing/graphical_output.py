@@ -184,14 +184,15 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         zmax (float):           Plot up to that z (length unit)
         resolution_step (float):     Compute the field with that spatial resolution (length unit,
                                      distance between computed points)
-        k_parallel (numpy.ndarray or str):         in-plane wavenumbers for the plane wave expansion
-                                                   if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
-        azimuthal_angles (numpy.ndarray or str):   azimuthal angles for the plane wave expansion
-                                                   if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
-        draw_circumscribing_sphere (bool): If true (default), draw a circle indicating the circumscribing sphere of
-                                           particles.
-        show_internal_field (bool):     If true, compute also the field inside the particles (only for spheres).
+        k_parallel (numpy.ndarray or str):      in-plane wavenumbers for the plane wave expansion
+                                                if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
+        azimuthal_angles (numpy.ndarray or str):azimuthal angles for the plane wave expansion
+                                                if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):             If provided, angular arrays are generated with this angular
+                                                resolution (expressed in degrees) over the default angular range
+        draw_circumscribing_sphere (bool):      If true (default), draw a circle indicating the circumscribing
+                                                sphere of particles.
+        show_internal_field (bool):             If true, compute also the field inside the particles (only for spheres)
     """
     sys.stdout.write("Compute near field ...\n")
     sys.stdout.flush()
@@ -462,7 +463,8 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
     """
 
     infld = simulation.initial_field
@@ -530,7 +532,8 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
     """
     infld = simulation.initial_field
     plst = simulation.particle_list
@@ -597,7 +600,8 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
     """
 
     infld = simulation.initial_field

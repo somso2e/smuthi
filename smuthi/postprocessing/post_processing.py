@@ -163,7 +163,8 @@ def evaluate_cross_section(polar_angles='default', azimuthal_angles='default', a
                                               if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    array of azimuthal angles for differential cross section
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
         initial_field (smuthi.initial.InitialField):    initial field object
         particle_list (list):   list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem): stratified medium

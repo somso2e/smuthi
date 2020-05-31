@@ -604,12 +604,13 @@ class DipoleCollection(InitialField):
     """Class for the representation of a set of point dipole sources. Use the append method to add DipoleSource objects.
 
     Args:
-        vacuum_wavelength (float):      vacuum wavelength (length units)
-        k_parallel_array (numpy.ndarray or str):          In-plane wavenumber.
-                                                          If 'default', use smuthi.fields.default_initial_field_k_parallel_array
-        azimuthal_angles_array (numpy.ndarray or str):    Azimuthal angles for plane wave expansions
-                                                          If 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        vacuum_wavelength (float):                      vacuum wavelength (length units)
+        k_parallel_array (numpy.ndarray or str):        In-plane wavenumber.
+                                                        If 'default', use smuthi.fields.default_initial_field_k_parallel_array
+        azimuthal_angles_array (numpy.ndarray or str):  Azimuthal angles for plane wave expansions
+                                                        If 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):                     If provided, angular arrays are generated with this angular resolution
+                                                        (expressed in degrees) over the default angular range
         compute_swe_by_pwe (bool):    If True, the initial field coefficients are computed through a plane wave
                                       expansion of the whole dipole collection field. This is slower for few dipoles
                                       and particles, but can become faster than the default for many dipoles and
@@ -720,9 +721,10 @@ class DipoleCollection(InitialField):
             layer_system (smuthi.layers.LayerSystem): stratified medium
             k_parallel (ndarray or str): array of in-plane wavenumbers for plane wave expansions. If 'default', use
                                          smuthi.fields.default_initial_field_k_parallel_array
-            azimuthal_angles (ndarray or str): array of azimuthal angles for plane wave expansions. If 'default', use
-                                               smuthi.fields.default_azimuthal_angles
-            angular_resolution (float):
+            azimuthal_angles (ndarray or str):  array of azimuthal angles for plane wave expansions. If 'default', use
+                                                smuthi.fields.default_azimuthal_angles
+            angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
 
         Returns:
             dissipated power of each dipole (list of floats)
@@ -796,9 +798,10 @@ class DipoleCollection(InitialField):
             layer_system (smuthi.layers.LayerSystem): stratified medium
             k_parallel (ndarray or str): array of in-plane wavenumbers for plane wave expansions. If 'default', use
                                          smuthi.fields.default_initial_field_k_parallel_array
-            azimuthal_angles (ndarray or str): array of azimuthal angles for plane wave expansions. If 'default', use
-                                               smuthi.fields.default_azimuthal_angles
-           angular_resolution (float):
+            azimuthal_angles (ndarray or str):  array of azimuthal angles for plane wave expansions. If 'default', use
+                                                smuthi.fields.default_azimuthal_angles
+            angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
 
         Returns:
             dissipated power of each dipole (list of floats)

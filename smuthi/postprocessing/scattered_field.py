@@ -19,7 +19,8 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
                                                     if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
         layer_numbers (list):                       if specified, append only plane wave expansions for these layers
 
 
@@ -81,13 +82,14 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
         particle_list (list):               List of Particle objects
         layer_system (smuthi.layers.LayerSystem):  Stratified medium
         layer_number (int):                 Layer number in which the plane wave expansion should be valid
-        k_parallel (numpy.ndarray or str):          in-plane wavenumbers array.
-                                                    if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
-        azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
-                                                    if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
-        include_direct (bool):              If True, include the direct scattered field
-        include_layer_response (bool):      If True, include the layer system response
+        k_parallel (numpy.ndarray or str):      in-plane wavenumbers array.
+                                                if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
+        azimuthal_angles (numpy.ndarray or str):azimuthal angles array
+                                                if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
+        include_direct (bool):                  If True, include the direct scattered field
+        include_layer_response (bool):          If True, include the layer system response
 
     Returns:
         A tuple of PlaneWaveExpansion objects for upgoing and downgoing waves.

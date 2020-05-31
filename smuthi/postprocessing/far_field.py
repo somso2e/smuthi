@@ -16,6 +16,12 @@ class FarField:
     :math:`\mathrm{d}^2 \Omega = \mathrm{d}\alpha \sin\beta \mathrm{d}\beta` denotes the infinitesimal solid angle.
 
     Args:
+        polar_angles (numpy.ndarray):       array of polar angles for plane wave expansions. If 'default', use
+                                            smuthi.fields.default_polar_angles
+        azimuthal_angles (ndarray or str):  array of azimuthal angles for plane wave expansions. If 'default', use
+                                            smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
+                                            (expressed in degrees) over the default angular range
         signal_type (str):                  Type of the signal (e.g., 'intensity' for power flux far fields).
     """
 
@@ -148,7 +154,7 @@ class FarField:
 
 
 def _angular_arrays(azimuthal_angles='default', polar_angles='default', angular_resolution=None):
-    """ Utility function returning angular arrays based on user input """
+    """ Utility function returning angular arrays based on user input """ # NOTE: if both arrays and a resolution are provided, the arrays are ignored!
     if angular_resolution is not None:
         azimuthal_angles, polar_angles = flds.angular_arrays(angular_resolution)
     else:
@@ -203,7 +209,8 @@ def total_far_field(initial_field, particle_list, layer_system,
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A tuple of three smuthi.field_expansion.FarField objects for total, initial and scattered far field. Mind that the scattered far field
@@ -292,7 +299,8 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A smuthi.field_expansion.FarField object of the scattered field.
@@ -349,7 +357,8 @@ def scattering_cross_section(initial_field, particle_list, layer_system,
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A smuthi.field_expansion.FarField object.
@@ -399,7 +408,8 @@ def total_scattering_cross_section(initial_field, particle_list, layer_system,
                                                     If None, use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian, default None).
                                                     If None, use smuthi.fields.default_azimuthal_angles
-        angular_resolution (float):
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
