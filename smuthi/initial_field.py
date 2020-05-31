@@ -767,7 +767,7 @@ class DipoleCollection(InitialField):
             e_y_in = sum([e_y_in[i] for i_other, e_y_in in enumerate(e_y_in_list) if i_other != i])
             e_z_in = sum([e_z_in[i] for i_other, e_z_in in enumerate(e_z_in_list) if i_other != i])
 
-            p = (dipole.dissipated_power(particle_list, layer_system, False) +
+            p = (dipole.dissipated_power(particle_list, layer_system) +
                  dipole.angular_frequency() / 2 * (np.conjugate(dipole.dipole_moment[0]) * e_x_in +
                                                    np.conjugate(dipole.dipole_moment[1]) * e_y_in +
                                                    np.conjugate(dipole.dipole_moment[2]) * e_z_in).imag)
