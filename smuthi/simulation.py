@@ -77,7 +77,7 @@ class Simulation:
                  particle_list=None,
                  initial_field=None,
                  k_parallel='default',
-                 angular_resolution=1.0,
+                 angular_resolution=0.5,
                  neff_waypoints=None,
                  neff_imag=1e-2,
                  neff_max=None,
