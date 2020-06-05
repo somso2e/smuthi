@@ -611,17 +611,11 @@ def converge_angular_resolution(simulation,
         Detector value for converged settings.
     """
 
-    def _update_angular_arrays(ar):
-        aa = np.arange(0, 360 + 0.5*ar, ar, dtype=float) * np.pi / 180
-        pa = np.arange(0, 180 + 0.5*ar, ar, dtype=float) * np.pi / 180
-        flds.default_polar_angles = pa
-        flds.default_azimuthal_angles = aa
-
     print("")
     print("-----------------------")
     log.write_blue("Find suitable angular_resolution")
 
-    angular_resolution = 1 # or maybe better to derive it directly from the default arrays ?
+    angular_resolution = simulation.angular_resolution # NOTE: should we have a starting-value flag?
     print("Starting value: angular_resolution=%f degrees" % angular_resolution)
     current_value = evaluate(simulation, detector)
 
@@ -637,7 +631,8 @@ def converge_angular_resolution(simulation,
     for _ in range(max_iter):
         old_angular_resolution = angular_resolution
         angular_resolution = angular_resolution / 2.0
-        _update_angular_arrays(angular_resolution)
+        simulation.angular_resolution = angular_resolution
+        simulation.set_default_angles()
 
         print("---------------------------------------")
         print("Try angular_resolution = %f degrees" % angular_resolution)
@@ -667,7 +662,8 @@ def converge_angular_resolution(simulation,
             ax[0].legend()
 
         if rel_diff < tolerance:  # in this case: discard halfed neff_resolution
-            _update_angular_arrays(old_angular_resolution)
+            simulation.angular_resolution = old_angular_resolution
+            simulation.set_default_angles()
             log.write_green("Relative difference smaller than tolerance. Keep angular_resolution = %g deg" % old_angular_resolution)
             if ax is not None:
                 titlestr = "relative diff < {:g}, keep $\delta \\theta = {:g}$ deg".format(tolerance, old_angular_resolution)
