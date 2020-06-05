@@ -34,9 +34,9 @@ def internal_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_s
 
             internal_field.validity_conditions.append(particle.is_inside)
 
-            for tau in range(2):
-                for l in range(1, particle.l_max+1):
-                    for m in range(-l, l+1):
+            for m in range(-particle.m_max, particle.m_max+1):
+                for l in range(max(1, abs(m)), particle.l_max+1):
+                    for tau in range(2):
                         n = flds.multi_to_single_index(tau, l, m, particle.l_max, particle.m_max)
                         b_to_c = (tmt.internal_mie_coefficient(tau, l, k_medium, k_particle, particle.radius)
                                   / tmt.mie_coefficient(tau, l, k_medium, k_particle, particle.radius))
