@@ -15,6 +15,7 @@ expansion."""
 
 import sys
 import time
+import inspect
 import numpy as np
 import scipy.special
 import scipy.sparse.linalg
@@ -246,7 +247,6 @@ class LinearSystem:
                 iter_num = 0
 
                 def status_msg(xk):
-                    import inspect
                     frame = inspect.currentframe().f_back
                     # for some reason, lgmres passes xk to callback instead of rk ...
                     # then, we could inspect r_norm from the currentframe, but it's not there ... (?)
@@ -261,6 +261,27 @@ class LinearSystem:
                     iter_num += 1
 
                 b, info = scipy.sparse.linalg.lgmres(self.master_matrix.linear_operator, rhs, rhs,
+                                                    tol=self.solver_tolerance, callback=status_msg)
+            #                sys.stdout.write('\n')
+            elif self.solver_type.lower() == 'gcrotmk':
+                rhs = self.t_matrix.right_hand_side()
+                start_time = time.time()
+                iter_num = 0
+
+                def status_msg(xk):
+                    frame = inspect.currentframe().f_back
+                    # also gcrotmk passes xk to callback instead of rk ...
+                    # let's calculate residuals on the fly also in this case ...
+                    rk = frame.f_locals['nrm2'](frame.f_locals['r'])/frame.f_locals['b_norm']
+                    nonlocal iter_num
+                    iter_msg = ('Solve (GCROTMK)           : Iter ' + str(iter_num)
+                                + ' | Rel. residual: '
+                                + "{:.2e}".format(np.linalg.norm(rk))
+                                + ' | elapsed: ' + str(int(time.time() - start_time)) + 's')
+                    sys.stdout.write('\r' + iter_msg)
+                    iter_num += 1
+
+                b, info = scipy.sparse.linalg.gcrotmk(self.master_matrix.linear_operator, rhs, rhs,
                                                     tol=self.solver_tolerance, callback=status_msg)
             #                sys.stdout.write('\n')
             else:
