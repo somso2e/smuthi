@@ -471,6 +471,8 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                        polar_angles=polar_angles,
                                        azimuthal_angles=azimuthal_angles)
 
+    [d.setdefault('label','scattered_far_field') for d in show_opts]
+
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
                    flip_downward=flip_downward, split=split, log_scale=log_scale)
@@ -533,6 +535,8 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                    layer_system=lsys,
                                    polar_angles=polar_angles,
                                    azimuthal_angles=azimuthal_angles)
+
+    [d.setdefault('label','total_far_field') for d in show_opts]
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
@@ -598,6 +602,8 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                             polar_angles=polar_angles,
                                             azimuthal_angles=azimuthal_angles)
 
+    [d.setdefault('label','scattering_cross_section') for d in show_opts]
+
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
                    flip_downward=flip_downward, split=split, log_scale=log_scale)
@@ -648,15 +654,13 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
     """
 
     if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
-        top_opts = show_opts
-        for d in top_opts:
+        for d in show_opts:
             d['label'] = d.get('label') + '_top'
-        show_far_field(far_field.top(), show_plots, top_opts, save_plots, save_opts,
+        show_far_field(far_field.top(), show_plots, show_opts, save_plots, save_opts,
                        save_data, data_format, outputdir, True, False, log_scale)
-        bottom_opts = show_opts
-        for d in bottom_opts:
-            d['label'] = d.get('label') + '_bottom'
-        show_far_field(far_field.bottom(), show_plots, bottom_opts, save_plots, save_opts,
+        for d in show_opts:
+            d['label'] = d.get('label').rstrip('_top') + '_bottom'
+        show_far_field(far_field.bottom(), show_plots, show_opts, save_plots, save_opts,
                        save_data, data_format, outputdir, True, False, log_scale)
         return
 

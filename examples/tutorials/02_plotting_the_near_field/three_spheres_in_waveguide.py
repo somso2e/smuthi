@@ -5,12 +5,11 @@
 #*****************************************************************************#
 
 import numpy as np
-import matplotlib.pyplot as plt
 import smuthi.simulation
 import smuthi.initial_field
 import smuthi.layers
 import smuthi.particles
-import smuthi.postprocessing.graphical_output
+import smuthi.postprocessing.graphical_output as go
 import smuthi.utility.cuda
 
 # try to enable GPU calculations
@@ -50,28 +49,32 @@ three_spheres = [sphere1, sphere2, sphere3]
 
 # Initial field
 plane_wave = smuthi.initial_field.PlaneWave(vacuum_wavelength=550,
-                                            polar_angle= 4/5 * np.pi,    # from top
+                                            polar_angle= 4*np.pi/5, # from top
                                             azimuthal_angle=0,
-                                            polarization=0)       # 0=TE 1=TM
+                                            polarization=0)         # 0=TE 1=TM
 
 # Initialize and run simulation
 simulation = smuthi.simulation.Simulation(layer_system=three_layers,
                                           particle_list=three_spheres,
-                                          initial_field=plane_wave)
+                                          initial_field=plane_wave,
+                                          length_unit='nm')
 simulation.run()
 
-# Create plots that visualize the electric nea field
-smuthi.postprocessing.graphical_output.show_near_field(quantities_to_plot=['norm(E)', 'E_y'],
-                                                       save_plots=True,
-                                                       show_plots=True,
-                                                       save_animations=True,
-                                                       outputdir='./output',
-                                                       xmin=-600,
-                                                       xmax=600,
-                                                       zmin=-100,
-                                                       zmax=900,
-                                                       resolution_step=10,
-                                                       simulation=simulation,
-                                                       show_internal_field=True)
-
-plt.show()
+# Create plots that visualize the electric near field.
+go.show_near_field(quantities_to_plot=['norm(E)', 'E_y'],
+                   show_plots=True,
+                   show_opts=[{'label':'raw_data'},
+                              {'interpolation':'quadric'},
+                              {'interpolation':'quadric'}],
+                   save_plots=True,
+                   save_opts=[{'format':'png'},
+                              {'format':'pdf','dpi':200},
+                              {'format':'gif'}], # animated gif of E_y
+                   outputdir='./output',
+                   xmin=-600,
+                   xmax=600,
+                   zmin=-100,
+                   zmax=900,
+                   resolution_step=20,
+                   simulation=simulation,
+                   show_internal_field=True)
