@@ -233,6 +233,7 @@ class Simulation:
 
             smuthi.fields.default_initial_field_k_parallel_array = smuthi.fields.reasonable_Sommerfeld_kpar_contour(
                 vacuum_wavelength=self.initial_field.vacuum_wavelength,
+                layer_refractive_indices=self.layer_system.refractive_indices,
                 neff_imag=0,
                 neff_max=neff_max,
                 neff_resolution=self.neff_resolution,

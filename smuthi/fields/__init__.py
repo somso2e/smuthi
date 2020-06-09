@@ -242,6 +242,9 @@ def branchpoint_correction(layer_refractive_indices, n_effective_array, neff_min
                                                         This array is changed during the function evaluation!
         neff_minimal_branchpoint_distance (float):      Minimal distance that contour points shall have from
                                                         branchpoint singularities
+
+    Returns:
+        corrected n_effective_array
     """
     for n in layer_refractive_indices:
         while True:
@@ -252,8 +255,8 @@ def branchpoint_correction(layer_refractive_indices, n_effective_array, neff_min
             # replace contour point by two points at the middle towards its left and right neighbors
             if not idx == len(n_effective_array) - 1:
                 n_effective_array = np.insert(n_effective_array,
-                                             idx + 1,
-                                             (n_effective_array[idx] + n_effective_array[idx+1]) / 2.0)
+                                              idx + 1,
+                                              (n_effective_array[idx] + n_effective_array[idx+1]) / 2.0)
                 # make sure the new point is ok, otherwise remove
                 if abs(n_effective_array[idx + 1] - n) < neff_minimal_branchpoint_distance:
                     n_effective_array = np.delete(n_effective_array, idx + 1)
@@ -262,6 +265,7 @@ def branchpoint_correction(layer_refractive_indices, n_effective_array, neff_min
                 # make sure the shifted point is ok, otherwise remove
                 if abs(n_effective_array[idx] - n) < neff_minimal_branchpoint_distance:
                     n_effective_array = np.delete(n_effective_array, idx)
+    return n_effective_array
 
 
 def reasonable_Sommerfeld_neff_contour(neff_waypoints=None, layer_refractive_indices=None, neff_imag=1e-2,
@@ -307,9 +311,9 @@ def reasonable_Sommerfeld_neff_contour(neff_waypoints=None, layer_refractive_ind
         neff_minimal_branchpoint_distance = neff_resolution / 5
     n_effective = create_neff_array(neff_waypoints, neff_resolution)
     if layer_refractive_indices is not None:
-        branchpoint_correction(layer_refractive_indices=layer_refractive_indices,
-                               n_effective_array=n_effective,
-                               neff_minimal_branchpoint_distance=neff_minimal_branchpoint_distance)
+        n_effective = branchpoint_correction(layer_refractive_indices=layer_refractive_indices,
+                                             n_effective_array=n_effective,
+                                             neff_minimal_branchpoint_distance=neff_minimal_branchpoint_distance)
     return n_effective
 
 
