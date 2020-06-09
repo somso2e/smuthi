@@ -40,7 +40,7 @@ simulation = simul.Simulation(layer_system=lay_sys,
 
 autoparam.select_numerical_parameters(simulation,
                                       detector="extinction cross section",
-                                      tolerance=1e-5,
+                                      tolerance=1e-4,
                                       max_iter=20,
                                       neff_imag=1e-2,
                                       neff_resolution=1e-2,
@@ -49,7 +49,8 @@ autoparam.select_numerical_parameters(simulation,
                                       neff_max=None,
                                       select_neff_resolution=True,
                                       select_multipole_cutoff=True,
-                                      relative_convergence=True)
+                                      relative_convergence=True,
+                                      show_plot=False)
 
 simulation.run()
 
@@ -63,7 +64,7 @@ ecs = farf.extinction_cross_section(initial_field=simulation.initial_field,parti
 def test_optical_theorem():
     relerr = abs((sum(scs.integral()) - ecs['top'] - ecs['bottom']) / sum(scs.integral()))
     print('error: ', relerr)
-    assert relerr < 1e-4
+    assert relerr < 2e-4
 
 
 if __name__ == '__main__':
