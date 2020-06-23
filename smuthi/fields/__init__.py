@@ -1,5 +1,5 @@
 """This subpackage contains functionality that has to do with the
-representation of electromagnetic fields in spherical or plane vector wave 
+representation of electromagnetic fields in spherical or plane vector wave
 functions.
 The __init__ module contains some helper functions (e.g. with respect to
 SVWF indexing) and is the place to store default coordinate arrays for
@@ -15,7 +15,7 @@ def angular_frequency(vacuum_wavelength):
         vacuum_wavelength (float): Vacuum wavelength in length unit
 
     Returns:
-        Angular frequency in the units of c=1 (time units=length units). 
+        Angular frequency in the units of c=1 (time units=length units).
         This is at the same time the vacuum wavenumber.
     """
     return 2 * np.pi / vacuum_wavelength
@@ -126,13 +126,19 @@ def k_z(k_parallel=None, n_effective=None, k=None, omega=None, vacuum_wavelength
     return kz
 
 
-"""The default arrays for k_parrallel, azimuthal_angles and polar_angles are 
+"""The default arrays for k_parrallel, azimuthal_angles and polar_angles are
 used in Sommerfeld integrals or in plane wave expansions whenever no other
 arrays for the specification of the wavevectors are explicitly stated."""
 
-# Default arrays for angular coordinates in PlaneWave expansions (azim.) or FarField distributions (polar, azim.)
-default_azimuthal_angles = np.arange(0, 361, 1, dtype=float) * np.pi / 180
-default_polar_angles = np.arange(0, 181, 1, dtype=float) * np.pi / 180
+def angular_arrays(angular_resolution=0.5):
+    """Return azimuthal and polar angular arrays with a certain angular resolution (expressed in degrees)"""
+    default_azimuthal_angles = np.arange(0, 360+0.5*angular_resolution, angular_resolution, dtype=float) * np.pi / 180
+    default_polar_angles = np.arange(0, 180+0.5*angular_resolution, angular_resolution, dtype=float) * np.pi / 180
+    return default_azimuthal_angles, default_polar_angles
+
+""" Default arrays for angular coordinates """
+default_azimuthal_angles = None
+default_polar_angles = None
 
 """Default n_effective array for Sommerfeld integrals - needs to be set, e.g. at beginning of simulation"""
 default_Sommerfeld_k_parallel_array = None

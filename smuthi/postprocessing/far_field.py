@@ -16,16 +16,17 @@ class FarField:
     :math:`\mathrm{d}^2 \Omega = \mathrm{d}\alpha \sin\beta \mathrm{d}\beta` denotes the infinitesimal solid angle.
 
     Args:
-        polar_angles (numpy.ndarray):       Polar angles (default: from 0 to 180 degree in steps of 1 degree)
-        azimuthal_angles (numpy.ndarray):   Azimuthal angles (default: from 0 to 360 degree in steps of 1 degree)
+        polar_angles (numpy.ndarray):       array of polar angles for plane wave expansions. If 'default', use
+                                            smuthi.fields.default_polar_angles
+        azimuthal_angles (ndarray or str):  array of azimuthal angles for plane wave expansions. If 'default', use
+                                            smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
+                                            (expressed in degrees) over the default angular range
         signal_type (str):                  Type of the signal (e.g., 'intensity' for power flux far fields).
     """
 
-    def __init__(self, polar_angles='default', azimuthal_angles='default', signal_type='intensity'):
-        if type(polar_angles) == str and polar_angles == 'default':
-            polar_angles = flds.default_polar_angles
-        if type(azimuthal_angles) == str and azimuthal_angles == 'default':
-            azimuthal_angles = flds.default_azimuthal_angles
+    def __init__(self, polar_angles='default', azimuthal_angles='default', angular_resolution=None, signal_type='intensity'):
+        azimuthal_angles, polar_angles = _angular_arrays(azimuthal_angles, polar_angles, angular_resolution)
         self.polar_angles = polar_angles
         self.azimuthal_angles = azimuthal_angles
 
@@ -152,6 +153,17 @@ class FarField:
             raise ValueError('far fields have overlapping polar angle domains')
 
 
+def _angular_arrays(azimuthal_angles='default', polar_angles='default', angular_resolution=None):
+    """ Utility function returning angular arrays based on user input """ # NOTE: if both arrays and a resolution are provided, the arrays are ignored!
+    if angular_resolution is not None:
+        azimuthal_angles, polar_angles = flds.angular_arrays(angular_resolution)
+    else:
+        if type(polar_angles) == str and polar_angles == 'default':
+            polar_angles = flds.default_polar_angles
+        if type(azimuthal_angles) == str and azimuthal_angles == 'default':
+            azimuthal_angles = flds.default_azimuthal_angles
+    return azimuthal_angles, polar_angles
+
 def pwe_to_ff_conversion(vacuum_wavelength, plane_wave_expansion):
     """Compute the far field of a plane wave expansion object.
 
@@ -183,33 +195,33 @@ def pwe_to_ff_conversion(vacuum_wavelength, plane_wave_expansion):
     return ff
 
 
-def total_far_field(initial_field, particle_list, layer_system, polar_angles='default', azimuthal_angles='default'):
+def total_far_field(initial_field, particle_list, layer_system,
+                    polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """
     Evaluate the total far field, the initial far field and the scattered far field. Cannot be used if initial field
     is a plane wave.
-    
+
     Args:
         initial_field (smuthi.initial_field.InitialField): represents the initial field
         particle_list (list):                       list of smuthi.Particle objects
         layer_system (smuthi.layers.LayerSystem):   represents the stratified medium
-        polar_angles (numpy.ndarray or str):        polar angles values (radian). 
+        polar_angles (numpy.ndarray or str):        polar angles values (radian).
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A tuple of three smuthi.field_expansion.FarField objects for total, initial and scattered far field. Mind that the scattered far field
-        has no physical meaning and is for illustration purposes only. 
-    """ 
+        has no physical meaning and is for illustration purposes only.
+    """
     if not (type(initial_field).__name__ == 'GaussianBeam' or type(initial_field).__name__ == 'DipoleSource'
             or type(initial_field).__name__ == 'DipoleCollection'):
         raise ValueError('only for Gaussian beams and dipole sources')
     omega = initial_field.angular_frequency()
     vacuum_wavelength = initial_field.vacuum_wavelength
-    if type(polar_angles) == str and polar_angles == 'default':
-        polar_angles = flds.default_polar_angles
-    if type(azimuthal_angles) == str and azimuthal_angles == 'default':
-        azimuthal_angles = flds.default_azimuthal_angles
+    azimuthal_angles, polar_angles = _angular_arrays(azimuthal_angles, polar_angles, angular_resolution)
 
     if any(polar_angles.imag):
         raise ValueError("complex angles not allowed in far field")
@@ -219,7 +231,7 @@ def total_far_field(initial_field, particle_list, layer_system, polar_angles='de
     bottom_polar_angles = polar_angles[polar_angles > (np.pi / 2)]
     neff_top = np.sort(np.sin(top_polar_angles) * layer_system.refractive_indices[i_top])
     neff_bottom = np.sort(np.sin(bottom_polar_angles) * layer_system.refractive_indices[0])
-    
+
     if len(top_polar_angles) > 1 and layer_system.refractive_indices[i_top].imag == 0:
         pwe_scat_top, _ = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, i_top,
                                                  k_parallel=neff_top*omega, azimuthal_angles=azimuthal_angles,
@@ -274,8 +286,8 @@ def total_far_field(initial_field, particle_list, layer_system, polar_angles='de
     return far_field, far_field_init, far_field_scat
 
 
-def scattered_far_field(vacuum_wavelength, particle_list, layer_system, polar_angles='default', 
-                        azimuthal_angles='default'):
+def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
+                        polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """
     Evaluate the scattered far field.
 
@@ -283,19 +295,18 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system, polar_an
         vacuum_wavelength (float):                  in length units
         particle_list (list):                       list of smuthi.Particle objects
         layer_system (smuthi.layers.LayerSystem):   represents the stratified medium
-        polar_angles (numpy.ndarray or str):        polar angles values (radian). 
+        polar_angles (numpy.ndarray or str):        polar angles values (radian).
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A smuthi.field_expansion.FarField object of the scattered field.
     """
     omega = flds.angular_frequency(vacuum_wavelength)
-    if type(polar_angles) == str and polar_angles == 'default':
-        polar_angles = flds.default_polar_angles
-    if type(azimuthal_angles) == str and azimuthal_angles == 'default':
-        azimuthal_angles = flds.default_azimuthal_angles
+    azimuthal_angles, polar_angles = _angular_arrays(azimuthal_angles, polar_angles, angular_resolution)
 
     if any(polar_angles.imag):
         raise ValueError("complex angles not allowed in far field")
@@ -334,18 +345,20 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system, polar_an
     return far_field
 
 
-def scattering_cross_section(initial_field, particle_list, layer_system, polar_angles='default', 
-                             azimuthal_angles='default'):
+def scattering_cross_section(initial_field, particle_list, layer_system,
+                             polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Evaluate and display the differential scattering cross section as a function of solid angle.
 
     Args:
-        initial_field (smuthi.initial.PlaneWave): Initial Plane wave
-        particle_list (list):                     scattering particles
-        layer_system (smuthi.layers.LayerSystem): stratified medium
-        polar_angles (numpy.ndarray or str):        polar angles values (radian). 
+        initial_field (smuthi.initial.PlaneWave):   Initial Plane wave
+        particle_list (list):                       scattering particles
+        layer_system (smuthi.layers.LayerSystem):   stratified medium
+        polar_angles (numpy.ndarray or str):        polar angles values (radian).
                                                     if 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A smuthi.field_expansion.FarField object.
@@ -375,42 +388,37 @@ def scattering_cross_section(initial_field, particle_list, layer_system, polar_a
 
     initial_intensity = abs(A_P) ** 2 * n_P / 2
 
-    dscs = scattered_far_field(vacuum_wavelength, particle_list, layer_system, polar_angles, azimuthal_angles)
+    dscs = scattered_far_field(vacuum_wavelength, particle_list, layer_system,
+                               polar_angles, azimuthal_angles, angular_resolution)
     dscs.signal_type = 'differential scattering cross section'
     dscs.signal = dscs.signal / initial_intensity
 
     return dscs
 
 
-def total_scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=None,
-                                   azimuthal_angles=None, angular_resolution = np.pi / 360.0):
+def total_scattering_cross_section(initial_field, particle_list, layer_system,
+                                   polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Evaluate the total scattering cross section.
 
     Args:
-        initial_field (smuthi.initial.PlaneWave): Initial Plane wave
-        particle_list (list):                     scattering particles
-        layer_system (smuthi.layers.LayerSystem): stratified medium
-        polar_angles (numpy.ndarray or str):        polar angles values (radian).
-                                                    if string 'default' is provided, use
-                                                    smuthi.fields.default_polar_angles. Default is None.
-        azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian)
-                                                    if string 'default' is provided, use
-                                                    smuthi.fields.default_azimuthal_angles. Default is None.
-        angular_resolution (float):                 If `polar_angles` or `azimuthal_angles` are None (default),
-                                                    use this angular sampling distance value to create equidistant
-                                                    arrays. Default: pi/360
+        initial_field (smuthi.initial.PlaneWave):   Initial Plane wave
+        particle_list (list):                       scattering particles
+        layer_system (smuthi.layers.LayerSystem):   stratified medium
+        polar_angles (numpy.ndarray or str):        polar angles values (radian, default None).
+                                                    If None, use smuthi.fields.default_polar_angles
+        azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian, default None).
+                                                    If None, use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
 
     Returns:
         A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
         scattering (bottom hemisphere).
     """
-    if polar_angles is None:
-        polar_angles = np.arange(0, np.pi + 0.5 * angular_resolution, angular_resolution)
-    if azimuthal_angles is None:
-        azimuthal_angles = np.arange(0, 2 * np.pi + 0.5 * angular_resolution, angular_resolution)
+    azimuthal_angles, polar_angles = _angular_arrays(azimuthal_angles, polar_angles, angular_resolution)
 
-    dscs = scattering_cross_section(initial_field, particle_list, layer_system, polar_angles=polar_angles,
-                                    azimuthal_angles=azimuthal_angles)
+    dscs = scattering_cross_section(initial_field, particle_list, layer_system,
+                                    polar_angles, azimuthal_angles, angular_resolution)
     scs = dscs.integral()
     return scs[0] + scs[1]
 

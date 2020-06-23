@@ -2,25 +2,27 @@
 
 import sys
 from tqdm import tqdm
-import smuthi.fields
+import smuthi.fields as flds
 import smuthi.fields.expansions as fldex
 import smuthi.fields.transformations as trf
 
 
-def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_system, k_parallel='default', 
-                                        azimuthal_angles='default', layer_numbers=None):
+def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_system, k_parallel='default',
+                                        azimuthal_angles='default', angular_resolution=None, layer_numbers=None):
     """Compute a piecewise field expansion of the scattered field.
 
     Args:
         vacuum_wavelength (float):                  vacuum wavelength
         particle_list (list):                       list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem):   stratified medium
-        k_parallel (numpy.ndarray or str):          in-plane wavenumbers array. 
+        k_parallel (numpy.ndarray or str):          in-plane wavenumbers array.
                                                     if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):                 If provided, angular arrays are generated with this angular
+                                                    resolution (expressed in degrees) over the default angular range
         layer_numbers (list):                       if specified, append only plane wave expansions for these layers
-        
+
 
     Returns:
         scattered field as smuthi.field_expansion.PiecewiseFieldExpansion object
@@ -30,16 +32,18 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
         layer_numbers = range(layer_system.number_of_layers())
 
     if type(k_parallel) == str and k_parallel == 'default':
-        k_parallel = smuthi.fields.default_Sommerfeld_k_parallel_array
+        k_parallel = flds.default_Sommerfeld_k_parallel_array
 
+    if angular_resolution is not None:
+        azimuthal_angles, _ = flds.angular_arrays(angular_resolution)
     if type(azimuthal_angles) == str and azimuthal_angles == 'default':
-        azimuthal_angles = smuthi.fields.default_azimuthal_angles
+        azimuthal_angles = flds.default_azimuthal_angles
 
     sfld = fldex.PiecewiseFieldExpansion()
     for i in tqdm(layer_numbers, desc='Scatt. field expansion    ', file=sys.stdout,
                                         bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
         # layer mediated scattered field ---------------------------------------------------------------------------
-        k = smuthi.fields.angular_frequency(vacuum_wavelength) * layer_system.refractive_indices[i]
+        k = flds.angular_frequency(vacuum_wavelength) * layer_system.refractive_indices[i]
         ref = [0, 0, layer_system.reference_z(i)]
         vb = (layer_system.lower_zlimit(i), layer_system.upper_zlimit(i))
         pwe_up = fldex.PlaneWaveExpansion(k=k, k_parallel=k_parallel, azimuthal_angles=azimuthal_angles, kind='upgoing',
@@ -70,7 +74,7 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
 
 
 def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_number, k_parallel='default',
-                        azimuthal_angles='default', include_direct=True, include_layer_response=True):
+                        azimuthal_angles='default', angular_resolution=None, include_direct=True, include_layer_response=True):
     """Calculate the plane wave expansion of the scattered field of a set of particles.
 
     Args:
@@ -78,12 +82,14 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
         particle_list (list):               List of Particle objects
         layer_system (smuthi.layers.LayerSystem):  Stratified medium
         layer_number (int):                 Layer number in which the plane wave expansion should be valid
-        k_parallel (numpy.ndarray or str):          in-plane wavenumbers array. 
-                                                    if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
-        azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
-                                                    if 'default', use smuthi.fields.default_azimuthal_angles
-        include_direct (bool):              If True, include the direct scattered field
-        include_layer_response (bool):      If True, include the layer system response
+        k_parallel (numpy.ndarray or str):      in-plane wavenumbers array.
+                                                if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
+        azimuthal_angles (numpy.ndarray or str):azimuthal angles array
+                                                if 'default', use smuthi.fields.default_azimuthal_angles
+        angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
+                                                (expressed in degrees) over the default angular range
+        include_direct (bool):                  If True, include the direct scattered field
+        include_layer_response (bool):          If True, include the layer system response
 
     Returns:
         A tuple of PlaneWaveExpansion objects for upgoing and downgoing waves.
@@ -93,12 +99,14 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
     sys.stdout.flush()
 
     if type(k_parallel) == str and k_parallel == 'default':
-        k_parallel = smuthi.fields.default_Sommerfeld_k_parallel_array
+        k_parallel = flds.default_Sommerfeld_k_parallel_array
 
+    if angular_resolution is not None:
+        azimuthal_angles, _ = flds.angular_arrays(angular_resolution)
     if type(azimuthal_angles) == str and azimuthal_angles == 'default':
-        azimuthal_angles = smuthi.fields.default_azimuthal_angles
+        azimuthal_angles = flds.default_azimuthal_angles
 
-    omega = smuthi.fields.angular_frequency(vacuum_wavelength)
+    omega = flds.angular_frequency(vacuum_wavelength)
     k = omega * layer_system.refractive_indices[layer_number]
     z = layer_system.reference_z(layer_number)
     vb = (layer_system.lower_zlimit(layer_number), layer_system.upper_zlimit(layer_number))
