@@ -15,6 +15,7 @@ expansion."""
 
 import sys
 import time
+import inspect
 import numpy as np
 import scipy.special
 import scipy.sparse.linalg
@@ -210,7 +211,7 @@ class LinearSystem:
         """Compute scattered field coefficients and store them
         in the particles' spherical wave expansion objects."""
         if len(self.particle_list) > 0:
-            if self.solver_type == 'LU':
+            if self.solver_type.lower() == 'lu':
                 sys.stdout.write('Solve (LU decomposition)  : ...')
                 if not hasattr(self.master_matrix.linear_operator, 'A'):
                     raise ValueError('LU factorization only possible '
@@ -223,12 +224,13 @@ class LinearSystem:
                                           self.t_matrix.right_hand_side())
                 sys.stdout.write(' done\n')
                 sys.stdout.flush()
-            elif self.solver_type == 'gmres':
+            elif self.solver_type.lower() == 'gmres':
                 rhs = self.t_matrix.right_hand_side()
                 start_time = time.time()
+                iter_num = 0
 
                 def status_msg(rk):
-                    global iter_num
+                    nonlocal iter_num
                     iter_msg = ('Solve (GMRES)             : Iter ' + str(iter_num)
                                 + ' | Rel. residual: '
                                 + "{:.2e}".format(np.linalg.norm(rk))
@@ -236,9 +238,50 @@ class LinearSystem:
                     sys.stdout.write('\r' + iter_msg)
                     iter_num += 1
 
-                global iter_num
-                iter_num = 0
                 b, info = scipy.sparse.linalg.gmres(self.master_matrix.linear_operator, rhs, rhs,
+                                                    tol=self.solver_tolerance, callback=status_msg)
+            #                sys.stdout.write('\n')
+            elif self.solver_type.lower() == 'lgmres':
+                rhs = self.t_matrix.right_hand_side()
+                start_time = time.time()
+                iter_num = 0
+
+                def status_msg(xk):
+                    frame = inspect.currentframe().f_back
+                    # for some reason, lgmres passes xk to callback instead of rk ...
+                    # then, we could inspect r_norm from the currentframe, but it's not there ... (?)
+                    # therefore we have to re-calculate it again, which is a total waste of time ...
+                    rk = frame.f_locals['nrm2'](frame.f_locals['r_outer'])/frame.f_locals['b_norm']
+                    nonlocal iter_num
+                    iter_msg = ('Solve (LGMRES)            : Iter ' + str(iter_num)
+                                + ' | Rel. residual: '
+                                + "{:.2e}".format(np.linalg.norm(rk))
+                                + ' | elapsed: ' + str(int(time.time() - start_time)) + 's')
+                    sys.stdout.write('\r' + iter_msg)
+                    iter_num += 1
+
+                b, info = scipy.sparse.linalg.lgmres(self.master_matrix.linear_operator, rhs, rhs,
+                                                    tol=self.solver_tolerance, callback=status_msg)
+            #                sys.stdout.write('\n')
+            elif self.solver_type.lower() == 'gcrotmk':
+                rhs = self.t_matrix.right_hand_side()
+                start_time = time.time()
+                iter_num = 0
+
+                def status_msg(xk):
+                    frame = inspect.currentframe().f_back
+                    # also gcrotmk passes xk to callback instead of rk ...
+                    # let's calculate residuals on the fly also in this case ...
+                    rk = frame.f_locals['nrm2'](frame.f_locals['r'])/frame.f_locals['b_norm']
+                    nonlocal iter_num
+                    iter_msg = ('Solve (GCROTMK)           : Iter ' + str(iter_num)
+                                + ' | Rel. residual: '
+                                + "{:.2e}".format(np.linalg.norm(rk))
+                                + ' | elapsed: ' + str(int(time.time() - start_time)) + 's')
+                    sys.stdout.write('\r' + iter_msg)
+                    iter_num += 1
+
+                b, info = scipy.sparse.linalg.gcrotmk(self.master_matrix.linear_operator, rhs, rhs,
                                                     tol=self.solver_tolerance, callback=status_msg)
             #                sys.stdout.write('\n')
             else:
