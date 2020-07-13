@@ -383,10 +383,11 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     if save_data:
         Ei = np.stack((e_x_init, e_y_init, e_z_init))
         Es = np.stack((e_x_scat, e_y_scat, e_z_scat))
+        if show_internal_field:
+            En = np.stack((e_x_int, e_y_int, e_z_int))
 
         if data_format.lower() == 'hdf5':
             import h5py
-
             metadata = {'vacuum_wavelength': simulation.initial_field.vacuum_wavelength,
                         'polar_angle': simulation.initial_field.polar_angle,
                         'azimuthal_angle': simulation.initial_field.azimuthal_angle,
@@ -399,18 +400,22 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 g.create_dataset('2nd_dim_axis', data=dim2vec)
                 g.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
                 g.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
+                if show_internal_field:
+                    g.create_dataset('int_electric_field', data=En, dtype='c16', compression="gzip")
         elif data_format.lower() == 'ascii':
             np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
             np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
-
             fmt = list(np.repeat('%.15g %+.15gj', np.size(dim1vec)))
             np.savetxt(outputdir + '/e_init_x.dat', Ei[0,], fmt=fmt, delimiter=',')
             np.savetxt(outputdir + '/e_init_y.dat', Ei[1,], fmt=fmt, delimiter=',')
             np.savetxt(outputdir + '/e_init_z.dat', Ei[2,], fmt=fmt, delimiter=',')
-
             np.savetxt(outputdir + '/e_scat_x.dat', Es[0,], fmt=fmt, delimiter=',')
             np.savetxt(outputdir + '/e_scat_y.dat', Es[1,], fmt=fmt, delimiter=',')
             np.savetxt(outputdir + '/e_scat_z.dat', Es[2,], fmt=fmt, delimiter=',')
+            if show_internal_field:
+                np.savetxt(outputdir + '/e_int_x.dat', En[0,], fmt=fmt, delimiter=',')
+                np.savetxt(outputdir + '/e_int_y.dat', En[1,], fmt=fmt, delimiter=',')
+                np.savetxt(outputdir + '/e_int_z.dat', En[2,], fmt=fmt, delimiter=',')
         else:
             raise ValueError('Currently, only hdf5 or ascii output data formats are available')
 
