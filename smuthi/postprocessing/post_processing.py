@@ -179,7 +179,7 @@ def evaluate_cross_section(polar_angles='default', azimuthal_angles='default', a
 
 
     """
-    scattering_cross_section = farf.scattering_cross_section(initial_field, particle_list, layer_system
+    scattering_cross_section = farf.scattering_cross_section(initial_field, particle_list, layer_system,
                                                              polar_angles, azimuthal_angles, angular_resolution)
 
     if save_data:
