@@ -1,6 +1,14 @@
 import numpy as np
 
 def convertstltofem(stlname, femname):
+    """Reads an STL file generated with GMSH and converts it to FEM (NFMDS geometry file) format.
+
+    Args:
+        stlname(string):    Path to STL file to be read
+        femname(string):    Path to FEM file to be written
+
+    """
+
     surfaces = []
     with open(stlname) as f:
         for x in f:
