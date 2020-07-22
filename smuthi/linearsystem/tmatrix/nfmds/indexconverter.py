@@ -42,14 +42,14 @@ def multi_index_to_single_nfmds(tau, l, m, Nrank, Mrank):
     """Converts a (tau,l,m) index to single index in NFMDS convention.
 
     Args:
-        Nrank (int):    NFMDS Nrank parameter
-        Mrank (int):    NFMDS Mrank parameter
-        index (int):    single index in NFMDS convention               
-
-    Returns:
         tau (int):      SVWF polarization (0 for spherical TE, 1 for spherical TM)
         l (int):        SVWF degree
-        m (int):        SVWF order    
+        m (int):        SVWF order        
+        Nrank (int):    NFMDS Nrank parameter
+        Mrank (int):    NFMDS Mrank parameter              
+
+    Returns:
+        index (int):    single index in NFMDS convention 
     """      
     nmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
     if m == 0:
@@ -81,7 +81,7 @@ def multi_index_to_single_smuthi(tau, l, m, Nrank, Mrank, l_max=None, m_max=None
        
 
     Returns:
-        index (int):    single index in SMUTHI convention
+        n (int):    single index in SMUTHI convention
     """    
     tau_blocksize = Mrank * (Mrank + 2) + (Nrank - Mrank) * (2 * Mrank + 1)
     if l_max is None:
@@ -132,7 +132,6 @@ def nfmds_to_smuthi_matrix(T, Nrank=None, Mrank=None,l_max=None,m_max=None):
         m_max (int):    Maximal multipole order used for the spherical wave expansion of incoming and
                         scattered field
        
-
     Returns:
         Tsm (array):    T-matrix in SMUTHI convention
     """       
