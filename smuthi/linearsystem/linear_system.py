@@ -118,7 +118,10 @@ class LinearSystem:
                              bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
             iS = self.layer_system.layer_number(particle.position[2])
             niS = self.layer_system.refractive_indices[iS]
-            particle.t_matrix = tmt.t_matrix(self.initial_field.vacuum_wavelength, niS, particle)
+            particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
+            if not particle.euler_angles == [0, 0, 0]:
+                particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
+                                                        particle.euler_angles, wdsympy=False)
         self.t_matrix = TMatrix(particle_list=self.particle_list)
 
     def compute_coupling_matrix(self):
@@ -338,7 +341,7 @@ class SystemMatrix:
         """
         blocksizes = [flds.blocksize(particle.l_max, particle.m_max) for particle in self.particle_list[:i]]
         return sum(blocksizes) + flds.multi_to_single_index(tau, l, m, self.particle_list[i].l_max,
-                                                             self.particle_list[i].m_max)
+                                                            self.particle_list[i].m_max)
 
 
 class MasterMatrix(SystemMatrix):
@@ -577,12 +580,12 @@ class CouplingMatrixVolumeLookupCUDA(CouplingMatrixVolumeLookup):
 
         if interpolator_kind == 'linear':
             coupling_source = cusrc.linear_volume_lookup_source % (self.blocksize, self.shape[0], len(self.sum_z_array),
-                                                                min(self.rho_array), min(self.sum_z_array),
-                                                                min(self.diff_z_array), self.resolution)
+                                                                   min(self.rho_array), min(self.sum_z_array),
+                                                                   min(self.diff_z_array), self.resolution)
         elif interpolator_kind == 'cubic':
             coupling_source = cusrc.cubic_volume_lookup_source % (self.blocksize, self.shape[0], len(self.sum_z_array),
-                                                               min(self.rho_array), min(self.sum_z_array),
-                                                               min(self.diff_z_array), self.resolution)
+                                                                  min(self.rho_array), min(self.sum_z_array),
+                                                                  min(self.diff_z_array), self.resolution)
 
         coupling_function = cu.SourceModule(coupling_source).get_function("coupling_kernel")
 
@@ -701,10 +704,10 @@ class CouplingMatrixRadialLookupCUDA(CouplingMatrixRadialLookup):
 
         if interpolator_kind == 'linear':
             coupling_source = cusrc.linear_radial_lookup_source % (self.blocksize, self.shape[0],
-                                                                self.radial_distance_array.min(), resolution)
+                                                                   self.radial_distance_array.min(), resolution)
         elif interpolator_kind == 'cubic':
             coupling_source = cusrc.cubic_radial_lookup_source % (self.blocksize, self.shape[0],
-                                                               self.radial_distance_array.min(), resolution)
+                                                                  self.radial_distance_array.min(), resolution)
 
         coupling_function = cu.SourceModule(coupling_source).get_function("coupling_kernel")
 

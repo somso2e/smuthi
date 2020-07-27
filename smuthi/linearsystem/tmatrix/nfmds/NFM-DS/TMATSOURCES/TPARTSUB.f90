@@ -134,7 +134,7 @@ subroutine TPARTSUB
 ! is the number of integration points NXint for the Laguerre quadrature method.     !
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a vector plane wave and !
-! the scattering characteristics are computed in the azimuthal plane  phi = 0°. The !
+! the scattering characteristics are computed in the azimuthal plane  phi = 0Â°. The !
 ! convergence tests over Nint, NXint and Nrank are interactive, while the           !
 ! convergence test over Mrank is automatically performed.                           ! 
 !                                                                                   !
@@ -144,14 +144,14 @@ subroutine TPARTSUB
 ! scattering problem is solved for the pairs (Nint,NXint) and                       !
 ! (Nint + dNint, NXint + dNint), while for the convergence test over Nrank, the     !
 ! scattering problem is solved for Nrank and Nrank - 1. The normalized              !
-! differential scattering cross section (DSCS) will be checked at 20° increments    !
+! differential scattering cross section (DSCS) will be checked at 20Â° increments    !
 ! for convergence within epsX (epsNint or epsNrank) tolerance. If the calculated    !
 ! results converge within this tolerance at 80% of the scattering angles, then      !
 ! convergence is achieved.                                                          !
 !                                                                                   ! 
 ! After Nrank, Nint and NXint have been determined we pass to the azimuthal         !
 ! order test. The program automatically sets the incident angle to a more general   !
-! orientation, i.e., beta = 45°, and solves the scattering problem  for increasing  !
+! orientation, i.e., beta = 45Â°, and solves the scattering problem  for increasing  !
 ! m values until convergence of the angular scattering is achieved.                 !
 !                                                                                   !
 ! The convergence tests over Nint, NXint and Nrank can be switched off by setting   !

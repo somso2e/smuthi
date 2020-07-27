@@ -37,7 +37,7 @@ class TestTMatrix(unittest.TestCase):
         sphere3 = smuthi.particles.Sphere(radius=200, refractive_index=2+0.2j, position=[200,-200,200], l_max=lmax,
                                           m_max=mmax)
 
-        t2 = tmt.t_matrix(vacuum_wavelength=550, n_medium=n_medium, particle=sphere1)
+        t2 = sphere1.compute_t_matrix(vacuum_wavelength=550, n_medium=n_medium)
         t3 = tmt.t_matrix_sphere(2*np.pi/550 * n_medium, 2*np.pi/550 * 3, 100, lmax, mmax)
         np.testing.assert_allclose(t2, t3)
 

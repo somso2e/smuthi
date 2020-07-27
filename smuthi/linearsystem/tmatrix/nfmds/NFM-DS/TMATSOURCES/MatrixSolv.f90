@@ -313,45 +313,13 @@ subroutine readinputMatrSolv ( TypeMatrSolv, itmax, TypePrecond, NPrecOrder, eps
   character(80) :: string
   logical       :: XFindPar
 !
-  open (unit = iInput, file = FileInput, status = "old", position = "rewind")  
+
   TypeMatrSolv = 'LU1' 
   itmax        = 10
   TypePrecond  = 'NEUMANN'
   NPrecOrder   = 6
   epsilon      = 1.e-6_O
-  string       = 'MatrixSolver'
-  if (XFindPar (iInput, string)) then
-    read (iInput, *, iostat = ios) TypeMatrSolv
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypeMatrSolv;')"
-      stop
-    end if
-    read (iInput, *, iostat = ios) itmax
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable itmax;')"
-      stop
-    end if
-    read (iInput, *, iostat = ios) TypePrecond
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypePrecond;')"
-      stop
-    end if
-    read (iInput, *, iostat = ios) NPrecOrder
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable NPrecOrder;')"
-      stop
-    end if 
-    read (iInput, *, iostat = ios) epsilon
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsilon;')"
-      stop
-    end if
-  else
-    print "(/,2x,'Group name MatrixSolver not found;')"
-    stop  
-  end if  
-  call check_MatrixSolver (TypeMatrSolv)
-  close (unit = iInput)  
+  string       = 'MatrixSolver' 
 end subroutine readinputMatrSolv  
 ! ************************************************************************************
 ! *               LU DECOMPOSITION - F90-VERSION FROM NUMERICAL RECIPES              *

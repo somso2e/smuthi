@@ -91,7 +91,6 @@ subroutine Laguerre (n, x, a)
 !         
   call readinputIntegr ( TypeIntegr, epsGauss, epsLaguerre )  
   call check_Integration (TypeIntegr)  
-  close (unit = iInput)
   if (TypeIntegr(1:4) == 'MET1') then
     call  Laguerre1 (n, x, a, epsLaguerre)
   else if (TypeIntegr(1:4) == 'MET2') then   
@@ -110,33 +109,11 @@ subroutine readinputIntegr ( TypeIntegr, epsGauss, epsLaguerre )
   character(80) :: string
   logical       :: XFindPar
 !
-  open (unit = iInput, file = FileInput, status = "old", position = "rewind")
   TypeIntegr  = 'MET1'  
-  epsGauss    = 1.e-10_O  
+  epsGauss    = 1.e-15_O  
   epsLaguerre = 1.e-10_O
-  string      = 'Integration'
-  if (XFindPar (iInput, string)) then
-    read (iInput, *, iostat = ios) TypeIntegr
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypeIntegr;')"
-      stop
-    end if
-    read (iInput, *, iostat = ios) epsGauss
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsGauss;')"
-      stop
-    end if
-    read (iInput, *, iostat = ios) epsLaguerre
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsLaguerre;')"
-      stop
-    end if
-  else
-    print "(/,2x,'Group name Integration not found;')"
-    stop  
-  end if  
+  string      = 'Integration' 
   call check_Integration (TypeIntegr)  
-  close (unit = iInput) 
 end subroutine readinputIntegr  
 !***********************************************************************************
 subroutine Simpson (a, b, N, x, w)

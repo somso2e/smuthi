@@ -1567,7 +1567,7 @@ subroutine zDSCOMP (TypeGeom, Npart, Nsurfmax, surf, Nrankpmax, Nrankp, zpart,  
 ! - Npart (integer) - number of homogeneous regions.                               !
 ! - Nsurfmax (integer) - maximum number of surface parameters.                     !
 ! - surf (real array) - surface parameters of all regions.                         ! 
-! - Nrankpmax (integer) - maximum number of distríbuted sources over all regions.  !            
+! - Nrankpmax (integer) - maximum number of distrÃ­buted sources over all regions.  !            
 ! - Nrankp (integer array) - numbers of distributed sources (maximum expansion     !
 !   orders) for all regions.                                                       !
 ! - zart (real array) - axial positions of the local coordinate systems of the     !
@@ -1978,7 +1978,7 @@ subroutine zDSLAY (TypeGeom, Npart, Nsurfmax, surf, Nrankpmax, Nrankp, zpart,   
 ! - Npart (integer) - number of layers.                                            !
 ! - Nsurfmax (integer) - maximum number of surface parameters.                     !
 ! - surf (real array) - surface parameters of all layers.                          ! 
-! - Nrankpmax (integer) - maximum number of distríbuted sources over all layers.   !            
+! - Nrankpmax (integer) - maximum number of distrÃ­buted sources over all layers.   !            
 ! - Nrankp (integer array) - numbers of distributed sources (maximum expansion     !
 !   orders) for all layers.                                                        !
 ! - zpart (real array) - axial positions of the local coordinate systems of the    !

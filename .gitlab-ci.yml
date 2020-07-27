@@ -12,6 +12,7 @@ test:
     - apt-get install -y gfortran
     - pip3 install .
     - pip3 install nose2
+    - rm -r smuthi
     - nose2 -v
 
 production:

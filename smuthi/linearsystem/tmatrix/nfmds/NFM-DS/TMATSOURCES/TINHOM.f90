@@ -64,8 +64,8 @@ subroutine TINHOM
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a plane wave traveling  !
 ! along the Z-axis of the global coordinate system and the scattering               !
-! characteristics are computed in the azimuthal plane  phi = 0°. The Euler          !
-! orientation angles of the host particle are alpha = beta = 45° and gamma = 0°,    !
+! characteristics are computed in the azimuthal plane  phi = 0Â°. The Euler          !
+! orientation angles of the host particle are alpha = beta = 45Â° and gamma = 0Â°,    !
 ! and interactive convergence tests over Nint, Nrank and Mrank are performed.       !
 !                                                                                   !  
 ! Nrank and Mrank are assumed to not depend on Nrank1 and Mrank1, which are the     !
@@ -76,7 +76,7 @@ subroutine TINHOM
 ! test over the expansion order, the scattering problem is solved for the pairs     !
 ! (Nrank, Mrank) and (Nrank - 1, Mrank). Finally, for the azimuthal order test,     !
 ! the cases (Nrank, Mrank) and (Nrank, Mrank - 1) are considered. The normalized    !
-! differential scattering cross section will be checked at 20° increments for       !
+! differential scattering cross section will be checked at 20Â° increments for       !
 ! convergence within epsX (epsNint,epsNrank or epsMrank) tolerance. If the          !
 ! calculated results are converged within this tolerance at 80% of the scattering   !
 ! angles, then convergence is achieved. The T matrix is stored for later use by     !
@@ -215,10 +215,10 @@ subroutine TINHOM
 !   Nrank and Mrank must be supplied in the input file.                             !
 !                                                                                   !
 ! - ExtThetaDom (logical) - if ExtThetaDom = t the DSCS is computed for             !
-!   scattering angles ranging from 0° to 180° in the azimuthal plane phiGS = 0°, and!
-!   from 180° to 0° in the azimuthal plane phiGS = 180°. The total number of        !
+!   scattering angles ranging from 0Â° to 180Â° in the azimuthal plane phiGS = 0Â°, and!
+!   from 180Â° to 0Â° in the azimuthal plane phiGS = 180Â°. The total number of        !
 !   scattering angles is 10. If ExtThetaDom = f the DSCS is computed for            !
-!   scattering angles ranging from 0 to 180° in the azimuthal plane phiGS = 0.      !
+!   scattering angles ranging from 0 to 180Â° in the azimuthal plane phiGS = 0.      !
 !                                                                                   !
 ! - Nint (integer) - number of integration points in computing integrals over       !
 !   the generatrix curve of the host particle. This parameter is used if the        !

@@ -28,13 +28,13 @@ subroutine TSPHERE
 ! --------------------                                                              !
 ! For convergence tests, the incident wave is assumed to be a vector plane wave     !
 ! traveling along the Z-axis of the global coordinate system and the scattering     !
-! characteristics  are computed in the azimuthal plane  phi = 0° . Note that only   !
+! characteristics  are computed in the azimuthal plane  phi = 0Â° . Note that only   !
 ! two azimuthal modes m = 1 and m = - 1 are required to compute the scattering      !
 ! characteristics.                                                                  !
 !                                                                                   !
 ! The convergence test is carried out over the maximum expansion order Nrank.       !
 ! The scattering problem is solved for Nrank and Nrank - 1 and the normalized       !
-! differential scattering cross section (DSCS) will be checked at 20° increments    !
+! differential scattering cross section (DSCS) will be checked at 20Â° increments    !
 ! for convergence within epsNrank tolerance. If the calculated results converge     !
 ! within this tolerance at 80% of the scattering angles, then convergence is        !
 ! achieved.                                                                         ! 

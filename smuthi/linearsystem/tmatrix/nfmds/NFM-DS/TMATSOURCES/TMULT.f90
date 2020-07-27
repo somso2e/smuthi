@@ -37,15 +37,15 @@ subroutine TMULT
 !                                                                                   !
 ! For convergence tests, the incident wave is assumed to be a plane wave traveling  !
 ! along the Z-axis of the global coordinate system and the scattering               !
-! characteristics are computed in the azimuthal plane  phi = 0°. The Euler          !
-! orientation angles of the cluster are alphaC = betaC = 45° and gammaC = 0°, and   !
+! characteristics are computed in the azimuthal plane  phi = 0Â°. The Euler          !
+! orientation angles of the cluster are alphaC = betaC = 45Â° and gammaC = 0Â°, and   !
 ! interactive convergence tests over Nrank and Mrank are performed.                 !
 !                                                                                   !  
 ! For the convergence test over the expansion order, the scattering problem is      !
 ! solved for the pairs (Nrank, Mrank) and (Nrank - 1, Mrank), while for the         !
 ! azimuthal order test, the cases (Nrank, Mrank) and (Nrank, Mrank - 1) are         !
 ! considered. The normalized differential scattering cross section will be checked  !
-! at 20° increments for convergence within epsX (epsNint,epsNrank or epsMrank)      !
+! at 20Â° increments for convergence within epsX (epsNint,epsNrank or epsMrank)      !
 ! tolerance. If the calculated results are converged within this tolerance at       !
 ! 80% of the scattering angles, then convergence is achieved. The T matrix is       !
 ! stored for later use by other programs, and the values of Nrank and Mrank are     !
@@ -117,10 +117,10 @@ subroutine TMULT
 !   and Mrank must be supplied in the input file.                                   !
 !                                                                                   !
 ! - ExtThetaDom (logical) - if ExtThetaDom = t the DSCS is computed for             !
-!   scattering angles ranging from 0 to 180° in the azimuthal plane phiGS = 0° and  !
-!   from 180° to 0° in the azimuthal plane phiGS = 180°. The total number of        !
+!   scattering angles ranging from 0 to 180Â° in the azimuthal plane phiGS = 0Â° and  !
+!   from 180Â° to 0Â° in the azimuthal plane phiGS = 180Â°. The total number of        !
 !   scattering angles is 10. If ExtThetaDom = f the DSCS is computed for            !
-!   scattering angles ranging from 0° to 180° in the azimuthal plane phiGS = 0°.    !
+!   scattering angles ranging from 0Â° to 180Â° in the azimuthal plane phiGS = 0Â°.    !
 !                                                                                   !
 ! - Nrank (integer) - maximum expansion order for the cluster. This parameter is    !
 !   used if the convergence tests are not performed (DoConvTest = f).               !

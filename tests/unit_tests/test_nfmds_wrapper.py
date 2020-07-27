@@ -1,5 +1,7 @@
 import unittest
-import smuthi.linearsystem.tmatrix.nfmds.t_matrix_axsym as taxs
+
+import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
+import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 
 vacuum_wavelength = 550
 layer_refractive_index = 1.3
@@ -9,6 +11,7 @@ half_axis_xy = 200
 use_ds = True
 n_int = 300
 n_rank = 8
+l_max = 4
 
 cylinder_height = 100
 cylinder_radius = 200
@@ -16,11 +19,24 @@ cylinder_radius = 200
 
 class TestNFMDSWrapper(unittest.TestCase):
     def test_spheroid_tmatrix_against_prototype(self):
+        typegeom = 1
+        surf = [half_axis_z, half_axis_xy]
+        nsurf=len(surf)
+        surf=list(surf)+[0]*(10-nsurf)
+        Mrank = n_rank
+        Nmax = n_rank + Mrank * (2 * n_rank - Mrank + 1)
+        nparam = 1
+        """
         t_s = taxs.tmatrix_spheroid(vacuum_wavelength=vacuum_wavelength,
                                     layer_refractive_index=layer_refractive_index,
                                     particle_refractive_index=particle_refractive_index,
                                     semi_axis_c=half_axis_z, semi_axis_a=half_axis_xy, use_ds=use_ds,
                                     nint=n_int, nrank=n_rank, l_max=4, m_max=4)
+        """                            
+        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=typegeom, nsurf=nsurf, nparam=nparam,
+                              wavelength=vacuum_wavelength, ind_refrel=particle_refractive_index/layer_refractive_index,
+                              nrank=n_rank,nint=n_int,ind_refmed=layer_refractive_index,ds=use_ds)
+        t_s = nfic.nfmds_to_smuthi_matrix(tnfmds,l_max=l_max)
 
         t00 = -0.416048522578639 + 0.462839918856895j
         self.assertAlmostEqual(t_s[0, 0], t00, places=5)
@@ -29,11 +45,24 @@ class TestNFMDSWrapper(unittest.TestCase):
         self.assertAlmostEqual(t_s[42, 10], t4210, places=5)
 
     def test_cylinder_tmatrix_against_prototype(self):
+        typegeom = 2    
+        nparam = 3
+        surf = [cylinder_height / 2, cylinder_radius]
+        nsurf=len(surf)
+        surf=list(surf)+[0]*(10-nsurf)
+        Mrank = n_rank
+        Nmax = n_rank + Mrank * (2 * n_rank - Mrank + 1)
+        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=typegeom, nsurf=nsurf, nparam=nparam,
+                              wavelength=vacuum_wavelength, ind_refrel=particle_refractive_index/layer_refractive_index,
+                              nrank=n_rank,nint=n_int,ind_refmed=layer_refractive_index,ds=use_ds)
+        """
         t_c = taxs.tmatrix_cylinder(vacuum_wavelength=vacuum_wavelength,
                                     layer_refractive_index=layer_refractive_index,
                                     particle_refractive_index=particle_refractive_index,
                                     cylinder_height=cylinder_height, cylinder_radius=cylinder_radius,
                                     use_ds=use_ds, nint=n_int, nrank=n_rank, l_max=4, m_max=4)
+        """
+        t_c = nfic.nfmds_to_smuthi_matrix(tnfmds,l_max=l_max)
 
         t00 = -0.119828956584570 + 0.282351044628953j
         self.assertAlmostEqual(t_c[0, 0], t00, places=5)

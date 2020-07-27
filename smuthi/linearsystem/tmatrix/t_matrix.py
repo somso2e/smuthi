@@ -2,9 +2,7 @@
 import numpy as np
 import smuthi.fields as flds
 import smuthi.utility.math as sf
-import smuthi.linearsystem.tmatrix.nfmds.t_matrix_axsym as nftaxs
 import smuthi.fields.transformations as trf
-import warnings
 
 
 def mie_coefficient(tau, l, k_medium, k_particle, radius):
@@ -95,64 +93,6 @@ def t_matrix_sphere(k_medium, k_particle, radius, l_max, m_max):
     return t
 
 
-def check_method_args(t_matrix_method):
-    """Check t_matrix_method dictionary and throw warning for invalid keys.
-    Args:
-          t_matrix_method (dict):   Dictionary to check
-    """
-    for key in t_matrix_method:
-        if (key != 'use discrete sources'
-            and key != 'nint'
-            and key != 'nrank'
-            and key != 'quadruple precision'):
-            warnings.warn('Unknown key ' + key + ' ignored in t_matrix_method.', UserWarning)
-
-
-def t_matrix(vacuum_wavelength, n_medium, particle):
-    """Return the T-matrix of a particle.
-
-    Args:
-        vacuum_wavelength(float)
-        n_medium(float or complex):             Refractive index of surrounding medium
-        particle(smuthi.particles.Particle):    Particle object
-
-    Returns:
-        T-matrix as ndarray
-    """
-    if type(particle).__name__ == 'Sphere':
-        k_medium = 2 * np.pi / vacuum_wavelength * n_medium
-        k_particle = 2 * np.pi / vacuum_wavelength * particle.refractive_index
-        radius = particle.radius
-        t = t_matrix_sphere(k_medium, k_particle, radius, particle.l_max, particle.m_max)
-    elif type(particle).__name__ == 'Spheroid':
-        t = nftaxs.tmatrix_spheroid(vacuum_wavelength=vacuum_wavelength, layer_refractive_index=n_medium,
-                                    particle_refractive_index=particle.refractive_index,
-                                    semi_axis_c=particle.semi_axis_c, semi_axis_a=particle.semi_axis_a,
-                                    use_ds=particle.t_matrix_method.get('use discrete sources', False),
-                                    nint=particle.t_matrix_method.get('nint', 500),
-                                    nrank=particle.t_matrix_method.get('nrank', particle.l_max + 5),
-                                    quad_prec=particle.t_matrix_method.get('quadruple precision', False),
-                                    l_max=particle.l_max, m_max=particle.m_max)
-        if not particle.euler_angles == [0, 0, 0]:
-            t = rotate_t_matrix(t, particle.l_max, particle.m_max, particle.euler_angles, wdsympy=False)
-    elif type(particle).__name__ == 'FiniteCylinder':
-        t = nftaxs.tmatrix_cylinder(vacuum_wavelength=vacuum_wavelength, layer_refractive_index=n_medium,
-                                    particle_refractive_index=particle.refractive_index,
-                                    cylinder_height=particle.cylinder_height,
-                                    cylinder_radius=particle.cylinder_radius,
-                                    use_ds=particle.t_matrix_method.get('use discrete sources', False),
-                                    nint=particle.t_matrix_method.get('nint', 500),
-                                    nrank=particle.t_matrix_method.get('nrank', particle.l_max + 5),
-                                    quad_prec=particle.t_matrix_method.get('quadruple precision', False),
-                                    l_max=particle.l_max, m_max=particle.m_max)
-        if not particle.euler_angles == [0, 0, 0]:
-            t = rotate_t_matrix(t, particle.l_max, particle.m_max, particle.euler_angles, wdsympy=False)
-    else:
-        raise ValueError('T-matrix for ' + type(particle).__name__ + ' currently not implemented.')
-
-    return t
-
-
 def rotate_t_matrix(T, l_max, m_max, euler_angles, wdsympy=False):
     """T-matrix of a rotated particle.
 
@@ -181,3 +121,4 @@ def rotate_t_matrix(T, l_max, m_max, euler_angles, wdsympy=False):
         #                             trf.rotation_matrix_D(l_max, -gamma, -beta, -alpha))
 
         return T_mat_rot
+
