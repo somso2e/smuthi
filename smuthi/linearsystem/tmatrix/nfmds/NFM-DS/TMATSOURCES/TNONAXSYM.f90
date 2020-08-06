@@ -1064,7 +1064,7 @@ end subroutine convergence_Nrank_MrankAnis
 !***********************************************************************************
 subroutine TMatrix_Nrank_MrankAnis (FileGeom, TypeGeom, k, ind_ref, ind_refZ,       &
            alfaPR, betaPR, gamaPR, Nsurf, surf, rp, np, area, Nface, Nparam, Mrank, &
-           Nrank, Nbeta, Nint1, Nint2, FileTmat, PrnProgress)
+           Nrank, Nbeta, Nint1, Nint2, FileTmat, PrnProgress,Nmax,b)
   use parameters
   implicit none
   integer       :: TypeGeom, Nsurf, Nface, Nparam, Mrank, Nrank, Nint1, Nint2, Nbeta
@@ -1077,13 +1077,13 @@ subroutine TMatrix_Nrank_MrankAnis (FileGeom, TypeGeom, k, ind_ref, ind_refZ,   
   integer       :: Nmax, NintAL  
   integer,allocatable    :: Nintparam(:)
   real(O),allocatable    :: paramG1(:,:), paramG2(:,:), weightsG(:,:)
-  complex(O),allocatable :: a(:,:), b(:,:) 
+  complex(O)             :: a(2*Nmax,2*Nmax), b(2*Nmax,2*Nmax) 
 !  
   Nmax   = Nrank + Mrank * (2 * Nrank - Mrank + 1)   
   NintAL = max(Nint1,Nint2)  
-  open (unit = iTmat, file = FileTmat, status = 'replace')
-  call  write_HeadFileTmat (Nmax, Nmax)    
-  allocate (a(2*Nmax,2*Nmax), b(2*Nmax,2*Nmax))                          
+!  open (unit = iTmat, file = FileTmat, status = 'replace')
+!  call  write_HeadFileTmat (Nmax, Nmax)    
+!  allocate (a(2*Nmax,2*Nmax), b(2*Nmax,2*Nmax))                          
   allocate (paramG1(Nparam,NintAL*NintAL), paramG2(Nparam,NintAL*NintAL),           &
             weightsG(Nparam,NintAL*NintAL))
   allocate (Nintparam(Nparam))
@@ -1100,15 +1100,15 @@ subroutine TMatrix_Nrank_MrankAnis (FileGeom, TypeGeom, k, ind_ref, ind_refZ,   
   if (PrnProgress) call write_progress (.false., 3, 4)  
   call LU_SYSTEM (a, 2*Nmax, 2*Nmax, b, 2*Nmax, 2*Nmax, 2*Nmax)
   if (PrnProgress) call write_progress (.false., 4, 4)
-  call write_FileTmat (Nmax, Nmax, b)
-  close (unit = iTmat)
-  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .false., .false., .false.)
-  call ScatCharact (k, FileTmat, Mrank, Nrank, .false., .false., .false.)
+!  call write_FileTmat (Nmax, Nmax, b)
+!  close (unit = iTmat)
+!  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .false., .false., .false.)
+!  call ScatCharact (k, FileTmat, Mrank, Nrank, .false., .false., .false.)
   print "(/,2x,'The T matrix is stored in ',a50)", FileTmat
   print "(  2x,'The dimensions of the T matrix are given by:')"
   print "(  2x,'- maximum expansion order,   Nrank = ',i3,';')", Nrank
   print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank  
-  deallocate (a, b, paramG1, paramG2, weightsG, Nintparam)      
+  deallocate (paramG1, paramG2, weightsG, Nintparam)      
 end subroutine TMatrix_Nrank_MrankAnis
 subroutine TNONAXSYM (wavelength, ind_refMed, ind_refRel, ind_RefRelZ,            &
        alphaPR, betaPR, perfectcond, anisotropic, chiral, kb, FileGeom,             &
@@ -1244,7 +1244,7 @@ subroutine TNONAXSYM (wavelength, ind_refMed, ind_refRel, ind_RefRelZ,          
     else
       call TMatrix_Nrank_MrankAnis (FileGeom, TypeGeom, k, ind_refRel, ind_refRelZ, &
            alphaPR, betaPR, gammaPR, Nsurf, surf, rp, np, area, Nface, Nparam,      &
-           Mrank, Nrank, Nbeta, Nint1, Nint2, FileTmat, PrnProgress) 
+           Mrank, Nrank, Nbeta, Nint1, Nint2, FileTmat, PrnProgress,Nmax,b) 
     end if 
   end if    
 end subroutine TNONAXSYM
