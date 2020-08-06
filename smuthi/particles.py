@@ -160,6 +160,35 @@ class CustomParticle(Particle):
         return t
 
 
+class AnisotropicSphere(Particle):
+    def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,                                                   radius=1, refractive_index_z=2+0j, l_max=None, m_max=None, t_matrix_method=None):
+        if euler_angles is None:
+            euler_angle:wqs = [azimuthal_angle, polar_angle, 0]
+        if t_matrix_method is None:
+            self.t_matrix_method = {}
+        else:
+            self.t_matrix_method = t_matrix_method
+        Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
+                          l_max=l_max, m_max=m_max)
+        self.radius = radius
+        self.refractive_index_z = refractive_index_z
+
+    def circumscribing_sphere_radius(self):
+        return self.radius
+
+    def compute_t_matrix(self, vacuum_wavelength, n_medium):
+        Nrank=self.t_matrix_method.get('nrank', self.l_max + 2)
+        Mrank=self.t_matrix_method.get('mrank', self.l_max + 2)
+        Nmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
+        r = self.radius
+        tnfmds = nfmds.tnonaxsym([r, r, r, 0, 0, 0, 0, 0, 0, 0], Nmax, filegeom=0,
+                                 wavelength=vacuum_wavelength, ind_refrel=self.refractive_index/n_medium + 0j,
+                                 ind_refrelz = self.refractive_index_z/n_medium + 0j,
+                                 nrank=Nrank, mrank=Mrank,ind_refmed=n_medium,
+                                 anisotropic=1,typegeom=1,nsurf=3,nparam=1)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds,l_max=self.l_max)
+        return t 
+
 class AxisymmetricParticle(Particle):
     """Particle subclass for axisymmetric particles calculated with NFMDS.
 
