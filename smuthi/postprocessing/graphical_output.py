@@ -440,7 +440,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -509,7 +509,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -577,7 +577,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -644,7 +644,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -739,7 +739,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
 
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
                             alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm), cmap=show_opt.get('cmap','inferno'),
-                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'), shading=show_opt.get('shading','flat'))
+                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'), shading=show_opt.get('shading','nearest'))
 
         plt.colorbar(pcm, ax=ax)
         plt.title(show_opt.get('label').replace('_',' '))
