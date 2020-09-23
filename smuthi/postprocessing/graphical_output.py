@@ -7,7 +7,7 @@ import smuthi.postprocessing.internal_field as intf
 import smuthi.postprocessing.far_field as ff
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Ellipse, Rectangle
-from matplotlib.colors import LogNorm
+from matplotlib.colors import LogNorm, Normalize
 from itertools import cycle
 import tempfile
 import shutil
@@ -734,16 +734,17 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
 
     for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
         # 2D polar plot of far field
-        color_norm = None
         if log_scale:
             color_norm = LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
+        else:
+            color_norm = Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
 
         fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
         ax = fig.add_subplot(111, polar=True)
 
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm), cmap=show_opt.get('cmap','inferno'),
-                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'), shading=show_opt.get('shading','nearest'))
+                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm),
+                            cmap=show_opt.get('cmap','inferno'), shading=show_opt.get('shading','nearest'))
 
         plt.colorbar(pcm, ax=ax)
         plt.title(show_opt.get('label').replace('_',' '))
