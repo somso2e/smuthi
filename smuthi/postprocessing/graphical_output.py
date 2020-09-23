@@ -158,6 +158,8 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 'extent'        calculated automatically based on plotting coordinate limits
                                 An optional extra key called 'label' of type string is shown in the plot title
                                 and appended to the associated file if save_plots is True
+                                Finally, an optional 'figsize' key is available to set the width and height of
+                                the figure window (see matplotlib.pyplot.figure documentation)
         save_plots (logical):   If True, plots are exported to file.
         save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
                                 For each entry in quantities_to_plot, all save_opts dictionaries will be applied.
@@ -280,7 +282,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
                 field_type_string = 'tot'
 
-            fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+            fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
             if 'norm' in quantity:
                 e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
@@ -339,7 +341,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     tempdir = tempfile.mkdtemp()
                     images = []
                     for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
-                        tempfig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+                        tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
                         e_t = e * np.exp(-1j * t * 2 * np.pi)
                         plt.imshow(e_t.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
                                    cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
@@ -650,6 +652,8 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
                                 'marker'    (None), applies only to 1D plots
                                 An optional extra key called 'label' of type string is shown in the plot title
                                 and appended to the associated file if save_plots is True
+                                Finally, an optional 'figsize' key is available to set the width and height of
+                                the figure window (see matplotlib.pyplot.figure documentation)
         save_plots (bool):      If True, plots are exported to file.
         save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
                                 A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
@@ -734,7 +738,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         if log_scale:
             color_norm = LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
 
-        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+        fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
         ax = fig.add_subplot(111, polar=True)
 
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
@@ -753,7 +757,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
             plt.close(fig)
 
         # 1D polar plot of far field
-        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+        fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
         plt.plot(polar_array, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180, alpha=show_opt.get('alpha'),
                  lw=show_opt.get('linewidth'), ls=show_opt.get('linestyle'), marker=show_opt.get('marker'))
