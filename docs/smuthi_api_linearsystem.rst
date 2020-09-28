@@ -25,9 +25,3 @@ linearsystem.linear_system_cuda
     :undoc-members:
 
 
-linearsystem.system_t_matrix
-----------------------------
-
-.. automodule:: smuthi.linearsystem.system_t_matrix
-    :members:
-    :undoc-members:
