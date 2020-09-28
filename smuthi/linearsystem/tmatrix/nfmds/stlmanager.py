@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def convert_stl_to_fem(stlname, femname):
     """Reads an STL file generated with GMSH and converts it to FEM (NFMDS geometry file) format.
 
