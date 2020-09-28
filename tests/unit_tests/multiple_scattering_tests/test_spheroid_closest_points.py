@@ -5,9 +5,9 @@ import smuthi.linearsystem.particlecoupling.direct_coupling as pacou
 
 
 spheroid1 = part.Spheroid(position=[0, 0, 400], euler_angles=[0.324, 0.567, 1.234],
-                          refractive_index=2.4 + 0.0j, semi_axis_c=50, semi_axis_a=100, l_max=5, m_max=5, t_matrix_method=None)
+                          refractive_index=2.4 + 0.0j, semi_axis_c=50, semi_axis_a=100, l_max=5, m_max=5)
 spheroid2 = part.Spheroid(position=[162, 261, 253], euler_angles=[0.45, 1.23, 0.788],
-                          refractive_index=2.4 + 0.0j, semi_axis_c=100, semi_axis_a=50, l_max=5, m_max=5, t_matrix_method=None)
+                          refractive_index=2.4 + 0.0j, semi_axis_c=100, semi_axis_a=50, l_max=5, m_max=5)
 
 p1, p2, alpha, beta = pacou.spheroids_closest_points(spheroid1.semi_axis_a, spheroid1.semi_axis_c, spheroid1.position, spheroid1.euler_angles,
                                      spheroid2.semi_axis_a, spheroid2.semi_axis_c, spheroid2.position, spheroid2.euler_angles)
