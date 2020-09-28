@@ -1,10 +1,12 @@
+:orphan:
+
 The smuthi.linearsystem.particlecoupling package
 ================================================
 
 linearsystem.particlecoupling
 -----------------------------
 
-.. automodule:: smuthi.fields.linearsystem.particlecoupling
+.. automodule:: smuthi.linearsystem.particlecoupling
     :members:
     :undoc-members:
 

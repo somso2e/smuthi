@@ -1,3 +1,5 @@
+:orphan:
+
 Four particles in a slab waveguide
 ==================================
 

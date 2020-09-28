@@ -1,3 +1,5 @@
+:orphan:
+
 Plotting the far field
 ======================
 

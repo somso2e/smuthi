@@ -1,3 +1,5 @@
+:orphan:
+
 Simulating many particles: A spiral of spheres
 ----------------------------------------------
 

@@ -210,14 +210,14 @@ class Simulation:
             overlap = np.triu(distmatrix < r1+r2, k=1)
             pidx = np.where(overlap)
             s = 's' if np.count_nonzero(overlap) > 1 else '' # pluralize message string
-            msg = f'The circumscribing sphere of particle{s} {pidx[0]} overlaps with that of particle{s} {pidx[1]}.\n'
+            msg = 'The circumscribing sphere of particle' + s + ' %i overlaps with that of particle'%pidx[0] + s + ' %i.\n'%pidx[1]
         except MemoryError: # less vectorized, more time consuming, stops at first overlap detected
             for i in range(len(self.particle_list)):
                 dists = cdist(np.expand_dims(pos[i,:],0), pos[i+1:,])
                 overlap = np.squeeze(dists < csr[i] + csr[i+1:])
                 if overlap.any():
                     pidx = np.where(overlap)
-                    msg = f'Found overlap between circumscribing sphere of particle {i} and particle {i+1+pidx[0][0]}.\n'
+                    msg = 'Found overlap between circumscribing sphere of particle %i and particle %i.\n'%(i,i+1+pidx[0][0]) 
                     break
         if overlap.any():
             sys.stdout.write(msg)

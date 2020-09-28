@@ -4,7 +4,11 @@ import smuthi.fields as flds
 import smuthi.linearsystem.tmatrix.t_matrix as tmt
 import numpy as np
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
-import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
+try:
+  import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
+except:
+  import warnings
+  warnings.warn("Unable to locate nfmds module.")
 
 
 class Particle:

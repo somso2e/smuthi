@@ -1,3 +1,5 @@
+:orphan:
+
 .. note:: This site is currently under construction.
 
 Single sphere in vacuum

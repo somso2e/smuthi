@@ -1,3 +1,5 @@
+:orphan:
+
 .. _AutoParamExampleAnchor:
 
 Automatic parameter selection

@@ -1,3 +1,5 @@
+:orphan:
+
 Setting up a simulation
 =======================
 

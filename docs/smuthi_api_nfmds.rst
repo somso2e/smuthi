@@ -1,16 +1,18 @@
 The smuthi.linearsystem.tmatrix.nfmds package
 =============================================
 
-nfmds
------
+nfmds.indexconverter
+--------------------
 
-.. automodule:: smuthi.linearsystem.tmatrix.nfmds
+.. automodule:: smuthi.linearsystem.tmatrix.nfmds.indexconverter
     :members:
     :undoc-members:
 
-nfmds.t_matrix_axsym
---------------------
 
-.. automodule:: smuthi.linearsystem.tmatrix.nfmds.t_matrix_axsym
+nfmds.stlmanager
+----------------
+
+.. automodule:: smuthi.linearsystem.tmatrix.nfmds.stlmanager
     :members:
-    :undoc-members:		
+    :undoc-members:
+

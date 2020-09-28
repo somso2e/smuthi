@@ -31,3 +31,9 @@ examples/*.png
 examples/renaud/
 *.sh
 *.bat
+.eggs/*
+.cache/*
+examples/krzysztof/*
+examples/Lorenzo/*
+venv/*
+virtualenv/*
