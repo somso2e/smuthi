@@ -7,7 +7,7 @@ import smuthi.postprocessing.internal_field as intf
 import smuthi.postprocessing.far_field as ff
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Ellipse, Rectangle
-from matplotlib.colors import LogNorm
+from matplotlib.colors import LogNorm, Normalize
 from itertools import cycle
 import tempfile
 import shutil
@@ -158,6 +158,8 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 'extent'        calculated automatically based on plotting coordinate limits
                                 An optional extra key called 'label' of type string is shown in the plot title
                                 and appended to the associated file if save_plots is True
+                                Finally, an optional 'figsize' key is available to set the width and height of
+                                the figure window (see matplotlib.pyplot.figure documentation)
         save_plots (logical):   If True, plots are exported to file.
         save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
                                 For each entry in quantities_to_plot, all save_opts dictionaries will be applied.
@@ -280,7 +282,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
                 field_type_string = 'tot'
 
-            fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+            fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
             if 'norm' in quantity:
                 e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
@@ -339,7 +341,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     tempdir = tempfile.mkdtemp()
                     images = []
                     for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
-                        tempfig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+                        tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
                         e_t = e * np.exp(-1j * t * 2 * np.pi)
                         plt.imshow(e_t.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
                                    cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
@@ -440,7 +442,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -509,7 +511,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -577,7 +579,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
@@ -644,12 +646,14 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
                                 'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
-                                'shading'   ('flat'), applies only to 2D plots. 'gouraud' is also available
+                                'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
                                 'linewidth' (None), applies only to 1D plots
                                 'linestyle' (None), applies only to 1D plots
                                 'marker'    (None), applies only to 1D plots
                                 An optional extra key called 'label' of type string is shown in the plot title
                                 and appended to the associated file if save_plots is True
+                                Finally, an optional 'figsize' key is available to set the width and height of
+                                the figure window (see matplotlib.pyplot.figure documentation)
         save_plots (bool):      If True, plots are exported to file.
         save_opts (dict list):  List of dictionaries containing options to be passed to savefig.
                                 A 1:1 correspondence between save_opts and show_opts dictionaries is assumed. For
@@ -730,16 +734,17 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
 
     for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
         # 2D polar plot of far field
-        color_norm = None
         if log_scale:
             color_norm = LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
+        else:
+            color_norm = Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
 
-        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+        fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
         ax = fig.add_subplot(111, polar=True)
 
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm), cmap=show_opt.get('cmap','inferno'),
-                            vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'), shading=show_opt.get('shading','flat'))
+                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm),
+                            cmap=show_opt.get('cmap','inferno'), shading=show_opt.get('shading','nearest'))
 
         plt.colorbar(pcm, ax=ax)
         plt.title(show_opt.get('label').replace('_',' '))
@@ -753,7 +758,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
             plt.close(fig)
 
         # 1D polar plot of far field
-        fig = plt.figure() # TODO: pass also a figsize argument in show_opts ?
+        fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
         plt.plot(polar_array, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180, alpha=show_opt.get('alpha'),
                  lw=show_opt.get('linewidth'), ls=show_opt.get('linestyle'), marker=show_opt.get('marker'))
