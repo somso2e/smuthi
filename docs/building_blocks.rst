@@ -65,9 +65,11 @@ The following classes can currently be used:
 
 - **Cylinders** are specified by their center position vector, euler angles, complex refractive index, radius, height and multipole cutoff. See: :class:`smuthi.particles.FiniteCylinder`.
 
+- **Custom particles** allow to model particles with arbitrary geometry. They are specified by their position vector, euler angles, a FEM file containing the particle surface mesh, a scale parameter to set the physical size of the particle (if it deviates from the size specified by the mesh file) and multipole cutoff. See: :class:`smuthi.particles.CustomParticle`.
+
 Some notes:
 
-- The simulation of spheroids and cylinders depends on the NFM-DS Fortran code by Adrian Doicu, Thomas Wriedt and Yuri Eremin, see :doc:`[Doicu et al. 2006] <literature>`.
+- The simulation of nonspherical particles depends on the NFM-DS Fortran code by Adrian Doicu, Thomas Wriedt and Yuri Eremin, see :doc:`[Doicu et al. 2006] <literature>`.
 - Particles must not overlap with each other or with layer interfaces.
 - The circumscribing spheres of non-spherical particles may overlap with layer interfaces (e.g. a flat particle on a substrate), but care has to be taken with regard to the selection of the numerical parameters. See :doc:`[Egel et al. 2016b] and [Egel et al. 2017] <literature>` for a discussion. Use of Smuthi's automatic parameter selection feature is recommended.
 - The circumscribing spheres of non-spherical particles must not overlap with each other. There is a Smuthi package to allow for plane-wave mediated particle coupling developed by Dominik Theobald which allows to treat particles with overlaping circumscribing spheres, but this package is still in beta and requires expert knowledge to be used.

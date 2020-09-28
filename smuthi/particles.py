@@ -118,8 +118,8 @@ class CustomParticle(Particle):
         euler_angles (list):        Euler angles [alpha, beta, gamma] in (zy'z''-convention) in radian.
                                     Alternatively, you can specify the polar and azimuthal angle of the axis of 
                                     revolution.
-        polar_angle (float):        Polar angle of axis of revolution. 
-        azimuthal_angle (float):    Azimuthal angle of axis of revolution.
+        polar_angle (float):        Polar angle to rotate the particle. 
+        azimuthal_angle (float):    Azimuthal angle to rotate the particle.
         fem_filename (string):      Path to FEM file
         scale (float):              Scaling factor for particle dimensions (relative to provided dimensions)
         l_max (int):                Maximal multipole degree used for the spherical wave expansion of incoming and
