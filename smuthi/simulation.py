@@ -210,7 +210,13 @@ class Simulation:
             overlap = np.triu(distmatrix < r1+r2, k=1)
             pidx = np.where(overlap)
             s = 's' if np.count_nonzero(overlap) > 1 else '' # pluralize message string
-            msg = 'The circumscribing sphere of particle' + s + ' %i overlaps with that of particle'%pidx[0] + s + ' %i.\n'%pidx[1]
+            msg = 'The circumscribing sphere of particle' + s 
+            for idx in pidx[0]:
+                msg += " %i"%idx
+            msg += ' overlaps with that of particle'+ s
+            for idx in pidx[1]:
+                msg += " %i"%idx
+            msg += '.\n'
         except MemoryError: # less vectorized, more time consuming, stops at first overlap detected
             for i in range(len(self.particle_list)):
                 dists = cdist(np.expand_dims(pos[i,:],0), pos[i+1:,])
