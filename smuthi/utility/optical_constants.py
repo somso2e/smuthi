@@ -49,10 +49,10 @@ def read_refractive_index_from_yaml(filename, vacuum_wavelength, units="mkm", ki
         data_num.append(record)
     data_np = np.array(data_num)
     data_wl = data_np[:,0]*factor
-    eps_re = data_np[:,1]
-    eps_im = data_np[:,2]
-    f_re = interp1d(data_wl, eps_re, kind=kind)
-    f_im = interp1d(data_wl, eps_im, kind=kind)
+    index_re = data_np[:,1]
+    index_im = data_np[:,2]
+    f_re = interp1d(data_wl, index_re, kind=kind)
+    f_im = interp1d(data_wl, index_im, kind=kind)
     data_out = np.transpose(np.vstack((vacuum_wavelength, f_re(vacuum_wavelength)+f_im(vacuum_wavelength)*1j)))
     if len(data_out) == 1:
         return data_out[0]
