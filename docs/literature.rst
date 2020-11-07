@@ -41,5 +41,14 @@ Publications that use Smuthi:
 [Theobald et al. 2017]
     Theobald, D., Egel, A., Gomard, G., & Lemmer, U. (2017). Plane-wave coupling formalism for T-matrix simulations of light scattering by nonspherical particles. Physical Review A, 96(3), 033822.
 
+[Warren et al. 2020]
+    A. Warren, M. Alkaisi and C. Moore, "Design of 2D Plasmonic Diffraction Gratings for Sensing and Super-Resolution Imaging Applications," 2020 IEEE International Instrumentation and Measurement Technology Conference (I2MTC), Dubrovnik, Croatia, 2020, pp. 1-6, doi: 10.1109/I2MTC43012.2020.9129161.
+
+[Theobald et al. 2020]
+    Theobald, D., Yu, S., Gomard, G., & Lemmer, U. (2020). Design of Selective Reflectors Utilizing Multiple Scattering by Core–Shell Nanoparticles for Color Conversion Films. ACS Photonics.
+		
+[Czajkowski et al. 2020]
+    Czajkowski, Krzysztof M., Maria Bancerek, and Tomasz J. Antosiewicz. "Multipole analysis of substrate-supported dielectric nanoresonator arrays with T-matrix method." arXiv preprint arXiv:2006.09137 (2020).		
+
 
 .. |ref NFM-DS| replace:: [Doicu et al. 2006]

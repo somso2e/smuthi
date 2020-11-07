@@ -117,11 +117,40 @@ To select a reasonable `neff_max`, we should consider that the shortest possible
 
 .. _SommerfeldResolutionAnchor:
 
+
 Resolution
 ~~~~~~~~~~
-.. todo:: write section
+
+In Smuthi, Sommerfeld integrals are addressed numerical by means of the trapezoidal rule. The discretization of the integrand along the integration contour is determined by the parameter :code:`neff_resolution` which specifies the distance of one integration node to the next in terms of the effective refractive index. In general, a finer resolution leads to a better accuracy and a longer runtime during preprocessing (i.e., when the particle coupling lookup is computed) as well as during post processing (when the electric field is computed from a plane wave pattern).
+
+The following situations can require a fine sampling of the integrands:
+
+- when a high accuracy is desired
+- when waveguide modes and branch point singularities render a numerically challenging integrand of the Sommerfeld integrals (this can be avoided by a deflection into the imaginary, see below)
+- when particles with a large distance to each other are part of the simulation geometry
+
+To understand the latter point, consider the Sommerfeld integral as a `Hankel transform <https://en.wikipedia.org/wiki/Hankel_transform>`_. Like in a Fourier transform, a large lateral distance requires a fine sampling of the wavenumber to avoid `aliasing <https://en.wikipedia.org/wiki/Aliasing>`_. 
+
 
 Deflection into imaginary
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-.. todo:: write section
 
+Near waveguide mode or branchpoint singularities, the integrand of the Sommerfeld integrals may be a rapidly varying function (in case of lossless media, the waveguide mode singularities are located on the real axis, such that the integrand is even singular). In that case, a deflection of the integral contour into the complex plane can improve the accuracy of the numerical integrals for a given sampling resolution, see also the section on :ref:`SommerfeldAnchor`. The extent of that deflection is set by the :code:`neff_imag` parameter.
+
+.. note:: Care has to be taken when selecting the :code:`neff_imag` parameter, especially in the case of large lateral distances between the particles.
+
+- The larger :code:`neff_imag`, the stronger is the smoothing effect on the Sommerfeld integrand
+- For large lateral distances, a too large :code:`neff_imag` can lead to significant errors! To understand this point, consider the Sommerfeld integral as a Hankel transform, involving expressions of type :math:`J_\nu(\kappa \rho)`, where :math:`J_\nu` is the Bessel function, :math:`\kappa` is the in-plane wavenumber (which is proportional to :math:`n_{\mathrm{eff}}`) and :math:`\rho` is the lateral distance between the particles. Note that the Bessel functions grow rapidly arguments with a large negative imaginary part - which can lead to numerical problems in the integration. So, :code:`neff_imag` must be chosen such that :math:`\kappa \rho` doesn't have a too large negative imaginary part.
+
+How to check the parameter choice in case of large distances?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As we have seen, both the resolution and the deflection into the imaginary are critical parameters of the Sommerfeld integral contour if particles with large lateral distances are involved. In order to check your choice for these parameters, we recommend to plot the computed layer-mediated particle coupling strength as a function of particle distance. Download :download:`this script <large_rho/large_rho.py>` for a starting point. It produces the following figure for a glass substrate under ambient air at a vacuum wavelength of 550nm.
+
+.. image:: images/large_rho.png
+   :scale: 80%
+   :align: center
+
+In the given example, three sets of contour parameters are compared. The most accurate solution is produced by :code:`neff_resolution = 2e-4` and :code:`neff_imag = 1e-3` (blue curve). The fact that the coupling strength monotonously drops with the distance indicates, that neither aliasing nor the problem with the complex Bessel function limit the accuracy (it is still possible, that the sampling is too low with regard to the ordinary numerical integration error for a too coarse sampling). In constrast, the orange and green curves have a kink, and the computed coupling strength starts to grow from a certain distance. In case of the orange curve, this is caused by a more coarse sampling which leads to aliasing for distances larger than ca. 100microns, whereas in case of the green curve, the error is caused by a too large deflection into the imaginary, leading to the complex Bessel function problem described above.
+
+Note, however, that if the simulation doesn't involve large particle distances, all three settings for the Sommerfeld integral contour would be equally fine, and we can pick the one with the lowest computation time.
