@@ -33,9 +33,184 @@ def eval_BeLBe(BeLBe, BeL, B1, ejkz, n2):
     for k in range(len(BeLBe)):
         for iplmn2 in range(2):
             for pol in range(2):
-                BeLBe[k] += BeL[pol, iplmn2, k] * B1[pol, iplmn2, n2, k
-                                     ] * ejkz[1, 1 - iplmn2, k]
+                BeLBe[k] += BeL[pol, iplmn2, k] * B1[pol, iplmn2, n2, k] * ejkz[1, 1 - iplmn2, k]
         
+
+def g_function(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, k_parallel):
+    """
+    This function returns the function g_n(k_\rho) as defined in equation (16) of the paper "A quick way to approximate
+    a Sommerfeld-Weyl_type Sommerfeld integral" by Chew (1988) for the Sommerfeld integral for the layer-mediated
+    particle coupling (compare Amos Egel's dissertation, equation (3.46)).
+    The purpose of this function is to allow for stationary phase approximation in the case of  large lateral distances.
+
+    The use of this function is constrained to the important special case of particles above a (possibly layered)
+    substrate.
+
+    Args:
+        vacuum_wavelength (float):                          Vacuum wavelength :math:`\lambda` (length unit)
+        receiving_particle (smuthi.particles.Particle):     Particle that receives the scattered field (must be in top
+                                                            layer)
+        emitting_particle (smuthi.particles.Particle):      Particle that emits the scattered field (must be in top
+                                                            layer)
+        layer_system (smuthi.layers.LayerSystem):           Stratified medium in which the coupling takes place
+        k_parallel (float):                                 In-plane wavenumber
+
+    Returns:
+        a tuple with the following items:
+        - g: a matrix of g_function as entries (dimension is blocksize x blocksize)
+        - rho: radial distance between particles
+        - delta_z: z-argument of e^(ik_z z) term
+        - bessel_order: matrix of positive numbers to be used as the order of Hankel functions
+    """
+
+    # angular frequency
+    omega = smuthi.fields.angular_frequency(vacuum_wavelength)
+
+    # index specs
+    blocksize1 = smuthi.fields.blocksize(receiving_particle.l_max, receiving_particle.m_max)
+    blocksize2 = smuthi.fields.blocksize(emitting_particle.l_max, emitting_particle.m_max)
+
+    # cylindrical coordinates of relative position vectors
+    rs1 = np.array(receiving_particle.position)
+    rs2 = np.array(emitting_particle.position)
+    rs2s1 = rs1 - rs2
+    rhos2s1 = np.linalg.norm(rs2s1[0:2])
+    phis2s1 = np.arctan2(rs2s1[1], rs2s1[0])
+    is1 = layer_system.layer_number(rs1[2])
+    ziss1 = rs1[2] - layer_system.reference_z(is1)
+    is2 = layer_system.layer_number(rs2[2])
+    ziss2 = rs2[2] - layer_system.reference_z(is2)
+
+    # assert that both particles are in top layer (this function applies only to this special case)
+    assert (is1 == (layer_system.number_of_layers() - 1) and is2 == (layer_system.number_of_layers() - 1))
+
+    # wave numbers
+    k = omega * layer_system.refractive_indices[is1]
+    kz = smuthi.fields.k_z(k_parallel=k_parallel, k=k)
+
+    L = []
+    for pol in range(2):
+        # layer response
+        # (we pick the [0, 1]-component corresponding to downgoing excitation and upgoing response
+        # - should be the only non-zero)
+        L.append(lay.layersystem_response_matrix(pol, layer_system.thicknesses,
+                                                 layer_system.refractive_indices,
+                                                 k_parallel, omega, is2, is1)[0, 1])
+
+    # transformation coefficients, indices: pol, n
+    Bdag = np.zeros((2, blocksize1), dtype=complex)
+    B = np.zeros((2, blocksize2), dtype=complex)
+
+    # multipole order
+    m_vec = [np.zeros(blocksize1, dtype=int), np.zeros(blocksize2, dtype=int)]
+
+    for tau in range(2):
+        for m in range(-receiving_particle.m_max, receiving_particle.m_max + 1):
+            for l in range(max(1, abs(m)), receiving_particle.l_max + 1):
+                n = smuthi.fields.multi_to_single_index(tau, l, m, receiving_particle.l_max, receiving_particle.m_max)
+                m_vec[0][n] = m
+                for pol in range(2):
+                    Bdag[pol, n] = trf.transformation_coefficients_vwf(tau, l, m, pol, kp=k_parallel, kz=kz, dagger=True)
+
+    for tau in range(2):
+        for m in range(-emitting_particle.m_max, emitting_particle.m_max + 1):
+            for l in range(max(1, abs(m)), emitting_particle.l_max + 1):
+                n = smuthi.fields.multi_to_single_index(tau, l, m, emitting_particle.l_max, emitting_particle.m_max)
+                m_vec[1][n] = m
+                for pol in range(2):
+                    B[pol, n] = trf.transformation_coefficients_vwf(tau, l, m, pol, kp=k_parallel, kz=-kz, dagger=False)
+
+    # factor
+    m2_minus_m1 = m_vec[1] - m_vec[0][np.newaxis].T
+    wr_const = 4 * (1j) ** abs(m2_minus_m1) * np.exp(1j * m2_minus_m1 * phis2s1) / (kz * k)
+
+    # result
+    g = np.zeros((blocksize1, blocksize2), dtype=complex)
+    for pol in range(2):
+        g += L[pol] * Bdag[pol, :][np.newaxis].T * B[pol, :]
+    g *= wr_const
+
+    # bessel function order
+    bessel_order = abs(m2_minus_m1)
+    delta_z = ziss1 + ziss2
+
+    return g, rhos2s1, delta_z, bessel_order
+
+
+def layer_mediated_coupling_block_stat_phase_approx(vacuum_wavelength, receiving_particle, emitting_particle,
+                                                    layer_system):
+    """
+    Compute the layer mediated coupling coefficients by means of the stationary phase approximation, as presented in
+    "A quick way to approximate a Sommerfeld-Weyl_type Sommerfeld integral" by W.C. Chew (1988).
+
+    The stationary phase approximation is expected to yield good results for particles with a large lateral distance.
+
+    ********************************************************************************************************************
+    Note: This function assumes that both particles (emitter and receiver) are located in the top layer of the layered
+    medium. For other cases, this function does not apply.
+    ********************************************************************************************************************
+
+    Args:
+        vacuum_wavelength (float):                          Vacuum wavelength :math:`\lambda` (length unit)
+        receiving_particle (smuthi.particles.Particle):     Particle that receives the scattered field
+        emitting_particle (smuthi.particles.Particle):      Particle that emits the scattered field
+        layer_system (smuthi.layers.LayerSystem):           Stratified medium in which the coupling takes place
+
+    Returns:
+        Stationary phase approximation for the layer mediated coupling matrix block as numpy array.
+
+    """
+
+    # index specs
+    lmax1 = receiving_particle.l_max
+    mmax1 = receiving_particle.m_max
+    lmax2 = emitting_particle.l_max
+    mmax2 = emitting_particle.m_max
+    blocksize1 = smuthi.fields.blocksize(lmax1, mmax1)
+    blocksize2 = smuthi.fields.blocksize(lmax2, mmax2)
+
+    # cylindrical coordinates of relative position vectors
+    rs1 = np.array(receiving_particle.position)
+    rs2 = np.array(emitting_particle.position)
+    rs2s1 = rs1 - rs2
+    rhos2s1 = np.linalg.norm(rs2s1[0:2])
+    phis2s1 = np.arctan2(rs2s1[1], rs2s1[0])
+    is1 = layer_system.layer_number(rs1[2])
+    ziss1 = rs1[2] - layer_system.reference_z(is1)
+    is2 = layer_system.layer_number(rs2[2])
+    ziss2 = rs2[2] - layer_system.reference_z(is2)
+
+    # assert that both particles are in top layer (this function applies only to this special case)
+    assert (is1 == (layer_system.number_of_layers() - 1) and is2 == (layer_system.number_of_layers() - 1))
+
+    # wavenumber
+    omega = smuthi.fields.angular_frequency(vacuum_wavelength)
+    k = omega * layer_system.refractive_indices[is1]
+
+    # stationary phase point
+    r = np.sqrt(rhos2s1**2 + (ziss1 + ziss2)**2)
+    sin_theta = rhos2s1 / r
+    kpar0 = sin_theta * k
+    kz0 = k * np.sqrt(1 - sin_theta**2)
+
+    # g function (see [Chew1988])
+    g, _, _, bess_ord = g_function(vacuum_wavelength=vacuum_wavelength,
+                                   receiving_particle=receiving_particle,
+                                   emitting_particle=emitting_particle,
+                                   layer_system=layer_system,
+                                   k_parallel=kpar0)
+
+    # stationary phase approximation
+    hankel = np.zeros((blocksize1, blocksize2), dtype=complex)
+
+    for i1 in range(blocksize1):
+        for i2 in range(blocksize2):
+            hankel[i1, i2] = scipy.special.hankel1(bess_ord[i1, i2], kpar0 * rhos2s1)
+
+    wr0 = -1j * g * hankel / scipy.special.hankel1(0, kpar0 * rhos2s1) * kz0 * np.exp(1j * k * r) / r
+
+    return wr0
+
 
 def layer_mediated_coupling_block(vacuum_wavelength, receiving_particle, emitting_particle, layer_system,
                                   k_parallel='default', show_integrand=False):
