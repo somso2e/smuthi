@@ -1,6 +1,14 @@
 import numpy as np
 
 def readstl(stlname):
+    """
+    Reads surface information from STL file
+    Args:
+        stlname (string):    name of STL file
+
+    Returns:
+        A list of dictionaries with information about faces of scatterer geometry.
+    """
     surfaces = []
     with open(stlname) as f:
         for x in f:
@@ -45,6 +53,12 @@ def readstl(stlname):
     return surfaces
 
 def writefem(femname,surfaces):
+    """
+    Writes information about particle geometry to FEM file.
+    Args:
+        femname (string):    name of FEM file
+        surfaces  (list):    information about faces of scatterer geometry
+    """    
     fid = open(femname, 'w+')
     lenareas = 0
     print('%7i' % len(surfaces), file=fid)
@@ -61,5 +75,11 @@ def writefem(femname,surfaces):
     fid.close()
 
 def convertstltofem(stlname, femname):
+    """
+    Converts STL to FEM file
+    Args:
+        stlname (string):    name of STL file
+        femname (string):    name of FEM file
+    """    
     surfaces=readstl(stlname)
     writefem(femname,surfaces)
