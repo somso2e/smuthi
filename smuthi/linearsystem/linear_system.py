@@ -109,13 +109,6 @@ class LinearSystem:
 
     def compute_t_matrix(self):
         """Initialize T-matrix object."""
-        # make sure that the initialization output appears before the progress bar
-        for particle in self.particle_list:
-            if type(particle).__name__ != 'Sphere':
-                import smuthi.linearsystem.tmatrix.nfmds as nfmds
-                nfmds.initialize_binary()
-                break
-
         if self.identical_particles:
             particle = self.particle_list[0]
             iS = self.layer_system.layer_number(particle.position[2])
