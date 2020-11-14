@@ -98,7 +98,8 @@ class Simulation:
                  save_after_run=False,
                  log_to_file=False,
                  log_to_terminal=True,
-                 check_circumscribing_spheres=True):
+                 check_circumscribing_spheres=True,
+                 identical=False):
 
         # initialize attributes
         self.layer_system = layer_system
@@ -122,6 +123,7 @@ class Simulation:
         self.length_unit = length_unit
         self.save_after_run = save_after_run
         self.check_circumscribing_spheres = check_circumscribing_spheres
+        self.identical = identical
 
         # output
         timestamp = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
@@ -197,7 +199,7 @@ class Simulation:
                                                solver_tolerance=self.solver_tolerance,
                                                store_coupling_matrix=self.store_coupling_matrix,
                                                coupling_matrix_lookup_resolution=self.coupling_matrix_lookup_resolution,
-                                               interpolator_kind=self.coupling_matrix_interpolator_kind)
+                                               interpolator_kind=self.coupling_matrix_interpolator_kind,identical=self.identical)
 
     def circumscribing_spheres_disjoint(self):
         """Check if all circumscribing spheres are disjoint"""

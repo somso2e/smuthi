@@ -69,7 +69,8 @@ class LinearSystem:
                  store_coupling_matrix=True,
                  coupling_matrix_lookup_resolution=None,
                  interpolator_kind='cubic',
-                 cuda_blocksize=None):
+                 cuda_blocksize=None,
+                 identical=False):
 
         if cuda_blocksize is None:
             cuda_blocksize = cu.default_blocksize
@@ -84,6 +85,7 @@ class LinearSystem:
         self.coupling_matrix_lookup_resolution = coupling_matrix_lookup_resolution
         self.interpolator_kind = interpolator_kind
         self.cuda_blocksize = cuda_blocksize
+        self.identical = identical
 
         dummy_matrix = SystemMatrix(self.particle_list)
         sys.stdout.write('Number of unknowns: %i\n' % dummy_matrix.shape[0])
@@ -105,16 +107,39 @@ class LinearSystem:
 
     def compute_t_matrix(self):
         """Initialize T-matrix object."""
-        for particle in tqdm(self.particle_list,
-                             desc='T-matrices                ',
-                             file=sys.stdout,
-                             bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
+        # make sure that the initialization output appears before the progress bar
+        for particle in self.particle_list:
+            if type(particle).__name__ != 'Sphere':
+                import smuthi.linearsystem.tmatrix.nfmds as nfmds
+                nfmds.initialize_binary()
+                break
+
+        if self.identical:
+            particle = self.particle_list[0]
             iS = self.layer_system.layer_number(particle.position[2])
             niS = self.layer_system.refractive_indices[iS]
-            particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
+            t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
             if not particle.euler_angles == [0, 0, 0]:
-                particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
-                                                        particle.euler_angles, wdsympy=False)
+                t_matrix = tmt.rotate_t_matrix(t_matrix, particle.l_max, particle.m_max,
+                                               particle.euler_angles, wdsympy=False)
+            for particle in tqdm(self.particle_list,
+                                 desc='T-matrices                ',
+                                 file=sys.stdout,
+                                 bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
+                iS = self.layer_system.layer_number(particle.position[2])
+                niS = self.layer_system.refractive_indices[iS]
+                particle.t_matrix = t_matrix
+        else:
+            for particle in tqdm(self.particle_list,
+                                 desc='T-matrices                ',
+                                 file=sys.stdout,
+                                 bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
+                iS = self.layer_system.layer_number(particle.position[2])
+                niS = self.layer_system.refractive_indices[iS]
+                particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
+                if not particle.euler_angles == [0, 0, 0]:
+                    particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
+                                                            particle.euler_angles, wdsympy=False)
         self.t_matrix = TMatrix(particle_list=self.particle_list)
 
     def compute_coupling_matrix(self):
@@ -334,7 +359,7 @@ class SystemMatrix:
         """
         blocksizes = [flds.blocksize(particle.l_max, particle.m_max) for particle in self.particle_list[:i]]
         return sum(blocksizes) + flds.multi_to_single_index(tau, l, m, self.particle_list[i].l_max,
-                                                            self.particle_list[i].m_max)
+                                                             self.particle_list[i].m_max)
 
 
 class MasterMatrix(SystemMatrix):
@@ -573,12 +598,12 @@ class CouplingMatrixVolumeLookupCUDA(CouplingMatrixVolumeLookup):
 
         if interpolator_kind == 'linear':
             coupling_source = cusrc.linear_volume_lookup_source % (self.blocksize, self.shape[0], len(self.sum_z_array),
-                                                                   min(self.rho_array), min(self.sum_z_array),
-                                                                   min(self.diff_z_array), self.resolution)
+                                                                min(self.rho_array), min(self.sum_z_array),
+                                                                min(self.diff_z_array), self.resolution)
         elif interpolator_kind == 'cubic':
             coupling_source = cusrc.cubic_volume_lookup_source % (self.blocksize, self.shape[0], len(self.sum_z_array),
-                                                                  min(self.rho_array), min(self.sum_z_array),
-                                                                  min(self.diff_z_array), self.resolution)
+                                                               min(self.rho_array), min(self.sum_z_array),
+                                                               min(self.diff_z_array), self.resolution)
 
         coupling_function = cu.SourceModule(coupling_source).get_function("coupling_kernel")
 
@@ -697,10 +722,10 @@ class CouplingMatrixRadialLookupCUDA(CouplingMatrixRadialLookup):
 
         if interpolator_kind == 'linear':
             coupling_source = cusrc.linear_radial_lookup_source % (self.blocksize, self.shape[0],
-                                                                   self.radial_distance_array.min(), resolution)
+                                                                self.radial_distance_array.min(), resolution)
         elif interpolator_kind == 'cubic':
             coupling_source = cusrc.cubic_radial_lookup_source % (self.blocksize, self.shape[0],
-                                                                  self.radial_distance_array.min(), resolution)
+                                                               self.radial_distance_array.min(), resolution)
 
         coupling_function = cu.SourceModule(coupling_source).get_function("coupling_kernel")
 

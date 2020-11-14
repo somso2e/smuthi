@@ -4,11 +4,7 @@ import smuthi.fields as flds
 import smuthi.linearsystem.tmatrix.t_matrix as tmt
 import numpy as np
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
-try:
-  import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
-except:
-  import warnings
-  warnings.warn("Unable to locate nfmds module.")
+import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 
 
 class Particle:
@@ -23,8 +19,9 @@ class Particle:
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
     """
-    def __init__(self, position=None, euler_angles=None, refractive_index=1+0j, l_max=None, m_max=None):
-        
+
+    def __init__(self, position=None, euler_angles=None, refractive_index=1 + 0j, l_max=None, m_max=None):
+
         if position is None:
             self.position = [0, 0, 0]
         else:
@@ -44,7 +41,7 @@ class Particle:
         self.initial_field = None
         self.scattered_field = None
         self.t_matrix = None
-        
+
     def circumscribing_sphere_radius(self):
         """Virtual method to be overwritten"""
         pass
@@ -75,7 +72,6 @@ class Particle:
         raise ValueError('T-matrix for ' + type(self).__name__ + ' currently not implemented.')
 
 
-
 class Sphere(Particle):
     """Particle subclass for spheres.
 
@@ -87,7 +83,6 @@ class Sphere(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        t_matrix_method (dict):     Dictionary containing the parameters for the algorithm to compute the T-matrix
     """
 
     def __init__(self, position=None, refractive_index=1 + 0j, radius=1, l_max=None, m_max=None):
@@ -100,11 +95,11 @@ class Sphere(Particle):
 
     def is_inside(self, x, y, z):
         return (x - self.position[0]) ** 2 + (y - self.position[1]) ** 2 + (
-                    z - self.position[2]) ** 2 <= self.radius ** 2
+                z - self.position[2]) ** 2 <= self.radius ** 2
 
     def is_outside(self, x, y, z):
         return (x - self.position[0]) ** 2 + (y - self.position[1]) ** 2 + (
-                    z - self.position[2]) ** 2 > self.radius ** 2
+                z - self.position[2]) ** 2 > self.radius ** 2
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
         k_medium = 2 * np.pi / vacuum_wavelength * n_medium
@@ -122,24 +117,25 @@ class CustomParticle(Particle):
         euler_angles (list):        Euler angles [alpha, beta, gamma] in (zy'z''-convention) in radian.
                                     Alternatively, you can specify the polar and azimuthal angle of the axis of 
                                     revolution.
-        polar_angle (float):        Polar angle to rotate the particle. 
-        azimuthal_angle (float):    Azimuthal angle to rotate the particle.
+        polar_angle (float):        Polar angle of axis of revolution. 
+        azimuthal_angle (float):    Azimuthal angle of axis of revolution.
         fem_filename (string):      Path to FEM file
         scale (float):              Scaling factor for particle dimensions (relative to provided dimensions)
         l_max (int):                Maximal multipole degree used for the spherical wave expansion of incoming and
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
+        n_rank (int):               Maximal multipole order used for in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
-                 fem_filename=None, scale=1, l_max=None, m_max=None, t_matrix_method=None):
+                 fem_filename=None, scale=1, l_max=None, m_max=None, n_rank=None):
         if euler_angles is None:
             euler_angles = [azimuthal_angle, polar_angle, 0]
-        if t_matrix_method is None:
-            self.t_matrix_method = {}
+        if n_rank is None:
+            self.n_rank = self.l_max + 2
         else:
-            self.t_matrix_method = t_matrix_method
+            self.n_rank = n_rank
         Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
                           l_max=l_max, m_max=m_max)
 
@@ -150,13 +146,60 @@ class CustomParticle(Particle):
         return self.scale
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        Nrank=self.t_matrix_method.get('nrank', self.l_max + 2)
-        Mrank=self.t_matrix_method.get('mrank', self.l_max + 2)
-        Nmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
+        Nmax = self.n_rank * (2 + self.n_rank)
         tnfmds = nfmds.tnonaxsym([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], Nmax, filefem=self.fem_filename,
-                                 wavelength=vacuum_wavelength / self.scale, ind_refrel=self.refractive_index/n_medium + 0j,
-                                 nrank=Nrank, mrank=Mrank,ind_refmed=n_medium)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds,l_max=self.l_max)
+                                 wavelength=vacuum_wavelength / self.scale,
+                                 ind_refrel=self.refractive_index / n_medium + 0j,
+                                 nrank=self.n_rank, mrank=self.n_rank, ind_refmed=n_medium)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
+        return t
+
+
+class AnisotropicSphere(Particle):
+    """Particle subclass for anisotropic spheres.
+
+    Args:
+        position (list):              Particle position in the format [x, y, z] (length unit)
+        euler_angles (list):          Euler angles [alpha, beta, gamma] in (zy'z''-convention) in radian.
+                                      Alternatively, you can specify the polar and azimuthal angle of the axis of
+                                      revolution.
+        polar_angle (float):          Polar angle of axis of revolution.
+        azimuthal_angle (float):      Azimuthal angle of axis of revolution.
+        refractive_index (complex):   Complex refractive index of particle in x-y plane (if not rotated)
+        refractive_index_z (complex): Complex refractive index of particle along z-axis (if not rotated)
+        radius (float):               Sphere radius
+        l_max (int):                  Maximal multipole degree used for the spherical wave expansion of incoming and
+                                      scattered field
+        m_max (int):                  Maximal multipole order used for the spherical wave expansion of incoming and
+                                      scattered field
+        n_rank (int):                 Maximal multipole order used for in NFMDS
+    """
+
+    def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
+                 radius=1, refractive_index_z=2 + 0j, l_max=None, m_max=None, n_rank=None):
+        if euler_angles is None:
+            euler_angle: wqs = [azimuthal_angle, polar_angle, 0]
+        if n_rank is None:
+            self.n_rank = self.l_max + 2
+        else:
+            self.n_rank = n_rank
+        Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
+                          l_max=l_max, m_max=m_max)
+        self.radius = radius
+        self.refractive_index_z = refractive_index_z
+
+    def circumscribing_sphere_radius(self):
+        return self.radius
+
+    def compute_t_matrix(self, vacuum_wavelength, n_medium):
+        Nmax = self.n_rank * (2 + self.n_rank)
+        r = self.radius
+        tnfmds = nfmds.tnonaxsym([r, r, r, 0, 0, 0, 0, 0, 0, 0], Nmax, filegeom=0,
+                                 wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
+                                 ind_refrelz=self.refractive_index_z / n_medium + 0j,
+                                 nrank=self.n_rank, mrank=self.n_rank, ind_refmed=n_medium,
+                                 anisotropic=1, typegeom=1, nsurf=3, nparam=1)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
         return t
 
 
@@ -177,6 +220,8 @@ class AxisymmetricParticle(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
+        n_rank (int):               Maximal multipole order used for in NFMDS
+
 !    Particle      TypeGeom   Nsurf   Nparam                surf                   !
 !    spheroid         1         2       1         surf(1) - length of the semi-    !
 !                                                           axis along the         !
@@ -195,15 +240,17 @@ class AxisymmetricParticle(Particle):
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
-                 geometry_type = None, geometry_parameters = None, l_max=None, m_max=None, t_matrix_method=None):
+                 geometry_type=None, geometry_parameters=None, l_max=None, m_max=None, n_rank=None):
         if euler_angles is None:
             euler_angles = [azimuthal_angle, polar_angle, 0]
 
         Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
                           l_max=l_max, m_max=m_max)
 
-        if t_matrix_method is None:
-            self.t_matrix_method={}
+        if n_rank is None:
+            self.n_rank = self.l_max + 2
+        else:
+            self.n_rank = n_rank
 
         self.geometry_type = geometry_type
         self.geometry_parameters = geometry_parameters
@@ -211,20 +258,20 @@ class AxisymmetricParticle(Particle):
             self.nparam = 1
         else:
             self.nparam = 3
+
     def circumscribing_sphere_radius(self):
         return self.geometry_parameters[0]
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        Nrank=self.t_matrix_method.get('nrank', self.l_max + 2)
-        Mrank=self.t_matrix_method.get('mrank', self.l_max + 2)
-        Nmax = Nrank + Mrank * (2 * Nrank - Mrank + 1)
-        nsurf=len(self.geometry_parameters)
-        surf=list(self.geometry_parameters)+[0]*(10-nsurf)
+        Nmax = self.n_rank * (2 + self.n_rank)
+        nsurf = len(self.geometry_parameters)
+        surf = list(self.geometry_parameters) + [0] * (10 - nsurf)
         tnfmds = nfmds.taxsym(surf, Nmax, typegeom=self.geometry_type, nsurf=nsurf, nparam=self.nparam,
-                             wavelength=vacuum_wavelength, ind_refrel=self.refractive_index/n_medium + 0j,
-                             nrank=Nrank,ind_refmed=n_medium)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds,l_max=self.l_max)
+                              wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
+                              nrank=self.n_rank, ind_refmed=n_medium)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
         return t
+
 
 class Spheroid(AxisymmetricParticle):
     """Particle subclass for spheroids.
@@ -243,26 +290,25 @@ class Spheroid(AxisymmetricParticle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        t_matrix_method (dict):     Dictionary containing the parameters for the algorithm to compute the T-matrix
+        n_rank (int):               Maximal multipole order used for in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
-                 semi_axis_c=1, semi_axis_a=1, l_max=None, m_max=None, t_matrix_method=None):
-
-        if euler_angles is None:
-            euler_angles = [azimuthal_angle, polar_angle, 0]
-
-        if t_matrix_method is None:
-            self.t_matrix_method = {}
-        else:
-            self.t_matrix_method = t_matrix_method
-
+                 semi_axis_c=1, semi_axis_a=1, l_max=None, m_max=None, n_rank=None):
         self.semi_axis_c = semi_axis_c
         self.semi_axis_a = semi_axis_a
-        AxisymmetricParticle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,geometry_type = 1, geometry_parameters = [self.semi_axis_c, self.semi_axis_a], l_max=l_max, m_max=m_max, t_matrix_method=t_matrix_method)
+        AxisymmetricParticle.__init__(self, position=position, euler_angles=euler_angles, polar_angle=polar_angle,
+                                      azimuthal_angle=azimuthal_angle, refractive_index=refractive_index,
+                                      geometry_type=1, geometry_parameters=[self.semi_axis_c, self.semi_axis_a],
+                                      l_max=l_max, m_max=m_max, n_rank=n_rank)
 
     def circumscribing_sphere_radius(self):
         return max([self.semi_axis_a, self.semi_axis_c])
+
+    def __setattr__(self, name, value):
+        if hasattr(self, 'semi_axis_a') and hasattr(self, 'semi_axis_c'):
+            super(Spheroid,self).__setattr__('geometry_parameters', [self.semi_axis_c, self.semi_axis_a])
+        super(Spheroid,self).__setattr__(name, value)
 
 
 class FiniteCylinder(AxisymmetricParticle):
@@ -282,25 +328,24 @@ class FiniteCylinder(AxisymmetricParticle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
+        n_rank (int):               Maximal multipole order used for in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
-                 cylinder_radius=1, cylinder_height=1, l_max=None, m_max=None, t_matrix_method=None):
-
-        if euler_angles is None:
-            euler_angles = [azimuthal_angle, polar_angle, 0]
-
-        if t_matrix_method is None:
-            self.t_matrix_method = {}
-        else:
-            self.t_matrix_method = t_matrix_method
-
+                 cylinder_radius=1, cylinder_height=1, l_max=None, m_max=None, n_rank=None):
         self.cylinder_radius = cylinder_radius
         self.cylinder_height = cylinder_height
 
-        AxisymmetricParticle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,geometry_type = 2, geometry_parameters = [self.cylinder_height / 2, self.cylinder_radius], l_max=l_max, m_max=m_max, t_matrix_method=t_matrix_method)
+        AxisymmetricParticle.__init__(self, position=position, euler_angles=euler_angles, polar_angle=polar_angle,
+                                      azimuthal_angle=azimuthal_angle, refractive_index=refractive_index,
+                                      geometry_type=2,
+                                      geometry_parameters=[self.cylinder_height / 2, self.cylinder_radius], l_max=l_max,
+                                      m_max=m_max, n_rank=n_rank)
 
     def circumscribing_sphere_radius(self):
         return np.sqrt((self.cylinder_height / 2) ** 2 + self.cylinder_radius ** 2)
 
-
+    def __setattr__(self, name, value):
+        if hasattr(self, 'cylinder_height') and hasattr(self, 'cylinder_radius'):
+            super(FiniteCylinder,self).__setattr__('geometry_parameters', [self.cylinder_height / 2, self.cylinder_radius])
+        super(FiniteCylinder,self).__setattr__(name, value)

@@ -1,15 +1,6 @@
 import numpy as np
 
-
-def convert_stl_to_fem(stlname, femname):
-    """Reads an STL file generated with GMSH and converts it to FEM (NFMDS geometry file) format.
-
-    Args:
-        stlname(string):    Path to STL file to be read
-        femname(string):    Path to FEM file to be written
-
-    """
-
+def readstl(stlname):
     surfaces = []
     with open(stlname) as f:
         for x in f:
@@ -43,6 +34,7 @@ def convert_stl_to_fem(stlname, femname):
                 vertex = np.array([float(i) for i in x.split(" ")[5:]])
                 baricenter += vertex / 3
                 triangle.append(vertex)
+
     surf = {
         'nsurf': nsurf - 1,
         'baris': np.array(baris),
@@ -50,17 +42,24 @@ def convert_stl_to_fem(stlname, femname):
         'normals': np.array(normals)
     }
     surfaces.append(surf)
+    return surfaces
 
+def writefem(femname,surfaces):
     fid = open(femname, 'w+')
-    print('%7i' % 1, file=fid)
-    print('%7i' % len(areas), file=fid)
+    lenareas = 0
+    print('%7i' % len(surfaces), file=fid)
     ii0 = 1
     for surface in surfaces:
         areas = surface['areas']
         F = surface['normals']
         P = surface['baris']
+        print('%7i' % len(areas), file=fid)
         for ii in range(len(areas)):
             print('%7i%17.7E%17.7E%17.7E%17.7E%17.7E%17.7E%17.7E' % (
             ii0 + ii, P[ii, 0], P[ii, 1], P[ii, 2], F[ii, 0], F[ii, 1], F[ii, 2], areas[ii]), file=fid)
         ii0 += len(areas)
     fid.close()
+
+def convertstltofem(stlname, femname):
+    surfaces=readstl(stlname)
+    writefem(femname,surfaces)
