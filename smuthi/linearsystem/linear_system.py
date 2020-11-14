@@ -56,7 +56,9 @@ class LinearSystem:
         interpolator_kind (str): interpolation order to be used, e.g. 'linear' or 'cubic'. This argument is ignored if
                                  coupling_matrix_lookup_resolution is None. In general, cubic interpolation is more
                                  accurate but a bit slower than linear.
-
+        identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
+                                             particles, located in the same background medium). Then, the T-matrix is
+                                             computed only once for all particles.
     """
 
     def __init__(self,
@@ -70,7 +72,7 @@ class LinearSystem:
                  coupling_matrix_lookup_resolution=None,
                  interpolator_kind='cubic',
                  cuda_blocksize=None,
-                 identical=False):
+                 identical_particles=False):
 
         if cuda_blocksize is None:
             cuda_blocksize = cu.default_blocksize
@@ -85,7 +87,7 @@ class LinearSystem:
         self.coupling_matrix_lookup_resolution = coupling_matrix_lookup_resolution
         self.interpolator_kind = interpolator_kind
         self.cuda_blocksize = cuda_blocksize
-        self.identical = identical
+        self.identical_particles = identical_particles
 
         dummy_matrix = SystemMatrix(self.particle_list)
         sys.stdout.write('Number of unknowns: %i\n' % dummy_matrix.shape[0])
@@ -114,7 +116,7 @@ class LinearSystem:
                 nfmds.initialize_binary()
                 break
 
-        if self.identical:
+        if self.identical_particles:
             particle = self.particle_list[0]
             iS = self.layer_system.layer_number(particle.position[2])
             niS = self.layer_system.refractive_indices[iS]
