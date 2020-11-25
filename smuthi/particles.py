@@ -137,12 +137,12 @@ class CustomParticle(Particle):
                  fem_filename=None, scale=1, l_max=None, m_max=None, n_rank=None):
         if euler_angles is None:
             euler_angles = [azimuthal_angle, polar_angle, 0]
+        Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
+                l_max=l_max, m_max=m_max)
         if n_rank is None:
             self.n_rank = self.l_max + 2
         else:
             self.n_rank = n_rank
-        Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
-                          l_max=l_max, m_max=m_max)
 
         self.fem_filename = fem_filename
         self.scale = scale
