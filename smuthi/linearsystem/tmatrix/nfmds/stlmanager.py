@@ -74,7 +74,7 @@ def writefem(femname,surfaces):
         ii0 += len(areas)
     fid.close()
 
-def convertstltofem(stlname, femname):
+def convert_stl_to_fem(stlname, femname):
     """
     Converts STL to FEM file
     Args:
