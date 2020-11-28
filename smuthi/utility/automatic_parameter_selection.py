@@ -315,7 +315,7 @@ def converge_multipole_cutoff(simulation,
 
 def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.5, neff_resolution=2e-3):
     """Update the default `k_parallel` arrays in smuthi.fields with a newly constructed Sommerfeld integral
-    contours.
+    contour, and set the simulation object to use the default contour for particle coupling.
 
     Args:
         simulation (smuthi.simulation.Simulation):  Simulation object
@@ -328,8 +328,6 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
                                                     refractive index).
         neff_resolution (float):                    Discretization of the contour (in terms of effective refractive
                                                     index).
-        update_default_contours (logical)           If true, overwrite the default contours in smuthi.fields module.
-                                                    Otherwise, overwrite simulation.k_parallel array
     """
     simulation.neff_imag = neff_imag
     simulation.neff_max = neff_max
@@ -338,7 +336,7 @@ def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.
     simulation.set_default_initial_field_contour()
     simulation.set_default_Sommerfeld_contour()
 
-    simulation.k_parallel = flds.default_Sommerfeld_k_parallel_array
+    simulation.k_parallel = "default"
 
 
 def converge_neff_max(simulation,
