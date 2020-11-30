@@ -183,7 +183,7 @@ class AnisotropicSphere(Particle):
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
                  radius=1, refractive_index_z=2 + 0j, l_max=None, m_max=None, n_rank=None):
         if euler_angles is None:
-            euler_angle: wqs = [azimuthal_angle, polar_angle, 0]
+            euler_angles = [azimuthal_angle, polar_angle, 0]
         if n_rank is None:
             self.n_rank = self.l_max + 2
         else:
