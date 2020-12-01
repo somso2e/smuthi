@@ -10,6 +10,8 @@ test:
     - echo "Testing"
     - apt-get update
     - apt-get install -y gfortran
+    - pip3 install numpy
+    - pip3 install wheel
     - pip3 install .
     - pip3 install nose2
     - rm -r smuthi
