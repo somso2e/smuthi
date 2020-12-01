@@ -2,9 +2,13 @@
 """This module is needed for the installation of the package."""
 
 import os
-from setuptools import setup
+#from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
+from setuptools.command.build_ext import build_ext
+from wheel.bdist_wheel import bdist_wheel
+from numpy.distutils.core import setup
+from numpy.distutils.core import Extension
 import pkg_resources
 import os
 import subprocess
@@ -13,25 +17,43 @@ import warnings
 import shutil
 import glob
 
+
 version = {}
 with open("smuthi/version.py") as fp:
     exec(fp.read(), version)
 __version__ = version['__version__']
 
 
+class PrepareCommand(develop):
+    def run(self):
+        install_pywigxjpf()
+        prepare_nfmds()
+        
+
 class CustomDevelopCommand(develop):
     def run(self):
         install_pywigxjpf()
-        compile_nfmds()
+        prepare_nfmds()
+        #compile_nfmds()
         develop.run(self)
 
 
 class CustomInstallCommand(install):
     def run(self):
         install_pywigxjpf()
-        compile_nfmds()
+        prepare_nfmds()
+        #compile_nfmds()
         install.run(self)
 
+
+class CustomBdistWheelCommand(bdist_wheel):
+    def run(self):
+        if sys.platform.startswith('win'):
+            # Skip F2Py. Before "python setup.py bdist_wheel", you need to call in advance:
+            # python setup.py prepare
+            # python setup.py build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f
+            self.distribution.ext_modules = []
+        bdist_wheel.run(self)
 
 def install_pywigxjpf():
     """If Windows: try to install pywigxjpf"""
@@ -48,34 +70,51 @@ def install_pywigxjpf():
                           '\n*****************************************************\n',
                           UserWarning)
 
-
-def compile_nfmds():
-    """compile nfmds Fortran extension (unless built on readthedocs)"""
-    currdir = os.getcwd()
-    if not os.environ.get('READTHEDOCS'):
+def prepare_nfmds():
+    """If Windows: Call encoding converter to get Fortran sources with valid encoding"""
+    if sys.platform.startswith('win'):
+        currdir = os.getcwd()
         nfmds_sources_dirname = pkg_resources.resource_filename('smuthi.linearsystem.tmatrix.nfmds', 'NFM-DS')
-        sys.stdout.write('\nCompiling sources at ' + nfmds_sources_dirname + ' ...')
-        sys.stdout.flush()
         os.chdir(nfmds_sources_dirname + '/TMATSOURCES')
+        with open("encoding_converter.py") as fp:
+            exec(fp.read(), version)
+        os.chdir(currdir)
 
-        sys.stdout.flush()
-        try:
-            if sys.platform.startswith('win'):
-                import encoding_converter
-                os.chdir('win')
-                subprocess.check_call(
-                    ['f2py', '-c', '--compiler=mingw32', '--fcompiler=gnu95', 'TAXSYM_SMUTHI.f90', '-m', 'nfmds'])
-                for file in glob.glob(r'nfmds*'):
-                    shutil.move(file, '../../../' + file)
-            else:
-                subprocess.check_call(['f2py', '-c', 'TAXSYM_SMUTHI.f90', '-m', 'nfmds'])
-                for file in glob.glob(r'nfmds*'):
-                    shutil.move(file, '../../' + file)
-            sys.stdout.write(' done.\n')
-            sys.stdout.flush()
-        except Exception as e:
-            raise NameError('Compiling failed.')
-    os.chdir(currdir)
+
+# The following function is currently not needed, as we make use of the ext_modules parameter of the setup() function
+# We still keep it here for possible future convenience
+#def compile_nfmds():
+#    """Compile nfmds Fortran extension (unless built on readthedocs)"""
+#    currdir = os.getcwd()
+#    if not os.environ.get('READTHEDOCS'):
+#        nfmds_sources_dirname = pkg_resources.resource_filename('smuthi.linearsystem.tmatrix.nfmds', 'NFM-DS')
+#        sys.stdout.write('\nCompiling sources at ' + nfmds_sources_dirname + ' ...')
+#        sys.stdout.flush()
+#        os.chdir(nfmds_sources_dirname + '/TMATSOURCES')
+#
+#        sys.stdout.flush()
+#        try:
+#            if sys.platform.startswith('win'):
+#                with open("encoding_converter.py") as fp:
+#                    exec(fp.read(), version)
+#                os.chdir('win')
+#                with open('f2py_installation.log', "w") as logfile:
+#                    subprocess.check_call(
+#                        ['f2py', '-c', '--compiler=mingw32', '--fcompiler=gnu95', 'TAXSYM_SMUTHI.f90', '-m', 'nfmds'],
+#                        stdout=logfile, stderr=logfile)
+#                for file in glob.glob(r'nfmds*'):
+#                    shutil.move(file, '../../../' + file)
+#            else:
+#                with open('f2py_installation.log', "w") as logfile:
+#                    subprocess.check_call(['f2py', '-c', 'TAXSYM_SMUTHI.f90', '-m', 'nfmds'],
+#                                           stdout=logfile, stderr=logfile)
+#                for file in glob.glob(r'nfmds*'):
+#                    shutil.move(file, '../../' + file)
+#            sys.stdout.write(' done.\n')
+#            sys.stdout.flush()
+#        except Exception as e:
+#            raise NameError('Compiling failed.')
+#    os.chdir(currdir)
 
 
 def read(fname):
@@ -106,6 +145,26 @@ def get_requirements():
         requirements.append('pywigxjpf')
     return requirements
 
+
+def get_extensions(static=True):
+    """Depending on the platform, pick suitable Extension object. This is important such that if
+    MinGW is used, the DLLs are statically linked (otherwise the user cannot use the binary if he 
+    doesn't have MinGW on his computer, too."""
+    if os.environ.get('READTHEDOCS'):
+        return []
+    if sys.platform.startswith('win'):
+        if static:
+            extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
+        else:
+            extra_link_args = []
+        return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
+                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/TAXSYM_SMUTHI.f90'],
+                          extra_link_args=extra_link_args)]
+    else:
+        return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
+                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'])]
+
+
 setup(
     name="SMUTHI",
     version=__version__,
@@ -122,14 +181,18 @@ setup(
               'smuthi.linearsystem.particlecoupling',
               'smuthi.postprocessing',
               'smuthi.utility'],
-    cmdclass={'install': CustomInstallCommand,
-              'develop': CustomDevelopCommand},
+    ext_modules=get_extensions(True),
+    cmdclass={'prepare': PrepareCommand,
+              'compile': build_ext,
+              'install': CustomInstallCommand,
+              'develop': CustomDevelopCommand,
+              'bdist_wheel': CustomBdistWheelCommand},
     package_data={'smuthi.linearsystem.tmatrix.nfmds': ['NFM-DS/*.txt', 'NFM-DS/TMATSOURCES/*.f90', 'NFM-DS/TMATFILES/*',
                                                         'NFM-DS/INPUTFILES/*.dat', 'NFM-DS/OUTPUTFILES/*','nfmds*'],
                   'smuthi': ['_data/*']},
     include_package_data=True,                  
     install_requires=get_requirements(),
-    setup_requires=['numpy'],
+    setup_requires=['numpy', 'wheel'],
     extras_require={'cuda':  ['PyCuda']},
     entry_points={'console_scripts': ['smuthi = smuthi.__main__:main']},
     license='MIT',

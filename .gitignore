@@ -30,7 +30,6 @@ examples/*/output
 examples/*.png
 examples/renaud/
 *.sh
-*.bat
 .eggs/*
 .cache/*
 examples/krzysztof/*
