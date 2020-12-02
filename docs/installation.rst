@@ -7,7 +7,7 @@ Installing Smuthi under Ubuntu (recommended)
 --------------------------------------------
 `python3` with `pip3`, `gfortran` and `gcc` usually are shipped with the operating system.
 
-Make sure that the Foreign Function Interface library is available::
+Make sure that the Foreign Function Interface library is available (needed for pywigxjpf)::
 
   sudo apt-get install libffi6 libffi-dev
 
@@ -83,8 +83,8 @@ for the necessary steps to get it running.
 
 .. _local_install:
 
-Installing Smuthi locally
--------------------------
+Installing Smuthi from source
+-----------------------------
 As an alternative to :code:`pip3 install smuthi` or :code:`pip install smuthi` (which download the latest release from the Python package index, PyPi), you can download the Smuthi project folder manually from `here <https://gitlab.com/AmosEgel/smuthi/tags>`_
 or git fork the `gitlab repository <https://gitlab.com/AmosEgel/smuthi.git>`_. Open a command prompt and change directory to the Smuthi
 project folder. Then, enter (Windows)::
@@ -104,6 +104,21 @@ or (Ubuntu)::
    sudo pip3 install -e .
 
 This option allows to install a non-release version of Smuthi or to modify the source code and then run your custom version of Smuthi.
+
+Installing Smuthi from source (Ubuntu quick start)
+-------------------------------------------
+
+Tested on fresh Ubuntu 20.10:
+
+    sudo apt install git python3-pip gfortran
+    git clone https://gitlab.com/AmosEgel/smuthi.git
+    cd smuthi/
+    sudo pip3 install -v -e .
+
+After installation you can check unit tests:
+
+    sudo pip install nose2
+    nose2 -v
 
 
 NFM-DS
