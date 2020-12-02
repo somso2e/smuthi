@@ -1,8 +1,8 @@
 image: python:3.7
 
 stages:
-  - test
   - build
+  - test
   - publish
 
 test:
@@ -19,6 +19,8 @@ dist:
   stage: build
   script:
     - echo "Building distribution"
+    - apt-get update
+    - apt-get install -y gfortran
     - python3 setup.py sdist
     - python3 setup.py bdist_wheel
   artifacts:
