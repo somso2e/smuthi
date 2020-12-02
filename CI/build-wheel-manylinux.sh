@@ -11,6 +11,11 @@ for PYBIN in /opt/python/*/bin/; do
     echo "Skipping ${PYBIN}...."
     continue 
   fi
-  echo "Compiling using pip version ${PYBIN}...."
-#    PATH=/opt/usr/bin/:${PYBIN}:${PATH}   pip wheel --no-deps ./ -w wheelhouse
+  echo "Compiling using Python version ${PYBIN}...."
+  /opt/usr/bin/python setup.py sdist
+	/opt/usr/bin/python setup.py bdist_wheel --bdist-dir=wheelhouse
+done
+
+for WHL in wheelhouse/*.whl; do
+  auditwheel repair ${WHL} -w dist;
 done

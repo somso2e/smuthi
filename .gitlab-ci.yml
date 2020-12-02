@@ -19,13 +19,10 @@ dist:
   image: quay.io/pypa/manylinux2010_x86_64
   stage: build
   script:
+    - apt-get update
+    - apt-get install -y gfortran
     - chmod +x CI/build-wheel-manylinux.sh
     - CI/build-wheel-manylinux.sh
-#    - echo "Building distribution"
-#    - apt-get update
-#    - apt-get install -y gfortran
-#    - python3 setup.py sdist
-#    - python3 setup.py bdist_wheel
   artifacts:
     paths:
       - dist/
