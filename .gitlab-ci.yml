@@ -15,18 +15,6 @@ stages:
 #    - pip3 install nose2
 #    - nose2 -v
 
-manylinux:
-  script:
-    - for PIP in /opt/python/cp3{5..8}*/bin/pip; do ${PIP} wheel . -w wheelhouse/; done
-    - for WHL in wheelhouse/*.whl; do auditwheel repair ${WHL} -w wheelhouse-fix; done
-  artifacts:
-    paths:
-      - "wheelhouse-fix/cpprb-*.whl"
-  except:
-    - schedules
-  dependencies:
-    - coverage
-
 dist:
   image: quay.io/pypa/manylinux2010_x86_64
   stage: build
