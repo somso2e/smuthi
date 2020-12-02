@@ -13,10 +13,6 @@ clone_depth: 5
 init:
   - cmd: set PATH=%MINGW_DIR%;%PATH%
 
-install: 
-  - python 
-  pip install -e .[tests]
-
 build:
   - "%PYTHON%\\python.exe setup.py prepare
   - "%PYTHON%\\python.exe build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f
