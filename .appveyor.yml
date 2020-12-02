@@ -7,6 +7,10 @@ environment:
     - PYTHON: "C:/Python37-x64"
     - PYTHON: "C:/Python38-x64"
   MINGW_DIR: C:/msys64/mingw64/bin
+  PYPI_USER: AmosEgel
+  TESTPYPI_PWD:
+    secure: BxIrwW5b5AUWWmOklEUAJk83XKevFd+pmaxkg0TWoWk=  
+
 
 clone_depth: 5
 
@@ -22,3 +26,13 @@ after_test:
  
 artifacts:
   - path: dist\*
+  
+deploy_script:
+  - ps: |
+      if($env:APPVEYOR_REPO_TAG -eq 'true') {
+        Write-Output ("Deploying " + $env:APPVEYOR_REPO_TAG_NAME + " to PyPI...")
+        &amp;"${Env:PYTHON}/python.exe" -m pip install twine
+        &amp;"${Env:PYTHON}/python.exe" -m twine upload -u ${Env:PYPI_USER} -p ${Env:TESTPYPI_PWD} --repository testpypi --skip-existing dist/*.whl
+      } else {
+        Write-Output "No tag for deployment"
+      }  
