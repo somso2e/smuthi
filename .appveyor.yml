@@ -13,10 +13,12 @@ clone_depth: 5
 init:
   - cmd: set PATH=%MINGW_DIR%;%PATH%
 
-build:
-  - "%PYTHON%\\python.exe setup.py prepare
-  - "%PYTHON%\\python.exe build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f
-  - "%PYTHON%\\python.exe bdist_wheel
+build: off
+
+after_test:
+  - "%PYTHON%\\python.exe setup.py prepare"
+  - "%PYTHON%\\python.exe build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f"
+  - "%PYTHON%\\python.exe bdist_wheel"
  
- artifacts:
+artifacts:
   - path: dist\*
