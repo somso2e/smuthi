@@ -3,11 +3,11 @@
 # build wheel
 for PYBIN in /opt/python/*/bin/; do
 #    targetversion = 
-  if [ $PYBIN == *cp27* ]; then 
+  if [[ $PYBIN == *cp27* ]]; then 
     echo "Skipping ${PYBIN}...."
     continue 
   fi
-  if [ $PYBIN == *cp35* ]; then 
+  if [[ $PYBIN == *cp35* ]]; then 
     echo "Skipping ${PYBIN}...."
     continue 
   fi
