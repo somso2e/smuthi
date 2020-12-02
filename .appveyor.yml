@@ -1,3 +1,8 @@
+skip_non_tags: true
+
+only_commits:
+  message: /build/                # Start a new build if message contains 'build'
+
 image:
   - Visual Studio 2019
 
@@ -28,11 +33,6 @@ artifacts:
   - path: dist\*
   
 deploy_script:
-  - ps: |
-      if($env:APPVEYOR_REPO_TAG -eq 'true') {
-        Write-Output ("Deploying " + $env:APPVEYOR_REPO_TAG_NAME + " to PyPI...")
-        &amp;"${Env:PYTHON}/python.exe" -m pip install twine
-        &amp;"${Env:PYTHON}/python.exe" -m twine upload -u ${Env:PYPI_USER} -p ${Env:TESTPYPI_PWD} --repository testpypi --skip-existing dist/*.whl
-      } else {
-        Write-Output "No tag for deployment"
-      }  
+  - "%PYTHON%\\python.exe -m pip install twine"
+  - "%PYTHON%\\python.exe -m twine upload -u ${Env:PYPI_USER} -p ${Env:TESTPYPI_PWD} --repository testpypi --skip-existing dist/*.whl"
+
