@@ -38,7 +38,7 @@ testpypi:
   script:
     - pip install twine
     - echo "Upload to testpypi"
-    - twine upload --repository-url https://test.pypi.org/ dist/*
+    - twine upload --repository testpypi dist/*
   only:
     - tags
 
