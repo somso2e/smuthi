@@ -3,7 +3,7 @@ image: python:3.7
 stages:
 #  - test
   - build
-#  - publish
+  - publish
 
 #test:
 #  stage: test
@@ -28,15 +28,15 @@ dist:
 #  only:
 #    - tags
 
-#testpypi:
-#  stage: publish
-#  variables:
-#    TWINE_USERNAME: $TESTPYPI_USERNAME
-#    TWINE_PASSWORD: $TESTPYPI_PASSWORD
-#  script:
-#    - pip install twine
-#    - echo "Upload to testpypi"
-#    - twine upload --repository testpypi dist/*
+testpypi:
+  stage: publish
+  variables:
+    TWINE_USERNAME: $TESTPYPI_USERNAME
+    TWINE_PASSWORD: $TESTPYPI_PASSWORD
+  script:
+    - pip install twine
+    - echo "Upload to testpypi"
+    - twine upload --repository testpypi --skip-existing dist/*
 #  only:
 #    - tags
 
