@@ -3,7 +3,7 @@ image: python:3.7
 stages:
 #  - test
   - build
-  - publish
+#  - publish
 
 #test:
 #  stage: test
@@ -15,14 +15,28 @@ stages:
 #    - pip3 install nose2
 #    - nose2 -v
 
+manylinux:
+  script:
+    - for PIP in /opt/python/cp3{5..8}*/bin/pip; do ${PIP} wheel . -w wheelhouse/; done
+    - for WHL in wheelhouse/*.whl; do auditwheel repair ${WHL} -w wheelhouse-fix; done
+  artifacts:
+    paths:
+      - "wheelhouse-fix/cpprb-*.whl"
+  except:
+    - schedules
+  dependencies:
+    - coverage
+
 dist:
+  image: quay.io/pypa/manylinux2010_x86_64
   stage: build
   script:
-    - echo "Building distribution"
-    - apt-get update
-    - apt-get install -y gfortran
-    - python3 setup.py sdist
-    - python3 setup.py bdist_wheel
+    - CI/build-wheel-manylinux.sh
+#    - echo "Building distribution"
+#    - apt-get update
+#    - apt-get install -y gfortran
+#    - python3 setup.py sdist
+#    - python3 setup.py bdist_wheel
   artifacts:
     paths:
       - dist/
@@ -30,17 +44,17 @@ dist:
 #  only:
 #    - tags
 
-testpypi:
-  stage: publish
-  variables:
-    TWINE_USERNAME: $TESTPYPI_USERNAME
-    TWINE_PASSWORD: $TESTPYPI_PASSWORD
-  script:
-    - pip install twine
-    - echo "Upload to testpypi"
-    - twine upload --repository testpypi dist/*
-  only:
-    - tags
+#testpypi:
+#  stage: publish
+#  variables:
+#    TWINE_USERNAME: $TESTPYPI_USERNAME
+#    TWINE_PASSWORD: $TESTPYPI_PASSWORD
+#  script:
+#    - pip install twine
+#    - echo "Upload to testpypi"
+#    - twine upload --repository testpypi dist/*
+#  only:
+#    - tags
 
 
 

@@ -29,7 +29,6 @@ scripts/*
 examples/*/output
 examples/*.png
 examples/renaud/
-*.sh
 .eggs/*
 .cache/*
 examples/krzysztof/*

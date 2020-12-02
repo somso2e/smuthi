@@ -1,8 +1,5 @@
 skip_non_tags: true
 
-only_commits:
-  message: /build/                # Start a new build if message contains 'build'
-
 image:
   - Visual Studio 2019
 
@@ -12,10 +9,12 @@ environment:
     - PYTHON: "C:/Python37-x64"
     - PYTHON: "C:/Python38-x64"
   MINGW_DIR: C:/msys64/mingw64/bin
+  TESTPYPI_USER: AmosEgel
   PYPI_USER: AmosEgel
   TESTPYPI_PWD:
     secure: BxIrwW5b5AUWWmOklEUAJk83XKevFd+pmaxkg0TWoWk=  
-
+  PYPI_PWD:    
+    secure: 4jygsXrcki+7XGQvOuXx0YrJJBtBXqD8eIdV//8XKXM=
 
 clone_depth: 5
 
@@ -34,5 +33,5 @@ artifacts:
   
 deploy_script:
   - "%PYTHON%\\python.exe -m pip install twine"
-  - "%PYTHON%\\python.exe -m twine upload -u %PYPI_USER% -p %TESTPYPI_PWD% --repository testpypi --skip-existing dist/*.whl"
+  - "%PYTHON%\\python.exe -m twine upload -u %TESTPYPI_USER% -p %TESTPYPI_PWD% --repository testpypi --skip-existing dist/*.whl"
 
