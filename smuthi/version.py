@@ -1,8 +1,8 @@
-major = "testpypi"
-minor = 0
+major = 0
+minor = 100
 micro = None
 
-pre_release = ".alpha"
+pre_release = None
 post_release = None
 dev_release = None
 
