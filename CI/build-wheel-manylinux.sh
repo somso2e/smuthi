@@ -18,7 +18,7 @@ done
 
 mkdir dist_unrepaired
 for WHL in dist/*.whl; do
-  mv WHL dist_unrepaired
+  mv ${WHL} dist_unrepaired
 done
 
 for WHL in dist_unrepaired/*.whl; do
