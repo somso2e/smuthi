@@ -1,20 +1,22 @@
 image: python:3.7
 
 stages:
-#  - test
+  - test
   - build
   - publish
 
-#test:
-#  stage: test
-#  script:
-#    - echo "Testing"
-#    - apt-get update
-#    - apt-get install -y gfortran
-#    - pip3 install -e .
-#    - pip3 install nose2
-#    - nose2 -v
+# Run all automatic tests
+test:
+  stage: test
+  script:
+    - echo "Testing"
+    - apt-get update
+    - apt-get install -y gfortran
+    - pip3 install -e .
+    - pip3 install nose2
+    - nose2 -v
 
+# Create binary wheels as well as the source distribution
 dist:
   image: quay.io/pypa/manylinux2010_x86_64
   stage: build
@@ -25,9 +27,10 @@ dist:
     paths:
       - dist/
     expire_in: 1 week
-#  only:
-#    - tags
+  only:
+    - tags
 
+# Upload the contents of the /dist folder to testpypi
 testpypi:
   stage: publish
   variables:
@@ -37,8 +40,18 @@ testpypi:
     - pip install twine
     - echo "Upload to testpypi"
     - twine upload --repository testpypi --skip-existing dist/*
+  only:
+    - tags
+
+# Upload the contents of the /dist folder to PyPi
+#pypi:
+#  stage: publish
+#  variables:
+#    TWINE_USERNAME: $PYPI_USERNAME
+#    TWINE_PASSWORD: $PYPI_PASSWORD
+#  script:
+#    - pip install twine
+#    - echo "Upload to PyPi"
+#    - twine upload --skip-existing dist/*
 #  only:
 #    - tags
-
-
-
