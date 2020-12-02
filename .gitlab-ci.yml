@@ -36,6 +36,7 @@ testpypi:
     TWINE_USERNAME: $TESTPYPI_USERNAME
     TWINE_PASSWORD: $TESTPYPI_PASSWORD
   script:
+    - pip install twine
     - echo "Upload to testpypi"
     - twine upload --repository-url https://test.pypi.org/ dist/*
   only:
