@@ -1,4 +1,4 @@
-major = 1
+major = "testpypi"
 minor = 0
 micro = None
 
