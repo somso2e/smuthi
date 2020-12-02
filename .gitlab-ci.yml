@@ -24,8 +24,7 @@ dist:
   artifacts:
     paths:
       - dist/
-    expire_in:
-      - 1 week
+    expire_in: 1 week
 
 #  only:
 #    - tags
