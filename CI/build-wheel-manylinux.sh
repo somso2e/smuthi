@@ -13,9 +13,14 @@ for PYBIN in /opt/python/*/bin/; do
   fi
   echo "Compiling using Python version ${PYBIN}...."
   ${PYBIN}/python setup.py sdist
-	${PYBIN}/python setup.py bdist_wheel --bdist-dir=wheelhouse
+	${PYBIN}/python setup.py bdist_wheel
 done
 
-for WHL in wheelhouse/*.whl; do
-  auditwheel repair ${WHL} -w dist;
+mkdir dist_unrepaired
+for WHL in dist/*.whl; do
+  mv WHL dist_unrepaired
+done
+
+for WHL in dist_unrepaired/*.whl; do
+  auditwheel repair ${WHL} -w dist
 done
