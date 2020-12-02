@@ -5,15 +5,15 @@ stages:
   - build
   - publish
 
-test:
-  stage: test
-  script:
-    - echo "Testing"
-    - apt-get update
-    - apt-get install -y gfortran
-    - pip3 install -e .
-    - pip3 install nose2
-    - nose2 -v
+#test:
+#  stage: test
+#  script:
+#    - echo "Testing"
+#    - apt-get update
+#    - apt-get install -y gfortran
+#    - pip3 install -e .
+#    - pip3 install nose2
+#    - nose2 -v
 
 dist:
   stage: build
