@@ -12,8 +12,8 @@ for PYBIN in /opt/python/*/bin/; do
     continue 
   fi
   echo "Compiling using Python version ${PYBIN}...."
-  /opt/usr/bin/python setup.py sdist
-	/opt/usr/bin/python setup.py bdist_wheel --bdist-dir=wheelhouse
+  ${PYBIN}/python setup.py sdist
+	${PYBIN}/python setup.py bdist_wheel --bdist-dir=wheelhouse
 done
 
 for WHL in wheelhouse/*.whl; do
