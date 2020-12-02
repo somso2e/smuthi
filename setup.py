@@ -6,13 +6,20 @@ import os
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.build_ext import build_ext
+
+import sys
+import subprocess
+def pip_install(package):
+    proc_id = subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+pip_install('wheel')
+pip_install('numpy')
+
 from wheel.bdist_wheel import bdist_wheel
 from numpy.distutils.core import setup
 from numpy.distutils.core import Extension
+
 import pkg_resources
 import os
-import subprocess
-import sys
 import warnings
 import shutil
 import glob
