@@ -160,7 +160,7 @@ def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, a
     
     # transformation of spheroid E1 into the unit-sphere with its center at origin / same transformation on E2
     # E1_prime = np.dot(np.transpose(np.linalg.inv(S)), np.dot(E1, np.linalg.inv(S)))
-    # ctr1_prime = ctr1 - ctr1 
+    # ctr1_prime = np.zeros_like(ctr1)
     E2_prime = np.dot(np.transpose(np.linalg.inv(S)), np.dot(E2, np.linalg.inv(S)))
     ctr2_prime = -(np.dot(S, (ctr1 - ctr2)))  
     E2_prime_L = np.linalg.cholesky(E2_prime)

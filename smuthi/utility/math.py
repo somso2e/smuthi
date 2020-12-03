@@ -51,7 +51,7 @@ def legendre_normalized(ct, st, lmax):
         - list pilm[l][m] contains :math:`\pi_l^m(\cos \theta)`.
         - list taulm[l][m] contains :math:`\tau_l^m(\cos \theta)`.
     """
-    zr = ct - ct
+    zr = np.zeros_like(ct)
     plm = [[zr for m in range(lmax + 1)] for l in range(lmax + 1)]
     pilm = [[zr for m in range(lmax + 1)] for l in range(lmax + 1)]
     taulm = [[zr for m in range(lmax + 1)] for l in range(lmax + 1)]

@@ -50,7 +50,7 @@ def plane_vector_wave_function(x, y, z, kp, alpha, kz, pol):
     if pol == 0:
         Ex = -np.sin(alpha) * scalar_wave
         Ey = np.cos(alpha) * scalar_wave
-        Ez = scalar_wave - scalar_wave
+        Ez = np.zeros_like(scalar_wave)
     elif pol == 1:
         Ex = np.cos(alpha) * kz / k * scalar_wave
         Ey = np.sin(alpha) * kz / k * scalar_wave
@@ -111,7 +111,7 @@ def spherical_vector_wave_function(x, y, z, k, nu, tau, l, m):
     # unit vector in phi-direction
     eph_x = -np.sin(phi)
     eph_y = np.cos(phi)
-    eph_z = x - x
+    eph_z = np.zeros_like(x)
 
     cos_thet = np.cos(theta)
     sin_thet = np.sin(theta)
