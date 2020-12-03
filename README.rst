@@ -24,13 +24,10 @@ License: SMUTHI is provided under the MIT license.
 
 Author: Amos Egel (amos.egel@gmail.com).
 
-The following persons have contributed to the project: Dominik Theobald (functions for the simulation of rotated particles, 
-plane wave based particle coupling for non-spherical particles with overlapping circumscribing spheres), Lorenzo Pattelli (logo),
-Konstantin Ladutenko (MPI support, numerous additions and improvements for a smooth user experience, correction of bugs),
-Giacomo Mazzamuto (several additions for a smooth user and developer experience), Krzysztof Czajkowski (F2Py wrapper for NFM-DS, simulations of particles with geometry read from FEM/STL file).
+The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Lorenzo Pattelli.
 
 We thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for allowing us to use their NFM-DS Fortran code, 
-Ilia Rasskazov as well as Fabio Mangini for bug reports and useful comments 
+Alexey Kuznetsov, Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions 
 and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
 
 For a guide how to install and use the software, see the `documentation <http://smuthi.readthedocs.io>`_.
@@ -41,6 +38,10 @@ The list is also a good place to ask for support from the developers or from exp
 To report a bug, you can also open an issue in Gitlab.
 
 Contributions are highly welcome! Please refer to the `contribution guidelines <https://gitlab.com/AmosEgel/smuthi/blob/master/CONTRIBUTING.rst>`_.
+
+What's new in version 1.1
+-------------------------
+The interface to NFM-DS has undergone a major revision and is now offered in the form of an F2Py Fortran extension (no more dealing with input and output text files or temporary NFM-DS directories). Several new particle classes were added (anisotropic sphere, custom shape particles). Advanced automatic parameter selection. Binary wheels on PyPi, such that no Fortran compiler is necessary on Windows machines. The release workflow was automatized using GitLab CI and Appveyor. Revision of the graphical output. New application examples and user guide sections were added to the online documentation. Several smaller changes and bug fixes.
 
 What's new in version 1.0
 --------------------------

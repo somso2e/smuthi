@@ -23,7 +23,6 @@ For spheroids and finite cylinders, Smuthi calls the
 by Doicu, Wriedt and Eremin to compute the single particle T-matrix. This is a Fortran software package written by
 based on the "Null-field method with discrete sources", see :doc:`[Doicu et al. 2006] <../literature>`.
 
-
 Performance critical parts of the software are implemented in CUDA. When dealing with a large number of particles, Smuthi can benefit from a substantial acceleration if a suitable (NVIDIA) GPU is available.
 
 For CPU-only execution, other acceleration concepts (including MPI parallelization, Numba JIT compilation) are currently tested. 
@@ -101,13 +100,12 @@ License
 
 The software is licensed under the `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_.
 
-
 .. _ContactAnchor:
 
 Contact
 -------
 
-Smuthi was written and is maintained by Amos Egel. Email to the author under |emailpic| or to the Smuthi mailing list under smuthi@googlegroups.com for questions, feature requests or if you would like to contribute.
+The Smuthi project is maintained by Amos Egel, in collaboration with a small group of co-developers. Email to the author under |emailpic| or to the Smuthi mailing list under smuthi@googlegroups.com for questions, feature requests or if you would like to contribute.
 
 .. |emailpic| image:: email.png
 
@@ -115,24 +113,16 @@ Smuthi was written and is maintained by Amos Egel. Email to the author under |em
 Acknowledgments
 ---------------
 
-Smuthi includes contributions from the following persons:
+The following persons are/were involved in the Smuthi development: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Lorenzo Pattelli, Alexey Kuznetsov.
 
-   - Adrian Doicu, Thomas Wriedt and Yuri Eremin through the
-     `NFM-DS <https://scattport.org/index.php/programs-menu/t-matrix-codes-menu/239-nfm-ds>`_ package, a copy of which
-     is distributed with Smuthi.
-   - Dominik Theobald implemented functions for the simulation of particles with arbitrary orientation. 
-     He currently works on the implementation of a plane wave based particle coupling for non-spherical particles 
-     with overlapping circumscribing spheres.
-   - Konstantin Ladutenko with many useful additions, including example simulations, smoother input/output, 
-     support of MPI parallel computing (currently in construction) and the option of permanent NFM-DS installation folder.
+The authors wish to thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for the
+`NFM-DS <https://scattport.org/index.php/programs-menu/t-matrix-codes-menu/239-nfm-ds>`_ package, a copy of which
+is distributed with Smuthi.
 
-Big thanks go to Lorenzo Pattelli for designing the Smuthi logo and Giacomo Mazzamuto for his help and code additions.
+Ilia Rasskazov, Giacomo Mazzamuto and Fabio Mangini have helped with useful comments, bug reports and code additions.
 
-Ilia Rasskazov has helped with useful comments and bug reports.
+We thank Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
 
 The creation of Smuthi was supervised by Uli Lemmer and Guillaume Gomard during the research project
 `LAMBDA <http://gepris.dfg.de/gepris/projekt/278746617>`_, funded by the `DFG <http://www.dfg.de/>`_ 
 in the priority programme `tailored disorder <http://gepris.dfg.de/gepris/projekt/255652081>`_.
-
-
-
