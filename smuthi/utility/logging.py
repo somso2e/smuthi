@@ -31,6 +31,9 @@ class Logger(object):
 
     def flush(self):
         self.terminal.flush()
+        
+    def fileno():
+        return self.terminal.fileno()
 
 
 class LoggerMuted:
@@ -77,10 +80,27 @@ def write_header(message):
 def write_green(message):
     print(bcolors.OKGREEN + message + bcolors.ENDC)
 
-
 def write_red(message):
     print(bcolors.FAIL + message + bcolors.ENDC)
 
-
 def write_blue(message):
     print(bcolors.OKBLUE + message + bcolors.ENDC)
+    
+
+class LoggerLowLevelMuted:
+    """A logger to mute low level output form Fortran modules
+    Inspired from https://stackoverflow.com/a/17753573/8028981"""
+    def __init__(self, mute=True):
+        self.stdchannel = sys.__stdout__
+        self.mute = mute
+    
+    def __enter__(self):
+        if self.mute:
+            self.oldstdchannel = os.dup(self.stdchannel.fileno())
+            self.dest_file = open(os.devnull, 'w')
+            os.dup2(self.dest_file.fileno(), self.stdchannel.fileno())
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.mute:
+            os.dup2(self.oldstdchannel, self.stdchannel.fileno())
+            self.dest_file.close()               

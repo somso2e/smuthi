@@ -14,7 +14,7 @@ def readstl(stlname):
         for x in f:
             if "solid" in x and "end" not in x:
                 nsurf = int(x.split(" ")[-1])
-                print(nsurf)
+                #print(nsurf)
                 if nsurf > 1:
                     surf = {
                         'nsurf': nsurf - 1,

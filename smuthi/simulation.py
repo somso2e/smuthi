@@ -12,6 +12,7 @@ import pickle
 import numpy as np
 import smuthi
 import warnings
+import smuthi.utility.logging as log
 
 
 class Simulation:
@@ -157,7 +158,7 @@ class Simulation:
 
         if not os.path.exists(self.output_dir) and self.log_to_file:
             os.makedirs(self.output_dir)
-        sys.stdout = Logger(log_filename=self.log_filename,
+        sys.stdout = log.Logger(log_filename=self.log_filename,
                             log_to_file=self.log_to_file,
                             log_to_terminal=self.log_to_terminal)
 
@@ -337,28 +338,3 @@ class Simulation:
         #plt.show()
 
         return preparation_time, solution_time, postprocessing_time
-
-
-class Logger(object):
-    """Allows to prompt messages both to terminal and to log file simultaneously."""
-    def __init__(self, log_filename, log_to_file=True, log_to_terminal=True, terminal=None):
-        if terminal is None:
-            self.terminal = sys.__stdout__
-
-        if not log_to_terminal:
-            f = open(os.devnull, 'w')
-            self.terminal = f
-        else:
-            self.terminal = sys.__stdout__
-        self.log_to_file = log_to_file
-        if log_to_file:
-            self.log = open(log_filename, "a")
-
-    def write(self, message):
-        self.terminal.write(message)
-        self.terminal.flush()
-        if self.log_to_file:
-            self.log.write(message)
-
-    def flush(self):
-        self.terminal.flush()
