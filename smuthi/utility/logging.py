@@ -87,20 +87,20 @@ def write_blue(message):
     print(bcolors.OKBLUE + message + bcolors.ENDC)
     
 
-class LoggerLowLevelMuted:
+class LoggerLowLevelMuted():
     """A logger to mute low level output form Fortran modules
     Inspired from https://stackoverflow.com/a/17753573/8028981"""
-    def __init__(self, mute=True):
+    def __init__(self, filename=None):
+        self.filename = filename
+        if filename is None:
+            self.filename = os.devnull
         self.stdchannel = sys.__stdout__
-        self.mute = mute
     
     def __enter__(self):
-        if self.mute:
-            self.oldstdchannel = os.dup(self.stdchannel.fileno())
-            self.dest_file = open(os.devnull, 'w')
-            os.dup2(self.dest_file.fileno(), self.stdchannel.fileno())
+        self.oldstdchannel = os.dup(self.stdchannel.fileno())
+        self.dest_file = open(self.filename, 'a')
+        os.dup2(self.dest_file.fileno(), self.stdchannel.fileno())
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.mute:
-            os.dup2(self.oldstdchannel, self.stdchannel.fileno())
-            self.dest_file.close()               
+        os.dup2(self.oldstdchannel, self.stdchannel.fileno())
+        self.dest_file.close()               
