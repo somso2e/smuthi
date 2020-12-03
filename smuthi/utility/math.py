@@ -10,7 +10,10 @@ import sympy
 import math
 from sympy.physics.quantum.spin import Rotation
 try:
-    from numba.core.typing import cffi_utils
+    try:
+        from numba.core.typing import cffi_utils
+    except ModuleNotFoundError: # typically when numba.__version__ <= '0.48.0'
+        from numba.typing import cffi_utils
     from pywigxjpf_ffi import ffi, lib
     import pywigxjpf_ffi
     cffi_utils.register_module(pywigxjpf_ffi)
