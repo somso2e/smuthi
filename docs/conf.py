@@ -19,7 +19,9 @@
 #
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
+
+for x in os.walk('../../smuthi'):
+  sys.path.insert(0, x[0])
 
 
 import sphinx_rtd_theme
@@ -54,7 +56,7 @@ source_suffix = '.rst'
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = '_source/index'
 
 # General information about the project.
 project = 'SMUTHI'

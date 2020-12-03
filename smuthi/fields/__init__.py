@@ -57,7 +57,7 @@ def multi_to_single_index(tau, l, m, l_max, m_max):
     +-------------+-------------+-------------+------------+
 
     Args:
-        tau (int):      Polarization index :math:`\tau`(0=spherical TE, 1=spherical TM)
+        tau (int):      Polarization index :math:`\tau` (0=spherical TE, 1=spherical TM)
         l (int):        Degree :math:`l` (1, ..., lmax)
         m (int):        Order :math:`m` (-min(l,mmax),...,min(l,mmax))
         l_max (int):    Maximal multipole degree
