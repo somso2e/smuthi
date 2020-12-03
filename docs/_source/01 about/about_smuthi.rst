@@ -94,7 +94,7 @@ The following issues need to be considered when applying Smuthi:
     interface, a correct simulation result can in principle be achieved. However, special care has to be taken
     regarding the selection of the truncation of the spherical and plane wave expansion, see
     the :doc:`hints for the selection of the wavenumber truncation<../03 simulation guidelines/simulation_guidelines>`. 
-
+  - Dipole sources must not be placed inside the circumscribing sphere of a non-spherical particle (exception: it is OK if the particle is in a different layer)
 
 License
 -------
