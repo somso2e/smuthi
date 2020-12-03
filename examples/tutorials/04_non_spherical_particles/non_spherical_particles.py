@@ -21,7 +21,7 @@ two_layers = smuthi.layers.LayerSystem(thicknesses=[0, 0],
                                        refractive_indices=[1.52, 1])
 
 # Scattering particles
-spheroid = smuthi.particles.Spheroid(position=[-200, 0, 100],
+spheroid = smuthi.particles.Spheroid(position=[-500, 0, 100],
                                      refractive_index=2.1+0.01j,
                                      semi_axis_c=100,
                                      semi_axis_a=25,
@@ -36,7 +36,7 @@ cylinder = smuthi.particles.FiniteCylinder(position=[0, 0, 100],
 # prepare FEM file for cube
 smuthi.linearsystem.tmatrix.nfmds.stlmanager.convert_stl_to_fem("cube.stl", "cube.fem")
 
-cube = smuthi.particles.CustomParticle(position=[200, 0, 100],
+cube = smuthi.particles.CustomParticle(position=[500, 0, 100],
                                        refractive_index=1.7,
                                        fem_filename="cube.fem",
                                        scale=100,

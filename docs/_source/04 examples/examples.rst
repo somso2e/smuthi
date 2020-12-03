@@ -14,7 +14,7 @@ No. Tutorial                             level           script
 1   |ex1link|                             |introd|      |ex1script|
 2   |ex2link|                             |introd|      |ex2script|
 3   |ex3link|                             |introd|      |ex3script| 
-4   |ex4link|                             |intermed|      TBD       
+4   |ex4link|                             |intermed|    |ex4script|  
 5   |ex5link|                             |intermed|      TBD       
 6   |ex6link|                             |intermed|      TBD       
 7   |ex7link|                             |advanced|    |ex7script| 
@@ -36,7 +36,9 @@ No. Tutorial                             level           script
 .. |ex3link| replace:: :doc:`Plotting the far field <03_plotting_the_far_field/discussion>`
 
 
-.. |ex4link| replace:: Non-spherical particles
+.. |ex4script| replace:: :download:`download <../../../examples/tutorials/04_non_spherical_particles/non_spherical_particles.zip>`
+
+.. |ex4link| replace:: :doc:`Non-spherical particles <04_non_spherical_particles/discussion>`
 
 
 .. |ex5link| replace:: Dipole sources
