@@ -26,7 +26,7 @@ axsym_cylinder = part.FiniteCylinder(position=(0, 0, 0),
                                      m_max=mmax, 
                                      n_rank=nrank)
 
-stlc.convert_stl_to_fem(file_path + "/cylinder_fine.stl", file_path + "/cylinder.fem")
+stlc.convert_stl_to_fem(file_path + "/cylinder.stl", file_path + "/cylinder.fem")
 
 custom_cylinder = part.CustomParticle(position=(0, 0, 0), 
                                      refractive_index=2, 
