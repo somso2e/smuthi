@@ -33,13 +33,11 @@ __version__ = version['__version__']
 
 class PrepareCommand(develop):
     def run(self):
-        install_pywigxjpf()
         prepare_nfmds()
         
 
 class CustomDevelopCommand(develop):
     def run(self):
-        install_pywigxjpf()
         prepare_nfmds()
         #compile_nfmds()
         develop.run(self)
@@ -47,7 +45,6 @@ class CustomDevelopCommand(develop):
 
 class CustomInstallCommand(install):
     def run(self):
-        install_pywigxjpf()
         prepare_nfmds()
         #compile_nfmds()
         install.run(self)
@@ -61,21 +58,6 @@ class CustomBdistWheelCommand(bdist_wheel):
             # python setup.py build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f
             self.distribution.ext_modules = []
         bdist_wheel.run(self)
-
-def install_pywigxjpf():
-    """If Windows: try to install pywigxjpf"""
-    if sys.platform.startswith('win'):
-        sys.stdout.write('Try to install pywigxjpf ... \n')
-        sys.stdout.flush()
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "pywigxjpf"], stdout=None, stderr=None)
-        except Exception as e:
-            warnings.warn('\n*****************************************************\n'
-                          'pywigxjpf installation failed.\n'
-                          'If you want to benefit from fast Wigner3j calculations:\n'
-                          'Try to install manually by "pip install pywigxjpf".'
-                          '\n*****************************************************\n',
-                          UserWarning)
 
 def prepare_nfmds():
     """If Windows: Call encoding converter to get Fortran sources with valid encoding"""
@@ -129,8 +111,7 @@ def read(fname):
 
 
 def get_requirements():
-    """Return a list of requirements. If windows, don't include pywigxjpf, because we want to have it as an optional
-    dependency in that case (will be taken care of in custom install command)"""
+    """Return a list of requirements, depending on the operating system."""
     requirements = ['argparse',
                     'imageio',
                     'matplotlib',
@@ -144,10 +125,8 @@ def get_requirements():
                     'h5py',
                     'pycparser']
     if sys.platform.startswith('win'):
-        # skip pywigxjpf (to have it optional, if the user has no C compiler)
-        sys.stdout.write('Compiling from Windows machine. Skipping pywigxjpf for the moment. '
-                         'I will try to install it in post processing.\n')
-        sys.stdout.flush()
+        # this package offers windows binaries:
+        requirements.append('pywigxjpf-win')
     else:
         requirements.append('pywigxjpf')
     return requirements
