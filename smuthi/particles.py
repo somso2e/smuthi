@@ -259,10 +259,7 @@ class AxisymmetricParticle(Particle):
         Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
                           l_max=l_max, m_max=m_max)
 
-        if n_rank is None:
-            self.n_rank = self.l_max + 2
-        else:
-            self.n_rank = n_rank
+        self.n_rank = n_rank
 
         self.geometry_type = geometry_type
         self.geometry_parameters = geometry_parameters
@@ -275,16 +272,20 @@ class AxisymmetricParticle(Particle):
         return self.geometry_parameters[0]
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        Nmax = self.n_rank * (2 + self.n_rank)
+        nrank_temp = self.n_rank
+        if self.n_rank is None:
+            nrank_temp = self.l_max + 5
+
+        Nmax = nrank_temp * (2 + nrank_temp)
         nsurf = len(self.geometry_parameters)
         surf = list(self.geometry_parameters) + [0] * (10 - nsurf)
 
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
             tnfmds = nfmds.taxsym(surf, Nmax, typegeom=self.geometry_type, nsurf=nsurf, nparam=self.nparam,
                                   wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
-                                  nrank=self.n_rank, ind_refmed=n_medium)
+                                  nrank=nrank_temp, ind_refmed=n_medium)
 
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
         return t
 
 
