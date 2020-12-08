@@ -1,7 +1,9 @@
 import numpy as np
 import smuthi.fields as flds
+from numba import jit
 
 
+@jit(nopython=True, cache=True)
 def single_index_to_multi_nfmds(index, Nrank, Mrank):
     """Converts single index to (tau,l,m) tuple in NFMDS convention.
 
@@ -65,6 +67,7 @@ def multi_index_to_single_nfmds(tau, l, m, Nrank, Mrank):
     return index - 1  # cause python numbers from 0 and fortran from 1
 
 
+@jit(nopython=True, cache=True)
 def nfmds_to_smuthi_matrix(T, Nrank=None, Mrank=None, l_max=None, m_max=None):
     """Converts a T-matrix obtained with NFMDS to SMUTHI compatible format.
 
@@ -95,7 +98,7 @@ def nfmds_to_smuthi_matrix(T, Nrank=None, Mrank=None, l_max=None, m_max=None):
     if m_max is None:
         m_max = l_max
 
-    Tsm = np.zeros([flds.blocksize(l_max, m_max), flds.blocksize(l_max, m_max)], dtype=complex)
+    Tsm = np.zeros((flds.blocksize(l_max, m_max), flds.blocksize(l_max, m_max)), dtype=np.complex128)
     num_cols = range(T.shape[0])
     num_rows = range(T.shape[1])
     for ii in num_cols:

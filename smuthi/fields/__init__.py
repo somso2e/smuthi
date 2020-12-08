@@ -6,6 +6,7 @@ SVWF indexing) and is the place to store default coordinate arrays for
 Sommerfeld integrals and field expansions."""
 
 import numpy as np
+from numba import jit
 
 
 def angular_frequency(vacuum_wavelength):
@@ -25,6 +26,7 @@ def angular_frequency(vacuum_wavelength):
 #                         SWE indexing                                        #
 ###############################################################################
 
+@jit(nopython=True, cache=True)
 def multi_to_single_index(tau, l, m, l_max, m_max):
     r"""Unique single index for the totality of indices characterizing a svwf expansion coefficient.
 
@@ -80,6 +82,7 @@ def multi_to_single_index(tau, l, m, l_max, m_max):
     return n
 
 
+@jit(nopython=True, cache=True)
 def blocksize(l_max, m_max):
     """Number of coefficients in outgoing or regular spherical wave expansion for a single particle.
 
