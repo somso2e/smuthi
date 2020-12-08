@@ -41,7 +41,7 @@ Contributions are highly welcome! Please refer to the `contribution guidelines <
 
 What's new in version 1.1
 -------------------------
-The interface to NFM-DS has undergone a major revision and is now offered in the form of an F2Py Fortran extension (no more dealing with input and output text files or temporary NFM-DS directories). Several new particle classes were added (anisotropic sphere, custom shape particles). Advanced automatic parameter selection. Binary wheels on PyPi, such that no Fortran compiler is necessary on Windows machines. The release workflow was automatized using GitLab CI and Appveyor. Revision of the graphical output. New application examples and user guide sections were added to the online documentation. Several smaller changes and bug fixes.
+The interface to NFM-DS has undergone a major revision and is now offered in the form of an F2Py Fortran extension (no more dealing with input and output text files or temporary NFM-DS directories). Several new particle classes were added (anisotropic sphere, custom shape particles). Advanced automatic parameter selection. Binary wheels on PyPi, such that no Fortran compiler is necessary on Windows machines. The release workflow was automatized using GitLab CI and Appveyor. Revision of the graphical output. New application examples and user guide sections were added to the online documentation. The simulation from input data files (rather than Python scripts) is no longer supported. Several smaller changes and bug fixes.
 
 What's new in version 1.0
 --------------------------

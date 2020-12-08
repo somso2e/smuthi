@@ -402,10 +402,10 @@ def total_scattering_cross_section(simulation=None, initial_field=None, particle
     """Evaluate the total scattering cross section.
 
     Args:
-        simulation (smuthi.Simulation.simulation):        Simulation object
-        initial_field (smuthi.initial_field.PlaneWave):   Initial Plane wave
-        particle_list (list):                       scattering particles
-        layer_system (smuthi.layers.LayerSystem):   stratified medium
+        simulation (smuthi.Simulation.simulation):        Simulation object (optional)
+        initial_field (smuthi.initial_field.PlaneWave):   Initial Plane wave (optional)
+        particle_list (list):                       scattering particles (optional)
+        layer_system (smuthi.layers.LayerSystem):   stratified medium (optional)
         polar_angles (numpy.ndarray or str):        polar angles values (radian, default None).
                                                     If None, use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):    azimuthal angle values (radian, default None).
@@ -435,13 +435,13 @@ def total_scattering_cross_section(simulation=None, initial_field=None, particle
     return scs[0] + scs[1]
 
 
-def extinction_cross_section(simulation, initial_field=None, particle_list=None, layer_system=None):
+def extinction_cross_section(simulation=None, initial_field=None, particle_list=None, layer_system=None):
     """Evaluate the extinction cross section.
 
     Args:
-        simulation (smuthi.Simulation.simulation):  Simulation objectsimulation
-        initial_field (smuthi.initial_field.PlaneWave): Plane wave object
-        particle_list (list): List of smuthi.particles.Particle objects
+        simulation (smuthi.Simulation.simulation):  Simulation object (optional)
+        initial_field (smuthi.initial_field.PlaneWave): Plane wave object (optional)
+        particle_list (list): List of smuthi.particles.Particle objects (optional)
         layer_system (smuthi.layers.LayerSystem): Representing the stratified medium
 
     Returns:
