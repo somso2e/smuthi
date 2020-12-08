@@ -164,6 +164,7 @@ def _angular_arrays(azimuthal_angles='default', polar_angles='default', angular_
             azimuthal_angles = flds.default_azimuthal_angles
     return azimuthal_angles, polar_angles
 
+
 def pwe_to_ff_conversion(vacuum_wavelength, plane_wave_expansion):
     """Compute the far field of a plane wave expansion object.
 
@@ -396,12 +397,13 @@ def scattering_cross_section(initial_field, particle_list, layer_system,
     return dscs
 
 
-def total_scattering_cross_section(initial_field, particle_list, layer_system,
+def total_scattering_cross_section(simulation=None, initial_field=None, particle_list=None, layer_system=None,
                                    polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Evaluate the total scattering cross section.
 
     Args:
-        initial_field (smuthi.initial.PlaneWave):   Initial Plane wave
+        simulation (smuthi.Simulation.simulation):        Simulation object
+        initial_field (smuthi.initial_field.PlaneWave):   Initial Plane wave
         particle_list (list):                       scattering particles
         layer_system (smuthi.layers.LayerSystem):   stratified medium
         polar_angles (numpy.ndarray or str):        polar angles values (radian, default None).
@@ -415,6 +417,16 @@ def total_scattering_cross_section(initial_field, particle_list, layer_system,
         A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
         scattering (bottom hemisphere).
     """
+
+    if initial_field is None:
+        initial_field = simulation.initial_field
+
+    if particle_list is None:
+        particle_list = simulation.particle_list
+
+    if layer_system is None:
+        layer_system = simulation.layer_system
+
     azimuthal_angles, polar_angles = _angular_arrays(azimuthal_angles, polar_angles, angular_resolution)
 
     dscs = scattering_cross_section(initial_field, particle_list, layer_system,
@@ -423,10 +435,11 @@ def total_scattering_cross_section(initial_field, particle_list, layer_system,
     return scs[0] + scs[1]
 
 
-def extinction_cross_section(initial_field, particle_list, layer_system):
+def extinction_cross_section(simulation, initial_field=None, particle_list=None, layer_system=None):
     """Evaluate the extinction cross section.
 
     Args:
+        simulation (smuthi.Simulation.simulation):  Simulation objectsimulation
         initial_field (smuthi.initial_field.PlaneWave): Plane wave object
         particle_list (list): List of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem): Representing the stratified medium
@@ -436,6 +449,15 @@ def extinction_cross_section(initial_field, particle_list, layer_system):
             - 'top':      Extinction in the positinve z-direction (top layer)
             - 'bottom':     Extinction in the negative z-direction (bottom layer)
     """
+    if initial_field is None:
+        initial_field = simulation.initial_field
+
+    if particle_list is None:
+        particle_list = simulation.particle_list
+
+    if layer_system is None:
+        layer_system = simulation.layer_system
+
     if not type(initial_field).__name__ == 'PlaneWave':
         raise ValueError('Cross section only defined for plane wave excitation.')
 
