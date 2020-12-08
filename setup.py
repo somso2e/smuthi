@@ -180,6 +180,5 @@ setup(
     install_requires=get_requirements(),
     setup_requires=['numpy', 'wheel'],
     extras_require={'cuda':  ['PyCuda']},
-    entry_points={'console_scripts': ['smuthi = smuthi.__main__:main']},
     license='MIT',
 )
