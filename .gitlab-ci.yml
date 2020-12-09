@@ -30,28 +30,28 @@ dist:
   only:
     - tags
 
-# Upload the contents of the /dist folder to testpypi
-testpypi:
-  stage: publish
-  variables:
-    TWINE_USERNAME: $TESTPYPI_USERNAME
-    TWINE_PASSWORD: $TESTPYPI_PASSWORD
-  script:
-    - pip install twine
-    - echo "Upload to testpypi"
-    - twine upload --repository testpypi --skip-existing dist/*
-  only:
-    - tags
-
-# Upload the contents of the /dist folder to PyPi
-#pypi:
+## Upload the contents of the /dist folder to testpypi
+#testpypi:
 #  stage: publish
 #  variables:
-#    TWINE_USERNAME: $PYPI_USERNAME
-#    TWINE_PASSWORD: $PYPI_PASSWORD
+#    TWINE_USERNAME: $TESTPYPI_USERNAME
+#    TWINE_PASSWORD: $TESTPYPI_PASSWORD
 #  script:
 #    - pip install twine
-#    - echo "Upload to PyPi"
-#    - twine upload --skip-existing dist/*
+#    - echo "Upload to testpypi"
+#    - twine upload --repository testpypi --skip-existing dist/*
 #  only:
 #    - tags
+
+# Upload the contents of the /dist folder to PyPi
+pypi:
+  stage: publish
+  variables:
+    TWINE_USERNAME: $PYPI_USERNAME
+    TWINE_PASSWORD: $PYPI_PASSWORD
+  script:
+    - pip install twine
+    - echo "Upload to PyPi"
+    - twine upload --skip-existing dist/*
+  only:
+    - tags

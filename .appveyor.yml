@@ -34,5 +34,6 @@ artifacts:
   
 deploy_script:
   - "%PYTHON%\\python.exe -m pip install twine"
-  - "%PYTHON%\\python.exe -m twine upload -u %TESTPYPI_USER% -p %TESTPYPI_PWD% --repository testpypi --skip-existing dist/*.whl"
+#  - "%PYTHON%\\python.exe -m twine upload -u %TESTPYPI_USER% -p %TESTPYPI_PWD% --repository testpypi --skip-existing dist/*.whl"
+  - "%PYTHON%\\python.exe -m twine upload -u %PYPI_USER% -p %PYPI_PWD% --skip-existing dist/*.whl"
 
