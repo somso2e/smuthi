@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """This module is needed for the installation of the package."""
 
-import os
-#from setuptools import setup
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.build_ext import build_ext
 
 import sys
 import subprocess
+
 def pip_install(package):
     proc_id = subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 pip_install('wheel')
@@ -20,9 +19,6 @@ from numpy.distutils.core import Extension
 
 import pkg_resources
 import os
-import warnings
-import shutil
-import glob
 
 
 version = {}
@@ -39,14 +35,12 @@ class PrepareCommand(develop):
 class CustomDevelopCommand(develop):
     def run(self):
         prepare_nfmds()
-        #compile_nfmds()
         develop.run(self)
 
 
 class CustomInstallCommand(install):
     def run(self):
         prepare_nfmds()
-        #compile_nfmds()
         install.run(self)
 
 
@@ -59,6 +53,7 @@ class CustomBdistWheelCommand(bdist_wheel):
             self.distribution.ext_modules = []
         bdist_wheel.run(self)
 
+
 def prepare_nfmds():
     """If Windows: Call encoding converter to get Fortran sources with valid encoding"""
     if sys.platform.startswith('win'):
@@ -68,42 +63,6 @@ def prepare_nfmds():
         with open("encoding_converter.py") as fp:
             exec(fp.read(), version)
         os.chdir(currdir)
-
-
-# The following function is currently not needed, as we make use of the ext_modules parameter of the setup() function
-# We still keep it here for possible future convenience
-#def compile_nfmds():
-#    """Compile nfmds Fortran extension (unless built on readthedocs)"""
-#    currdir = os.getcwd()
-#    if not os.environ.get('READTHEDOCS'):
-#        nfmds_sources_dirname = pkg_resources.resource_filename('smuthi.linearsystem.tmatrix.nfmds', 'NFM-DS')
-#        sys.stdout.write('\nCompiling sources at ' + nfmds_sources_dirname + ' ...')
-#        sys.stdout.flush()
-#        os.chdir(nfmds_sources_dirname + '/TMATSOURCES')
-#
-#        sys.stdout.flush()
-#        try:
-#            if sys.platform.startswith('win'):
-#                with open("encoding_converter.py") as fp:
-#                    exec(fp.read(), version)
-#                os.chdir('win')
-#                with open('f2py_installation.log', "w") as logfile:
-#                    subprocess.check_call(
-#                        ['f2py', '-c', '--compiler=mingw32', '--fcompiler=gnu95', 'TAXSYM_SMUTHI.f90', '-m', 'nfmds'],
-#                        stdout=logfile, stderr=logfile)
-#                for file in glob.glob(r'nfmds*'):
-#                    shutil.move(file, '../../../' + file)
-#            else:
-#                with open('f2py_installation.log', "w") as logfile:
-#                    subprocess.check_call(['f2py', '-c', 'TAXSYM_SMUTHI.f90', '-m', 'nfmds'],
-#                                           stdout=logfile, stderr=logfile)
-#                for file in glob.glob(r'nfmds*'):
-#                    shutil.move(file, '../../' + file)
-#            sys.stdout.write(' done.\n')
-#            sys.stdout.flush()
-#        except Exception as e:
-#            raise NameError('Compiling failed.')
-#    os.chdir(currdir)
 
 
 def read(fname):
@@ -175,7 +134,7 @@ setup(
               'bdist_wheel': CustomBdistWheelCommand},
     package_data={'smuthi.linearsystem.tmatrix.nfmds': ['NFM-DS/*.txt', 'NFM-DS/TMATSOURCES/*.f90', 'NFM-DS/TMATFILES/*',
                                                         'NFM-DS/INPUTFILES/*.dat', 'NFM-DS/OUTPUTFILES/*','nfmds*'],
-                  'smuthi': ['_data/*']},
+                  },
     include_package_data=True,                  
     install_requires=get_requirements(),
     setup_requires=['numpy', 'wheel'],

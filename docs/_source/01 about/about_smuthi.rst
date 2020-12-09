@@ -18,7 +18,7 @@ Smuthi is based on the T-matrix method for the single particle scattering and on
 for the propagation through the layered medium.
 See :doc:`[Egel 2018] <../literature>` and other publications listed in the :doc:`literature section <../literature>` for a description of the method.
 
-For spheroids and finite cylinders, Smuthi calls the
+For non spherical particles, Smuthi calls the
 `NFM-DS <https://scattport.org/index.php/programs-menu/t-matrix-codes-menu/239-nfm-ds>`_
 by Doicu, Wriedt and Eremin to compute the single particle T-matrix. This is a Fortran software package written by
 based on the "Null-field method with discrete sources", see :doc:`[Doicu et al. 2006] <../literature>`.
@@ -35,7 +35,7 @@ Smuthi can be applied to any scattering problem in frequency domain involving
 
   - a system of plane parallel layer interfaces separating an arbitrary number of thin metallic or dielectric layers.
 
-  - an arbitrary number of wavelength-scale scattering particles (currently available: spheres, spheroids, finite cylinders). The particles can be metallic or dielectric and rotated to an arbitrary orientation.
+  - an arbitrary number of wavelength-scale scattering particles (currently available: spheres, spheroids, finite cylinders, custom particle shapes, anisotropic spheres). The particles can be metallic or dielectric and rotated to an arbitrary orientation.
 
   - an initial field in form of a plane wave, a beam (currently available: beam with Gaussian xy-profile) or a collection of dipole sources
 
@@ -63,7 +63,7 @@ Current limitations
 The following issues need to be considered when applying Smuthi:
 
   - Particles must not intersect with each other or with layer interfaces.
-  - Magnetic or anisotropic materials are currently not supported.
+  - Magnetic or anisotropic materials are currently not supported (anisotropic spheres are currently tested).
   - The method is in principle valid for a wide range of particle sizes -  
     however, the numerical validity has only been tested for particle diameters up to around one wavelength.
     For larger particles, note that the number of multipole terms in the spherical wave expansion 
@@ -105,7 +105,7 @@ The software is licensed under the `MIT license <https://en.wikipedia.org/wiki/M
 Contact
 -------
 
-The Smuthi project is maintained by Amos Egel, in collaboration with a small group of co-developers. Email to the author under |emailpic| or to the Smuthi mailing list under smuthi@googlegroups.com for questions, feature requests or if you would like to contribute.
+Email to the author under |emailpic| or to the Smuthi mailing list under smuthi@googlegroups.com for questions, feature requests or if you would like to contribute.
 
 .. |emailpic| image:: email.png
 
