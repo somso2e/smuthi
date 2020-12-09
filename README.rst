@@ -9,7 +9,7 @@
 
 |
 
-.. image:: https://gitlab.com/AmosEgel/smuthi/raw/master/docs/images/logo_cropped.png
+.. image:: https://gitlab.com/AmosEgel/smuthi/raw/master/docs/_source/images/logo_cropped.png
    :align: center
 
    

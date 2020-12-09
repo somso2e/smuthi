@@ -50,5 +50,7 @@ Publications that use Smuthi:
 [Czajkowski et al. 2020]
     Czajkowski, Krzysztof M., Maria Bancerek, and Tomasz J. Antosiewicz. "Multipole analysis of substrate-supported dielectric nanoresonator arrays with T-matrix method." arXiv preprint arXiv:2006.09137 (2020).		
 
+[Pidgayko et al. 2020]
+	Pidgayko, D. A., Sadrieva, Z. F., Ladutenko, K. S., & Bogdanov, A. A. (2020). Polarization-controlled selective excitation of Mie resonances of dielectric nanoparticle on a coated substrate. arXiv preprint arXiv:2011.06494.
 
 .. |ref NFM-DS| replace:: [Doicu et al. 2006]
