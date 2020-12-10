@@ -4,6 +4,7 @@ stages:
   - test
   - build
   - publish
+  - postupload
 
 # Run all automatic tests
 test:
@@ -55,3 +56,63 @@ pypi:
     - twine upload --skip-existing dist/*
   only:
     - tags
+
+whl_test_python36:
+  stage: postupload
+  image: python:3.6
+  script:
+    - pip3 install smuthi
+    - pip3 install nose2
+    - rm -rf smuthi
+    - nose2 -v
+  only:
+    - tags
+
+whl_test_python38:
+  stage: postupload
+  image: python:3.8
+  script:
+    - pip3 install smuthi
+    - pip3 install nose2
+    - rm -rf smuthi
+    - nose2 -v
+  only:
+    - tags
+
+whl_test_ubuntu_focal2004LTS:
+  stage: postupload
+  image: ubuntu:focal
+  script:
+    - apt update
+    - apt install -y python3-pip
+    - pip3 install smuthi
+    - pip3 install nose2
+    - rm -rf smuthi
+    - nose2 -v
+  only:
+    - tags
+
+whl_test_ubuntu_groovy2010:
+  stage: postupload
+  image: ubuntu:groovy
+  script:
+    - apt update
+    - apt install -y python3-pip
+    - pip3 install smuthi
+    - pip3 install nose2
+    - rm -rf smuthi
+    - nose2 -v
+  only:
+    - tags
+
+whl_test_centos8:
+  stage: postupload
+  image: inveniosoftware/centos8-python:3.8
+  script:
+    - pip3 install smuthi
+    - pip3 install nose2
+    - rm -rf smuthi
+    - nose2 -v
+  only:
+    - tags
+
