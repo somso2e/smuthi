@@ -74,7 +74,7 @@ scat_fld_exp = sf.scattered_field_piecewise_expansion(vacuum_wavelength,
 
 # field along probing line ----------------------------------------------------
 x_line = np.arange(-1500, 1501, 10)
-y_line = x_line - x_line
+y_line = np.zeros_like(x_line)
 z_line = y_line + 750
 e_scat = scat_fld_exp.electric_field(x=x_line, y=y_line, z=z_line) 
 
@@ -122,12 +122,12 @@ xy_plane[:,0] = x_plane.reshape(-1)
 xy_plane[:,1] = y_plane.reshape(-1)
  
 e_scat = scat_fld_exp.electric_field(x=x_plane,
-                                     y=y_plane, 
-                                     z=x_plane-x_plane+750) 
- 
-e_init = simulation.initial_field.electric_field(x=x_plane, 
-                                                 y=y_plane, 
-                                                 z=x_plane-x_plane+750, 
+                                     y=y_plane,
+                                     z=np.full_like(x_plane, 750))
+
+e_init = simulation.initial_field.electric_field(x=x_plane,
+                                                 y=y_plane,
+                                                 z=np.full_like(x_plane, 750),
                                                  layer_system=three_layers)
 
 # load COMSOL results ---------------------------------------------------------

@@ -214,7 +214,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         dim1vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
         dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
         yarr, zarr = np.meshgrid(dim1vec, dim2vec)
-        xarr = yarr - yarr + xmin
+        xarr = np.full_like(yarr, xmin)
         titlestr = '$x$ = {} '.format(xmin) + simulation.length_unit
         dim1name = '$y$ (' + simulation.length_unit + ')'
         dim2name = '$z$ (' + simulation.length_unit + ')'
@@ -222,7 +222,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
         dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
         xarr, zarr = np.meshgrid(dim1vec, dim2vec)
-        yarr = xarr - xarr + ymin
+        yarr = np.full_like(xarr, ymin)
         titlestr = '$y$ = {} '.format(ymin) + simulation.length_unit
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$z$ (' + simulation.length_unit + ')'
@@ -230,7 +230,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
         dim2vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
         xarr, yarr = np.meshgrid(dim1vec, dim2vec)
-        zarr = xarr - xarr + zmin
+        zarr = np.full_like(xarr, zmin)
         titlestr = '$z$ = {} '.format(zmin) + simulation.length_unit
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$y$ (' + simulation.length_unit + ')'
