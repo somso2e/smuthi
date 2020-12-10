@@ -40,28 +40,6 @@ You can install for example
 or `WinPython <https://winpython.github.io/>`_ 
 to get a full Python environment.
 
-C compiler under Windows (for pywigxjpf, optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. note:: 
-	If you skip the installation of a C compiler, Smuthi will still work, but you might not benefit from fast evaluation of Wigner3j symbols through the wigxjpf libary. This can be an issue when your simulation involves large multipole degrees.
-
-To benefit from faster evaluation of Wigner3j symbols through the pywigxjpf package, you need a C compiler.
-If you have Microsoft Visual Studio installed, `MS VC` is probably already there. Otherwise, open the Visual Studio setup and install the Visual C compiler. If you don't have Microsoft Visual Studio, see 
-`the Python Wiki <https://wiki.python.org/moin/WindowsCompilers>`_ 
-for further instructions.
-
-.. _gfortranAnchor:
-
-gfortran under Windows (for NFM-DS, optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. note:: 
-	Smuthi can be installed from PyPi through binary wheels which include a compiled binary of the NFM-DS module, so if you install Smuthi with `python -m pip install smuthi`, you don't need a Fortran compiler. The following information is only relevant if you plan to install Smuthi from source.
-
-Visit the `MinGW getting started page <http://mingw.org/wiki/Getting_Started>`_ and follow the instructions to install `gfortran`. 
-Also make sure to add the bin folder of your MinGW installation to the Windows PATH variable. See `Environment Settings` section of the `MinGW getting started page <http://mingw.org/wiki/Getting_Started>`_ for instructions.
-
-.. note::
-  The MinGW version needs to fit to your Python installation. If you have 64 Bit Python, make sure to download a `Mingw-64 <https://sourceforge.net/projects/mingw-w64/>`_
 
 Installation
 ~~~~~~~~~~~~
@@ -92,7 +70,13 @@ Clone Smuthi and install it locally by::
 
 Windows
 ~~~~~~~
-`Download <https://gitlab.com/AmosEgel/smuthi/tags>`_ or git clone the Smuthi project folder from the `gitlab repository <https://gitlab.com/AmosEgel/smuthi.git>`_. Open a command prompt and change directory to the Smuthi
+
+Local installation requires a Fortran compiler. Visit the `MinGW getting started page <http://mingw.org/wiki/Getting_Started>`_ and follow the instructions to install `gfortran`. Make sure to add the bin folder of your MinGW installation to the Windows PATH variable. See `Environment Settings` section of the `MinGW getting started page <http://mingw.org/wiki/Getting_Started>`_ for instructions.
+
+.. note::
+  The MinGW version needs to fit to your Python installation. If you have 64 Bit Python, make sure to download a `Mingw-64 <https://sourceforge.net/projects/mingw-w64/>`_
+
+Then, `download <https://gitlab.com/AmosEgel/smuthi/tags>`_ or git clone the Smuthi project folder from the `gitlab repository <https://gitlab.com/AmosEgel/smuthi.git>`_. Open a command prompt and change directory to the Smuthi
 project folder and enter::
 
   python -m pip install -e .
@@ -144,4 +128,4 @@ Troubleshooting
 Windows: Unable to import the nfmds module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Try to install Smuthi from source. You will need the `gfortran` compiler, see :ref:`gfortranAnchor`.
+Try to install Smuthi from source.
