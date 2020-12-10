@@ -77,6 +77,9 @@ class Simulation:
         identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
                                              particles, located in the same background medium). Then, the T-matrix is
                                              computed only once for all particles.
+         do_sanity_check (bool):             if true (default), check numerical input for some flaws. Warning: A passing
+                                             sanity check does not guarantee correct numerical settings. For many
+                                             particles, the sanity check might take some time and/or occupy large memory.
     """
     def __init__(self,
                  layer_system=None,
@@ -103,7 +106,8 @@ class Simulation:
                  log_to_file=False,
                  log_to_terminal=True,
                  check_circumscribing_spheres=True,
-                 identical_particles=False):
+                 identical_particles=False,
+                 do_sanity_check=True):
 
         # initialize attributes
         self.layer_system = layer_system
@@ -128,6 +132,7 @@ class Simulation:
         self.save_after_run = save_after_run
         self.check_circumscribing_spheres = check_circumscribing_spheres
         self.identical_particles = identical_particles
+        self.do_sanity_check = do_sanity_check
 
         # output
         timestamp = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
@@ -193,6 +198,36 @@ class Simulation:
             filename = self.output_dir + '/simulation.p'
         with open(filename, 'wb') as fn:
             pickle.dump(self, fn, -1)
+
+    def sanity_check(self):
+        """Check contour parameters for obvious problems"""
+        maxrho = self.largest_lateral_distance()
+        k = flds.angular_frequency(self.initial_field.vacuum_wavelength)
+        thresh = 2 / (maxrho * k)
+
+        # check neff_resol
+        if self.neff_resolution is not None and self.k_parallel == "default":
+            if self.neff_resolution > thresh:
+                sys.stdout.write("Warning: Sanity check for neff_resolution failed!\n")
+                sys.stdout.write("         neff_resolution = %.3e, max_rho = %.3e. k = %.3e.\n"%(self.neff_resolution,maxrho,k))
+                sys.stdout.write("         It is recommended to select neff_resolution < 2 (k max_rho) = %.3e\n"%thresh)
+                sys.stdout.flush()
+
+        # check neff_imag
+        if self.neff_imag is not None and self.k_parallel == "default" and self.neff_waypoints is None:
+            if self.neff_imag > thresh:
+                sys.stdout.write("Warning: Sanity check for neff_imag failed!\n")
+                sys.stdout.write("         neff_imag = %.3e, max_rho = %.3e. k = %.3e.\n"%(self.neff_imag,maxrho,k))
+                sys.stdout.write("         It is recommended to select neff_imag < 2 (k max_rho) = %.3e\n"%thresh)
+                sys.stdout.flush()
+
+    def largest_lateral_distance(self):
+        """Compute the largest lateral distance between any two particles"""
+        particle_x_array = np.array([particle.position[0] for particle in self.particle_list])
+        particle_y_array = np.array([particle.position[1] for particle in self.particle_list])
+        rho_squared = ((particle_x_array[:, None] - particle_x_array[None, :]) ** 2
+                       + (particle_y_array[:, None] - particle_y_array[None, :]) ** 2)
+        return np.sqrt(np.max(rho_squared))
 
     def initialize_linear_system(self):
         self.linear_system = lsys.LinearSystem(particle_list=self.particle_list,
@@ -299,6 +334,10 @@ class Simulation:
         if self.check_circumscribing_spheres and not self.circumscribing_spheres_disjoint():
             warnings.warn("Particles with circumscribing spheres detected.")
 
+        # run sanity check
+        if self.do_sanity_check:
+            self.sanity_check()
+
         # set default angular arrays
         if flds.default_azimuthal_angles is None or flds.default_polar_angles is None:
             self.set_default_angles()
@@ -334,7 +373,5 @@ class Simulation:
 
         sys.stdout.write('\n')
         sys.stdout.flush()
-
-        #plt.show()
 
         return preparation_time, solution_time, postprocessing_time
