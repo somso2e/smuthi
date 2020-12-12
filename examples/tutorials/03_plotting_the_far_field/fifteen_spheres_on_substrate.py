@@ -14,8 +14,8 @@ import smuthi.postprocessing.graphical_output as go
 
 # In this file, all lengths are given in nanometers
 
-# Initialize the layer system object containing the substrate (glass) half 
-# space and the ambient (air) half space. The coordinate system is such that 
+# Initialize the layer system object containing the substrate (glass) half
+# space and the ambient (air) half space. The coordinate system is such that
 # the interface between the first two layers defines the plane z=0.
 # Note that semi infinite layers have thickness 0!
 two_layers = smuthi.layers.LayerSystem(thicknesses=[0, 0],
@@ -48,14 +48,13 @@ simulation = smuthi.simulation.Simulation(layer_system=two_layers,
 simulation.run()
 
 # plot the scattered far field
+from matplotlib.colors import LogNorm
+color_norm = LogNorm(vmin=1e2, vmax=1e5) # play with these limits to get an appealing result
+
 go.show_scattering_cross_section(simulation,
-                                 log_scale=True,
-                                 show_opts=[{'vmin':1e2,   # play with these parameters
-                                             'vmax':1e5}]) # to get an appealing result
+                                 show_opts=[{'norm':color_norm}])
 
 # note: if the initial field is not a plane wave, we would not use "show_scattering_cross_section", but
 # "show_scattered_far_field". E.g.:
 # go.show_scattered_far_field(simulation,
-#                             log_scale=True,
-#                             show_opts=[{'vmin':1e2,   # play with these parameters
-#                                         'vmax':1e5}]) # to get an appealing result
+#                             show_opts=[{'norm':color_norm}])
