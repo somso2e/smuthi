@@ -1,35 +1,34 @@
 import numpy as np
 
+
 def readstl(stlname):
     """
     Reads surface information from STL file
     Args:
-        stlname (string):    name of STL file
+        stlname (string): name of STL file
 
     Returns:
         A list of dictionaries with information about faces of scatterer geometry.
     """
     surfaces = []
     with open(stlname) as f:
-        for x in f:
-            if "solid" in x and "end" not in x:
-                nsurf = int(x.split(" ")[-1])
-                #print(nsurf)
+        nsurf = 0
+        for line in f:
+            if "solid" in line and "end" not in line:
+                nsurf += 1
                 if nsurf > 1:
-                    surf = {
-                        'nsurf': nsurf - 1,
-                        'baris': np.array(baris),
-                        'areas': np.array(areas),
-                        'normals': np.array(normals)
-                    }
+                    surf = {'nsurf': nsurf - 1,
+                            'baris': np.array(baris),
+                            'areas': np.array(areas),
+                            'normals': np.array(normals)}
                     surfaces.append(surf)
                 baricenter = 0
                 baris = []
                 areas = []
                 triangle = []
                 normals = []
-            if "facet" in x and "end" not in x:
-                normal = np.array([float(i) for i in x.split(" ")[2:]])
+            if "facet" in line and "end" not in line:
+                normal = np.array([float(i) for i in line.split(" ")[2:]])
                 normals.append(normal)
                 if np.any(np.abs(baricenter) > 0) and bool(triangle):
                     ab = np.array(triangle[1] - triangle[0])
@@ -38,19 +37,18 @@ def readstl(stlname):
                     baris.append(baricenter)
                 baricenter = 0
                 triangle = []
-            if "vertex" in x:
-                vertex = np.array([float(i) for i in x.split(" ")[5:]])
+            if "vertex" in line:
+                vertex = np.array([float(i) for i in line.split(" ")[5:]])
                 baricenter += vertex / 3
                 triangle.append(vertex)
 
-    surf = {
-        'nsurf': nsurf - 1,
-        'baris': np.array(baris),
-        'areas': np.array(areas),
-        'normals': np.array(normals)
-    }
+    surf = {'nsurf': nsurf - 1,
+            'baris': np.array(baris),
+            'areas': np.array(areas),
+            'normals': np.array(normals)}
     surfaces.append(surf)
     return surfaces
+
 
 def writefem(femname,surfaces):
     """
@@ -73,6 +71,7 @@ def writefem(femname,surfaces):
             ii0 + ii, P[ii, 0], P[ii, 1], P[ii, 2], F[ii, 0], F[ii, 1], F[ii, 2], areas[ii]), file=fid)
         ii0 += len(areas)
     fid.close()
+
 
 def convert_stl_to_fem(stlname, femname):
     """
