@@ -23,19 +23,18 @@ sphere = part.Sphere(position=(0, 0, 0),
                      l_max=lmax, 
                      m_max=mmax)
 
-stlc.convert_stl_to_fem(file_path + "/sphere_fine.stl", file_path + "/sphere.fem")
-
-custom_sphere = part.CustomParticle(position=(0, 0, 0), 
-                                    refractive_index=2, 
-                                    fem_filename=file_path + "/sphere.fem", 
-                                    scale=100, 
-                                    l_max=lmax, 
-                                    m_max=mmax, 
+custom_sphere = part.CustomParticle(position=(0, 0, 0),
+                                    refractive_index=2,
+                                    geometry_filename=file_path + "/sphere_fine.stl",
+                                    scale=100,
+                                    l_max=lmax,
+                                    m_max=mmax,
                                     n_rank=nrank)
 
 t_mie = sphere.compute_t_matrix(vacuum_wavelength=wl, n_medium=nmed)
                                           
 t_custom = custom_sphere.compute_t_matrix(vacuum_wavelength=wl, n_medium=nmed)
+
 
 def test_custom_sphere():
     print(t_mie[0, 0])
@@ -44,6 +43,7 @@ def test_custom_sphere():
     err = np.linalg.norm(t_mie - t_custom) / np.linalg.norm(t_mie)
     print('error t-matrix:', err)
     assert err < 1e-2
+
 
 if __name__ == '__main__':
     test_custom_sphere()

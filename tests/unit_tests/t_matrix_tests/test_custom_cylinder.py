@@ -26,21 +26,20 @@ axsym_cylinder = part.FiniteCylinder(position=(0, 0, 0),
                                      m_max=mmax, 
                                      n_rank=nrank)
 
-stlc.convert_stl_to_fem(file_path + "/cylinder.stl", file_path + "/cylinder.fem")
-
-custom_cylinder = part.CustomParticle(position=(0, 0, 0), 
-                                     refractive_index=2, 
-                                     fem_filename=file_path + "/cylinder.fem", 
-                                     scale=100, 
-                                     l_max=lmax, 
-                                     m_max=mmax, 
-                                     n_rank=nrank)
+custom_cylinder = part.CustomParticle(position=(0, 0, 0),
+                                      refractive_index=2,
+                                      geometry_filename=file_path + "/cylinder.stl",
+                                      scale=100,
+                                      l_max=lmax,
+                                      m_max=mmax,
+                                      n_rank=nrank)
 
 t_axsym = axsym_cylinder.compute_t_matrix(vacuum_wavelength=wl, 
                                           n_medium=nmed)
                                           
 t_custom = custom_cylinder.compute_t_matrix(vacuum_wavelength=wl, 
                                             n_medium=nmed)
+
 
 def test_custom_cylinder():
     print(t_axsym[0, 0])
@@ -49,6 +48,7 @@ def test_custom_cylinder():
     err = np.linalg.norm(t_axsym - t_custom) / np.linalg.norm(t_axsym)
     print('error t-matrix:', err)
     assert err < 1e-2
+
 
 if __name__ == '__main__':
     test_custom_cylinder()

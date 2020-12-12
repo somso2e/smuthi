@@ -24,7 +24,8 @@ two_layers = smuthi.layers.LayerSystem(thicknesses=[0, 0],
                                        refractive_indices=[1.52, 1])
 
 # Scattering particle
-sphere = smuthi.particles.CustomParticle(position=[0, 0, 100],refractive_index=1.52,scale=100,l_max=3,fem_filename="spherestl.fem")
+sphere = smuthi.particles.CustomParticle(position=[0, 0, 100], refractive_index=1.52, scale=100, l_max=3,
+                                         geometry_filename="spherestl.fem")
 
 # list of all scattering particles (only one in this case)
 one_sphere = [sphere]

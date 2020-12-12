@@ -38,7 +38,7 @@ smuthi.linearsystem.tmatrix.nfmds.stlmanager.convert_stl_to_fem("cube.stl", "cub
 
 cube = smuthi.particles.CustomParticle(position=[500, 0, 100],
                                        refractive_index=1.7,
-                                       fem_filename="cube.fem",
+                                       geometry_filename="cube.fem",
                                        scale=100,
                                        l_max=5)
 

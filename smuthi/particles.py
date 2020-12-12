@@ -2,18 +2,15 @@
 """Provide class for the representation of scattering particles."""
 import smuthi.fields as flds
 import smuthi.linearsystem.tmatrix.t_matrix as tmt
-import numpy as np
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 import smuthi.linearsystem.tmatrix.nfmds.stlmanager as stlc
-try:
-  import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
-except:
-  import warnings
-  warnings.warn("Unable to locate nfmds module.")
+import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 import smuthi.utility.logging as log
+import numpy as np
+import tempfile
+
 
 nfmds_logfile = None
-
 
 
 class Particle:
@@ -128,7 +125,7 @@ class CustomParticle(Particle):
                                     revolution.
         polar_angle (float):        Polar angle of axis of revolution. 
         azimuthal_angle (float):    Azimuthal angle of axis of revolution.
-        fem_filename (string):      Path to FEM file
+        geometry_filename (string):      Path to FEM file
         scale (float):              Scaling factor for particle dimensions (relative to provided dimensions)
         l_max (int):                Maximal multipole degree used for the spherical wave expansion of incoming and
                                     scattered field
@@ -138,7 +135,7 @@ class CustomParticle(Particle):
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
-                 fem_filename=nfmds_logfile, scale=1, l_max=None, m_max=None, n_rank=None):
+                 geometry_filename=None, scale=1, l_max=None, m_max=None, n_rank=None):
         if euler_angles is None:
             euler_angles = [azimuthal_angle, polar_angle, 0]
         Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
@@ -148,16 +145,30 @@ class CustomParticle(Particle):
         else:
             self.n_rank = n_rank
 
-        self.fem_filename = fem_filename
+        self.geometry_filename = geometry_filename
+
         self.scale = scale
 
     def circumscribing_sphere_radius(self):
         return self.scale
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
+        if self.geometry_filename.endswith(".fem") or self.geometry_filename.endswith(".FEM"):
+            return self._compute_t_matrix(vacuum_wavelength, n_medium, self.geometry_filename)
+
+        elif self.geometry_filename.endswith(".stl") or self.geometry_filename.endswith(".STL"):
+            with tempfile.TemporaryDirectory() as tempdir:
+                stlc.convert_stl_to_fem(stlname=self.geometry_filename,
+                                        femname=tempdir + "/temp.fem")
+                return self._compute_t_matrix(vacuum_wavelength, n_medium, tempdir + "/temp.fem")
+        else:
+            raise Exception("Invalid geometry file extension.")
+
+    def _compute_t_matrix(self, vacuum_wavelength, n_medium, fem_file):
+        """Private t-matrix method function"""
         Nmax = self.n_rank * (2 + self.n_rank)
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tnonaxsym([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], Nmax, filefem=self.fem_filename,
+            tnfmds = nfmds.tnonaxsym([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], Nmax, filefem=fem_file,
                                      wavelength=vacuum_wavelength / self.scale,
                                      ind_refrel=self.refractive_index / n_medium + 0j,
                                      nrank=self.n_rank, mrank=self.n_rank, ind_refmed=n_medium)
