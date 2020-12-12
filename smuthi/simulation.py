@@ -331,11 +331,12 @@ class Simulation:
         self.print_simulation_header()
 
         # check for circumscribing sphere collisions.
-        if self.check_circumscribing_spheres and not self.circumscribing_spheres_disjoint():
+        if self.check_circumscribing_spheres and len(self.particle_list) > 1 \
+                and not self.circumscribing_spheres_disjoint():
             warnings.warn("Particles with circumscribing spheres detected.")
 
         # run sanity check
-        if self.do_sanity_check:
+        if self.do_sanity_check and len(self.particle_list) > 1:
             self.sanity_check()
 
         # set default angular arrays
