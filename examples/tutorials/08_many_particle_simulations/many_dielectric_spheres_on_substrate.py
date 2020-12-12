@@ -7,8 +7,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
-
 import smuthi.simulation
 import smuthi.initial_field
 import smuthi.layers
@@ -47,21 +45,21 @@ def simulate_N_spheres(number_of_spheres=100,
     # Initialize the layer system: substrate (glass) and ambient (air)
     two_layers = smuthi.layers.LayerSystem(thicknesses=[0, 0],
                                            refractive_indices=[1.52, 1])
-
+    
     # Initial field
     plane_wave = smuthi.initial_field.PlaneWave(vacuum_wavelength=550,
                                                 polar_angle=np.pi,  # from top
                                                 azimuthal_angle=0,
                                                 polarization=0)     # 0=TE 1=TM
-
+    
     spheres_list = vogel_spiral(number_of_spheres)
-
+    
     # Initialize and run simulation
     cu.enable_gpu(use_gpu)
     if use_gpu and not cu.use_gpu:
         print("Failed to load pycuda, skipping simulation")
         return [0, 0, 0]
-
+   
     if direct_inversion:
         simulation = smuthi.simulation.Simulation(layer_system=two_layers,
                                                   particle_list=spheres_list,
@@ -94,13 +92,12 @@ def simulate_N_spheres(number_of_spheres=100,
                                            azimuthal_angles=azimuthal_angles)
 
         # display differential scattering cross section
-        color_norm = LogNorm() # triggering log scale plotting
         go.show_far_field(far_field=dscs,
                           save_plots=True,
                           show_plots=True,
                           save_data=False,
-                          show_opts=[{'label':'dscs_%i spheres'%number_of_spheres,
-                                      'norm':color_norm}])
+                          show_opts=[{'label':'dscs_%i spheres'%number_of_spheres}],
+                          log_scale=True)
 
         xlim = max([abs(sphere.position[0]) for sphere in spheres_list]) * 1.1
         plt.figure()

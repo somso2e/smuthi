@@ -431,9 +431,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
 
 def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'scattered_far_field'}],
-                             save_plots=False, save_opts=None, save_data=False, data_format='hdf5', outputdir='.',
-                             flip_downward=True, split=True, polar_angles='default', azimuthal_angles='default',
-                             angular_resolution=None):
+                             save_plots=False, save_opts=None,
+                             save_data=False, data_format='hdf5', outputdir='.',
+                             flip_downward=True, split=True, log_scale=False,
+                             polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Display and export the scattered far field.
 
     Args:
@@ -446,7 +447,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                 The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
-                                'norm'      (None) for 2D plots, an analogue normalization will be set for 1D curves
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
                                 'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
@@ -472,6 +473,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
         outputdir (str):                        Path to the directory where files are to be saved
         flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
         split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
         polar_angles (numpy.ndarray or str):    Polar angles values (radian).
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
@@ -494,13 +496,14 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
-                   flip_downward=flip_downward, split=split)
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
 def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total_far_field'}],
-                         save_plots=False, save_opts=None, save_data=False, data_format='hdf5', outputdir='.',
-                         flip_downward=True, split=True, polar_angles='default', azimuthal_angles='default',
-                         angular_resolution=None):
+                         save_plots=False, save_opts=None,
+                         save_data=False, data_format='hdf5', outputdir='.',
+                         flip_downward=True, split=True, log_scale=False,
+                         polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Display and export the total far field. This function cannot be used if the inital field is a plane wave.
 
     Args:
@@ -513,7 +516,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                 The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
-                                'norm'      (None) for 2D plots, an analogue normalization will be set for 1D curves
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
                                 'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
@@ -539,6 +542,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
         outputdir (str):                        Path to the directory where files are to be saved
         flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
         split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
         polar_angles (numpy.ndarray or str):    Polar angles values (radian).
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
@@ -560,13 +564,14 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
-                   flip_downward=flip_downward, split=split)
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
 def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'label':'scattering_cross_section'}],
-                                  save_plots=False, save_opts=None, save_data=False, data_format='hdf5', outputdir='.',
-                                  flip_downward=True, split=True, polar_angles='default', azimuthal_angles='default',
-                                  angular_resolution=None):
+                                  save_plots=False, save_opts=None,
+                                  save_data=False, data_format='hdf5', outputdir='.',
+                                  flip_downward=True, split=True, log_scale=False,
+                                  polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Display and export the differential scattering cross section.
 
     Args:
@@ -579,7 +584,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                 The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
-                                'norm'      (None) for 2D plots, an analogue normalization will be set for 1D curves
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
                                 'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
@@ -605,6 +610,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
         outputdir (str):                        Path to the directory where files are to be saved
         flip_downward (bool):                   If True, represent downward directions as 0-90 deg instead of 90-180
         split (bool):                           If True, show two different plots for upward and downward directions
+        log_scale (bool):                       If True, set a logarithmic scale
         polar_angles (numpy.ndarray or str):    Polar angles values (radian).
                                                 If 'default', use smuthi.fields.default_polar_angles
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
@@ -627,11 +633,12 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
-                   flip_downward=flip_downward, split=split)
+                   flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
 def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}], save_plots=False, save_opts=None,
-                   save_data=False, data_format='hdf5', outputdir='.', flip_downward=True, split=True):
+                   save_data=False, data_format='hdf5', outputdir='.',
+                   flip_downward=True, split=True, log_scale=False):
     """Display and export the far field.
 
     Args:
@@ -644,7 +651,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
                                 The following keys are available (see matplotlib.pyplot.pcolormesh documentation):
                                 'alpha'     (None)
                                 'cmap'      ('inferno')
-                                'norm'      (None) for 2D plots, an analogue normalization will be set for 1D curves
+                                'norm'      (None), is set to matplotlib.colors.LogNorm() if log_scale is True
                                 'vmin'      (None), applies only to 2D plots
                                 'vmax'      (None), applies only to 2D plots
                                 'shading'   ('nearest'), applies only to 2D plots. 'gouraud' is also available
@@ -672,17 +679,18 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         outputdir (str):        Path to the directory where files are to be saved
         flip_downward (bool):   If True, represent downward directions as 0-90 deg instead of 90-180
         split (bool):           If True, show two different plots for upward and downward directions
+        log_scale (bool):       If True, set a logarithmic scale
     """
 
     if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
         for d in show_opts:
             d['label'] = d.get('label') + '_top'
         show_far_field(far_field.top(), show_plots, show_opts, save_plots, save_opts,
-                       save_data, data_format, outputdir, True, False)
+                       save_data, data_format, outputdir, True, False, log_scale)
         for d in show_opts:
             d['label'] = d.get('label').rstrip('_top') + '_bottom'
         show_far_field(far_field.bottom(), show_plots, show_opts, save_plots, save_opts,
-                       save_data, data_format, outputdir, True, False)
+                       save_data, data_format, outputdir, True, False, log_scale)
         return
 
     if (not os.path.exists(outputdir)) and (save_plots or save_data):
@@ -737,7 +745,11 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
         ax = fig.add_subplot(111, polar=True)
 
-        color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+        if log_scale: # in either case, this will be overridden if a 'norm' is also passed to show_opts
+            color_norm = show_opt.get('norm', LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+        else:
+            color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
                             alpha=show_opt.get('alpha'), norm=color_norm,
                             cmap=show_opt.get('cmap','inferno'), shading=show_opt.get('shading','nearest'))
@@ -772,6 +784,8 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
             plt.yscale('symlog', linthresh=color_norm.linthresh,
                                  base=color_norm._base, linscale=linscale)
 
+        # the following line would apply the same vmin and vmax of 2D maps to 1D polar plots
+        # plt.ylim([color_norm.vmin, color_norm.vmax])
         plt.grid(True)
         plt.title(show_opt.get('label').replace('_',' '))
 

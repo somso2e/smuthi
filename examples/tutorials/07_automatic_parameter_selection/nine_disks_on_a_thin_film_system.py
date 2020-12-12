@@ -47,8 +47,8 @@ one_disk = [smuthi.particles.FiniteCylinder(position=[0, 0, thin_film_thickness 
 nine_disks = []
 for i in range(3):
     for j in range(3):
-        nine_disks.append(smuthi.particles.FiniteCylinder(position=[(i-1)*cylinder_distance,
-                                                                    (j-1)*cylinder_distance,
+        nine_disks.append(smuthi.particles.FiniteCylinder(position=[(i-1)*cylinder_distance, 
+                                                                    (j-1)*cylinder_distance, 
                                                                     thin_film_thickness + 0.5*cylinder_height],
                                                           refractive_index=cylinder_refractive_index,
                                                           cylinder_radius=cylinder_radius,
@@ -87,10 +87,9 @@ simulation = smuthi.simulation.Simulation(layer_system=three_layers,
 simulation.run()
 
 # show far field
-from matplotlib.colors import LogNorm
-color_norm = LogNorm(vmin=1e2, vmax=1e5) # play with these limits to get an appealing result
-
 smuthi.postprocessing.graphical_output.show_scattering_cross_section(simulation,
                                                                      show_plots=True,
                                                                      show_opts=[{'label':'scattering_cross_section',
-                                                                                 'norm':color_norm}])
+                                                                                 'vmin':1e2,    # play with these parameters
+                                                                                 'vmax':1e5}],  # to get an appealing result
+                                                                     log_scale=True)
