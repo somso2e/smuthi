@@ -148,7 +148,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 be applied to all save_opts.
                                 The following keys are made available (see matplotlib.pyplot.imshow documentation):
                                 'cmap'          defaults to 'inferno' for norm quantities and 'RdYlBu' otherwise
-                                'norm'          (None)
+                                'norm'          (None). If a norm is provided, its vmin and vmax take precedence
                                 'aspect'        ('equal')
                                 'interpolation' (None), also available: bilinear, bicubic, spline16, quadric, ...
                                 'alpha'         (None)
@@ -286,8 +286,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
             if 'norm' in quantity:
                 e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
-                plt.imshow(e, vmin=show_opt.get('vmin', 0), vmax=show_opt.get('vmax',np.abs(e).max()),
-                           alpha=show_opt.get('alpha'), norm=show_opt.get('norm'),
+                vmax = np.abs(e).max()
+                color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',0), vmax=show_opt.get('vmax',vmax)))
+                plt.imshow(e,
+                           alpha=show_opt.get('alpha'), norm=color_norm,
                            cmap=show_opt.get('cmap','inferno'), origin=show_opt.get('origin','lower'),
                            interpolation=show_opt.get('interpolation','none'),
                            extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
@@ -309,9 +311,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 else:
                     print('Quantity:', quantity)
                     raise ValueError('field component not specified')
-                vmax = show_opt.get('vmax',np.abs(e).max())
-                plt.imshow(e.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
-                           alpha=show_opt.get('alpha'), norm=show_opt.get('norm'),
+                vmax = np.abs(e).max()
+                color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax)))
+                plt.imshow(e.real,
+                           alpha=show_opt.get('alpha'), norm=color_norm,
                            cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
                            interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
                            extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
@@ -343,7 +346,8 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
                         tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
                         e_t = e * np.exp(-1j * t * 2 * np.pi)
-                        plt.imshow(e_t.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
+                        plt.imshow(e_t.real,
+                                   alpha=show_opt.get('alpha'), norm=color_norm,
                                    cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
                                    interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
                                    extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
