@@ -7,7 +7,7 @@ import smuthi.postprocessing.internal_field as intf
 import smuthi.postprocessing.far_field as ff
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Ellipse, Rectangle
-from matplotlib.colors import LogNorm, Normalize
+from matplotlib.colors import Normalize, LogNorm, SymLogNorm
 from itertools import cycle
 import tempfile
 import shutil
@@ -148,7 +148,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                 be applied to all save_opts.
                                 The following keys are made available (see matplotlib.pyplot.imshow documentation):
                                 'cmap'          defaults to 'inferno' for norm quantities and 'RdYlBu' otherwise
-                                'norm'          (None)
+                                'norm'          (None). If a norm is provided, its vmin and vmax take precedence
                                 'aspect'        ('equal')
                                 'interpolation' (None), also available: bilinear, bicubic, spline16, quadric, ...
                                 'alpha'         (None)
@@ -262,120 +262,128 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
         for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
 
-            filename = 'E'
-            label_str = show_opt.get('label','')
+            try:
+                filename = 'E'
+                label_str = show_opt.get('label','')
 
-            if 'scat' in quantity:
-                e_x, e_y, e_z = e_x_scat, e_y_scat, e_z_scat
-                field_type_string = 'scat'
-            elif 'init' in quantity:
-                e_x, e_y, e_z = e_x_init, e_y_init, e_z_init
-                field_type_string = 'init'
-            elif 'intern' in quantity:
-                if not show_internal_field:
-                    raise Exception("show_internal_field flag needs to be set to true!")
-                e_x, e_y, e_z = e_x_int, e_y_int, e_z_int
-                field_type_string = 'inter'
-            else:
-                e_x, e_y, e_z = e_x_scat + e_x_init, e_y_scat + e_y_init, e_z_scat + e_z_init
-                if show_internal_field:
-                    e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
-                field_type_string = 'tot'
-
-            fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
-
-            if 'norm' in quantity:
-                e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
-                plt.imshow(e, vmin=show_opt.get('vmin', 0), vmax=show_opt.get('vmax',np.abs(e).max()),
-                           alpha=show_opt.get('alpha'), norm=show_opt.get('norm'),
-                           cmap=show_opt.get('cmap','inferno'), origin=show_opt.get('origin','lower'),
-                           interpolation=show_opt.get('interpolation','none'),
-                           extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
-                                                          dim2vec.min()-step2, dim2vec.max()+step2]))
-                plt_title = '$|' + filename + '^{' + field_type_string + '}|$ at ' + titlestr \
-                            + ('' if label_str == '' else ' (' + label_str + ')')
-                filename = 'norm_' + filename
-                plt.title(plt_title)
-            else:
-                if '_x' in quantity:
-                    e = e_x
-                    filename = filename + '_x'
-                elif '_y' in quantity:
-                    e = e_y
-                    filename = filename + '_y'
-                elif '_z' in quantity:
-                    e = e_z
-                    filename = filename + '_z'
+                if 'scat' in quantity:
+                    e_x, e_y, e_z = e_x_scat, e_y_scat, e_z_scat
+                    field_type_string = 'scat'
+                elif 'init' in quantity:
+                    e_x, e_y, e_z = e_x_init, e_y_init, e_z_init
+                    field_type_string = 'init'
+                elif 'intern' in quantity:
+                    if not show_internal_field:
+                        raise Exception("show_internal_field flag needs to be set to true!")
+                    e_x, e_y, e_z = e_x_int, e_y_int, e_z_int
+                    field_type_string = 'inter'
                 else:
-                    print('Quantity:', quantity)
-                    raise ValueError('field component not specified')
-                vmax = show_opt.get('vmax',np.abs(e).max())
-                plt.imshow(e.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
-                           alpha=show_opt.get('alpha'), norm=show_opt.get('norm'),
-                           cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
-                           interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
-                           extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
-                                                          dim2vec.min()-step2, dim2vec.max()+step2]))
-                plt_title = '$ ' + filename + '^{' + field_type_string + '}$' + ' at ' + titlestr \
-                            + ('' if label_str == '' else ' (' + label_str + ')')
-                plt.title(plt_title)
+                    e_x, e_y, e_z = e_x_scat + e_x_init, e_y_scat + e_y_init, e_z_scat + e_z_init
+                    if show_internal_field:
+                        e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
+                    field_type_string = 'tot'
 
-            plt.colorbar()
-            plt.xlabel(dim1name)
-            plt.ylabel(dim2name)
+                fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
-            if not zmin == zmax:
-                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                if 'norm' in quantity:
+                    e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
+                    vmax = np.abs(e).max()
+                    color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',0), vmax=show_opt.get('vmax',vmax)))
+                    plt.imshow(e,
+                               alpha=show_opt.get('alpha'), norm=color_norm,
+                               cmap=show_opt.get('cmap','inferno'), origin=show_opt.get('origin','lower'),
+                               interpolation=show_opt.get('interpolation','none'),
+                               extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                                              dim2vec.min()-step2, dim2vec.max()+step2]))
+                    plt_title = '$|' + filename + '^{' + field_type_string + '}|$ at ' + titlestr \
+                                + ('' if label_str == '' else ' (' + label_str + ')')
+                    filename = 'norm_' + filename
+                    plt.title(plt_title)
+                else:
+                    if '_x' in quantity:
+                        e = e_x
+                        filename = filename + '_x'
+                    elif '_y' in quantity:
+                        e = e_y
+                        filename = filename + '_y'
+                    elif '_z' in quantity:
+                        e = e_z
+                        filename = filename + '_z'
+                    else:
+                        print('Quantity:', quantity)
+                        raise ValueError('field component not specified')
+                    vmax = np.abs(e).max()
+                    color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax)))
+                    plt.imshow(e.real,
+                               alpha=show_opt.get('alpha'), norm=color_norm,
+                               cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
+                               interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
+                               extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                                              dim2vec.min()-step2, dim2vec.max()+step2]))
+                    plt_title = '$ ' + filename + '^{' + field_type_string + '}$' + ' at ' + titlestr \
+                                + ('' if label_str == '' else ' (' + label_str + ')')
+                    plt.title(plt_title)
 
-            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                           draw_circumscribing_sphere, not show_internal_field)
+                plt.colorbar()
+                plt.xlabel(dim1name)
+                plt.ylabel(dim2name)
 
-            label_str = '' if label_str == '' else '_' + label_str # prepend underscore
-            filename = filename + '_' + field_type_string + label_str
-            export_filename = outputdir + '/' + filename
-            if save_plots:
-                if save_opt.get('format') == 'gif':
-                    if 'norm' in quantity:
-                        plt.close(fig)
-                        continue # it seems like savefig does not accept 'gif' as a format, so we have to continue explicitly here
-                    tempdir = tempfile.mkdtemp()
-                    images = []
-                    for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
-                        tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
-                        e_t = e * np.exp(-1j * t * 2 * np.pi)
-                        plt.imshow(e_t.real, vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax),
-                                   cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
-                                   interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
-                                   extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
-                                                                  dim2vec.min()-step2, dim2vec.max()+step2]))
-                        plt.title(plt_title)
-                        plt.colorbar()
-                        plt.xlabel(dim1name)
-                        plt.ylabel(dim2name)
-                        if not zmin == zmax:
-                            plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-                        plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                                       draw_circumscribing_sphere, not show_internal_field)
-                        tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
-                        plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
+                if not zmin == zmax:
+                    plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+
+                plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                               draw_circumscribing_sphere, not show_internal_field)
+
+                label_str = '' if label_str == '' else '_' + label_str # prepend underscore
+                filename = filename + '_' + field_type_string + label_str
+                export_filename = outputdir + '/' + filename
+                if save_plots:
+                    if save_opt.get('format') == 'gif':
+                        if 'norm' in quantity:
+                            plt.close(fig)
+                            continue # it seems like savefig does not accept 'gif' as a format, so we have to continue explicitly here
+                        tempdir = tempfile.mkdtemp()
+                        images = []
+                        for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
+                            tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+                            e_t = e * np.exp(-1j * t * 2 * np.pi)
+                            plt.imshow(e_t.real,
+                                       alpha=show_opt.get('alpha'), norm=color_norm,
+                                       cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
+                                       interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
+                                       extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                                                      dim2vec.min()-step2, dim2vec.max()+step2]))
+                            plt.title(plt_title)
+                            plt.colorbar()
+                            plt.xlabel(dim1name)
+                            plt.ylabel(dim2name)
+                            if not zmin == zmax:
+                                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                                           draw_circumscribing_sphere, not show_internal_field)
+                            tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
+                            plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
+                                        orientation=save_opt.get('orientation','portrait'),
+                                        transparent=save_opt.get('transparent',False),
+                                        bbox_inches=save_opt.get('bbox_inches','tight'),
+                                        pad_inches=save_opt.get('pad_inches',0.1))
+                            plt.close(tempfig)
+                            images.append(imageio.imread(tempfig_filename))
+                        imageio.mimsave(export_filename + '.gif', images, duration=0.1)
+                        shutil.rmtree(tempdir)
+                    else:
+                        file_ext = '.' + save_opt.get('format','png') # default to png if not specified
+                        plt.savefig(export_filename + file_ext, dpi=save_opt.get('dpi'),
                                     orientation=save_opt.get('orientation','portrait'),
                                     transparent=save_opt.get('transparent',False),
                                     bbox_inches=save_opt.get('bbox_inches','tight'),
                                     pad_inches=save_opt.get('pad_inches',0.1))
-                        plt.close(tempfig)
-                        images.append(imageio.imread(tempfig_filename))
-                    imageio.mimsave(export_filename + '.gif', images, duration=0.1)
-                    shutil.rmtree(tempdir)
-                else:
-                    file_ext = '.' + save_opt.get('format','png') # default to png if not specified
-                    plt.savefig(export_filename + file_ext, dpi=save_opt.get('dpi'),
-                                orientation=save_opt.get('orientation','portrait'),
-                                transparent=save_opt.get('transparent',False),
-                                bbox_inches=save_opt.get('bbox_inches','tight'),
-                                pad_inches=save_opt.get('pad_inches',0.1))
 
-            if not show_plots:
-                plt.close(fig)
+                if not show_plots:
+                    plt.close(fig)
+
+            except e:
+                print("Skipping " + quantity + " for show_opt = ", show_opt, " and save_opt = ", save_opt)
 
     if not show_plots:
         matplotlib.use(default_backend) # now we can restore the original backend
@@ -734,16 +742,16 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
 
     for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
         # 2D polar plot of far field
-        if log_scale:
-            color_norm = LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
-        else:
-            color_norm = Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax'))
-
         fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
         ax = fig.add_subplot(111, polar=True)
 
+        if log_scale: # in either case, this will be overridden if a 'norm' is also passed to show_opts
+            color_norm = show_opt.get('norm', LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+        else:
+            color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
-                            alpha=show_opt.get('alpha'), norm=show_opt.get('norm',color_norm),
+                            alpha=show_opt.get('alpha'), norm=color_norm,
                             cmap=show_opt.get('cmap','inferno'), shading=show_opt.get('shading','nearest'))
 
         plt.colorbar(pcm, ax=ax)
@@ -769,9 +777,15 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         elif far_field.signal_type == 'intensity':
             plt.ylabel('d_P/d_cos(beta)') # TODO: add units based on simulation.length_unit?
 
-        if log_scale:
+        if isinstance(color_norm, LogNorm):
             plt.yscale('log')
+        elif isinstance(color_norm, SymLogNorm):
+            linscale = color_norm._linscale_adj*(1.0 - 1/color_norm._base)
+            plt.yscale('symlog', linthresh=color_norm.linthresh,
+                                 base=color_norm._base, linscale=linscale)
 
+        # the following line would apply the same vmin and vmax of 2D maps to 1D polar plots
+        # plt.ylim([color_norm.vmin, color_norm.vmax])
         plt.grid(True)
         plt.title(show_opt.get('label').replace('_',' '))
 
