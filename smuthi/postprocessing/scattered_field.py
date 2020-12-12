@@ -5,7 +5,10 @@ from tqdm import tqdm
 import smuthi.fields as flds
 import smuthi.fields.expansions as fldex
 import smuthi.fields.transformations as trf
-
+import numpy as np
+from smuthi.layers import layersystem_response_matrix
+from smuthi.fields.vector_wave_functions import plane_vector_wave_function
+from smuthi.fields.transformations import transformation_coefficients_vwf
 
 def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_system, k_parallel='default',
                                         azimuthal_angles='default', angular_resolution=None, layer_numbers=None):
@@ -136,3 +139,99 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
             pwe_down = pwe_down + pd
 
     return pwe_up, pwe_down
+
+
+def evaluate_scattered_field_stat_phase_approx(x, y, z, vacuum_wavelength, particle_list, layer_system):
+    """Evaluate the scattered electric field for N particles on a substrate. The substrate reflection is evaluated
+    by means of the stationary phase approximation, as presented in
+    "A quick way to approximate a Sommerfeld-Weyl_type Sommerfeld integral" by W.C. Chew (1988).
+
+    See also the technical note "Usage of the stationary phase approximation in SMUTHI" by A. Egel (2020)
+
+    The stationary phase approximation is expected to yield good results for field points far away from the particles.
+
+    ********************************************************************************************************************
+    Note: This function assumes that the particles are located in the upper layer of a two-layer system (particles on
+    substrate). For other cases, this function does not apply.
+    ********************************************************************************************************************
+
+    Args:
+        x (float or numpy.ndarray):                                  x-coordinates of query points
+        y (float or numpy.ndarray):                                  y-coordinates of query points
+        z (float or numpy.ndarray):                                  z-coordinates of query points
+        vacuum_wavelength (float):                          Vacuum wavelength :math:`\lambda` (length unit)
+        particle_list (list):                               List of Particle objects
+        layer_system (smuthi.layers.LayerSystem):           Stratified medium
+
+    Returns:
+        Tuple of (E_x, E_y, E_z) numpy.ndarray objects with the Cartesian coordinates of complex electric field.
+    """
+    x = np.array(x, ndmin=1)
+    y = np.array(y, ndmin=1)
+    z = np.array(z, ndmin=1)
+
+    # assert a two layer system
+    assert (len(layer_system.refractive_indices) == 2)
+
+    # assert that all particles are in top layer (this function applies only to this special case)
+    for particle in particle_list:
+        assert (layer_system.layer_number(particle.position[2]) == 1)
+
+    # assert that all query points are in top layer (this function applies only to this special case)
+    for zi in z:
+        assert (layer_system.layer_number(zi) == 1)
+
+    ex = np.zeros(x.shape, dtype=complex)
+    ey = np.zeros(x.shape, dtype=complex)
+    ez = np.zeros(x.shape, dtype=complex)
+
+    k = layer_system.wavenumber(1, vacuum_wavelength)
+
+    for particle in tqdm(particle_list, desc='Scatt. field st. ph. appr.', file=sys.stdout,
+                                        bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
+
+        # direct scattered field
+        exdir, eydir, ezdir = particle.scattered_field.electric_field(x, y, z)
+        ex += exdir
+        ey += eydir
+        ez += ezdir
+
+        # layer-reflected scattered field
+        xtilde = x - particle.position[0]
+        ytilde = y - particle.position[1]
+        ztilde = z + particle.position[2]
+        rtilde = np.sqrt(xtilde**2 + ytilde**2 + ztilde**2)
+
+        # stationary phase wave-vector
+        k0x = k * xtilde / rtilde
+        k0y = k * ytilde / rtilde
+        k0z = k * ztilde / rtilde
+        k0par = np.hypot(k0x, k0y)
+        alpha0 = np.arctan2(k0y, k0x)
+
+        prefac = -1j * np.exp(1j * k * rtilde) / (k * rtilde)
+
+        for pol in range(2):
+            L = layersystem_response_matrix(pol=pol,
+                                            layer_d=layer_system.thicknesses,
+                                            layer_n=layer_system.refractive_indices,
+                                            kpar=k0par,
+                                            omega=flds.angular_frequency(vacuum_wavelength),
+                                            fromlayer=1,
+                                            tolayer=1)
+            fresnel_coeff = L[0, 1]
+            pvwf_direction = plane_vector_wave_function(0, 0, 0, k0par, alpha0, k0z, pol)
+            print(pvwf_direction[2][-1])
+
+            for tau in range(2):
+                for m in range(-particle.scattered_field.m_max, particle.scattered_field.m_max + 1):
+                    eima = np.exp(1j * m * alpha0)
+                    for l in range(max(1, abs(m)), particle.scattered_field.l_max + 1):
+                        b = particle.scattered_field.coefficients_tlm(tau, l, m)
+                        Bnj = transformation_coefficients_vwf(tau=tau, l=l, m=m, pol=pol, kp=k0par, kz=-k0z)
+                        scalar_fac = prefac * fresnel_coeff * b * eima * Bnj
+                        ex += scalar_fac * pvwf_direction[0]
+                        ey += scalar_fac * pvwf_direction[1]
+                        ez += scalar_fac * pvwf_direction[2]
+
+    return ex, ey, ez

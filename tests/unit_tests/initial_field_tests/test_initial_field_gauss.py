@@ -18,7 +18,7 @@ kp_ar = np.linspace(0, 0.99999, 1000) * smuthi.fields.angular_frequency(ld)
 bw = 4000
 ref = [-100, 100, 200]
 gauss_beam = init.GaussianBeam(vacuum_wavelength=ld, polar_angle=beta, azimuthal_angle=alpha, polarization=pol,
-                               amplitude=A, reference_point=ref, k_parallel_array=kp_ar, 
+                               amplitude=A, reference_point=ref, k_parallel_array=kp_ar,
                                beam_waist=bw)
 particle.initial_field = gauss_beam.spherical_wave_expansion(particle, laysys)
 
