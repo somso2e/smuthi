@@ -23,10 +23,10 @@ def test_electric_field_spa():
 
     # run simulation
     simulation = simul.Simulation(layer_system=lay_sys, particle_list=part_list, initial_field=plane_wave,
-                                  neff_resolution=1e-4)
+                                  neff_resolution=5e-4)
     simulation.run()
 
-    r = 5e4
+    r = 2e4
     polar = np.pi * 1/5
     azim = np.pi * 0.9
     x = r * np.sin(polar) * np.cos(azim)
@@ -40,7 +40,7 @@ def test_electric_field_spa():
     absolute_error = np.linalg.norm([ex - ex_spa, ey - ey_spa, ez - ez_spa])
     relative_error = absolute_error / np.linalg.norm([ex, ey, ez])
     print("relative error:", relative_error)
-    assert relative_error < 2e-3
+    assert relative_error < 5e-3
 
 
 if __name__ == '__main__':
