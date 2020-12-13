@@ -15,6 +15,7 @@ import imageio
 import os
 import warnings
 import sys
+from tqdm import tqdm
 
 
 def plot_layer_interfaces(dim1min, dim1max, layer_system):
@@ -113,6 +114,36 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
+def calculate_near_field(simulation=None, X=None, Y=None, Z=None, type='scat',
+                         k_parallel='default', azimuthal_angles='default', angular_resolution=None):
+    """Calculate a certain component of the electric near field"""
+    X, Y, Z = np.atleast_1d(X), np.atleast_1d(Y), np.atleast_1d(Z)
+    e_x = np.zeros_like(X, dtype=np.complex128)
+    e_y = np.zeros_like(X, dtype=np.complex128)
+    e_z = np.zeros_like(X, dtype=np.complex128)
+    if 'sca' in type:
+        scat_fld_exp = sf.scattered_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength,
+                                                              simulation.particle_list,
+                                                              simulation.layer_system,
+                                                              k_parallel,
+                                                              azimuthal_angles, angular_resolution)
+    if 'int' in type:
+        int_fld_exp = intf.internal_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength, simulation.particle_list,
+                                                              simulation.layer_system)
+
+    for s in tqdm(range(X.shape[0]), desc='Calc. '+type+'. near-field    ', file=sys.stdout,
+                                     bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
+        xarr, yarr, zarr = X[s,], Y[s,], Z[s,]
+        if 'sca' in type:
+            e_x[s,], e_y[s,], e_z[s,] = scat_fld_exp.electric_field(xarr, yarr, zarr)
+        elif 'ini' in type:
+            e_x[s,], e_y[s,], e_z[s,] = simulation.initial_field.electric_field(xarr, yarr, zarr, simulation.layer_system)
+        elif 'int' in type:
+            e_x[s,], e_y[s,], e_z[s,] = int_fld_exp.electric_field(xarr, yarr, zarr)
+
+    return e_x, e_y, e_z
+
+
 def show_near_field(simulation=None, quantities_to_plot=None,
                     show_plots=True, show_opts=None, save_plots=False, save_opts=None,
                     save_data=False, data_format='hdf5', outputdir='.',
@@ -185,7 +216,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         zmin (float):           Plot from that z (length unit)
         zmax (float):           Plot up to that z (length unit)
         resolution_step (float):     Compute the field with that spatial resolution (length unit,
-                                     distance between computed points)
+                                     distance between computed points), can be a tuple for [resx, resy, resz]
         k_parallel (numpy.ndarray or str):      in-plane wavenumbers for the plane wave expansion
                                                 if 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
         azimuthal_angles (numpy.ndarray or str):azimuthal angles for the plane wave expansion
@@ -209,44 +240,38 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     if save_opts is None:
         save_opts = [{'format':'png'}]
 
-    vacuum_wavelength = simulation.initial_field.vacuum_wavelength
+    res = np.resize(resolution_step,3)
+    x = np.arange(xmin, xmax + res[0]/2, res[0])
+    y = np.arange(ymin, ymax + res[1]/2, res[1])
+    z = np.arange(zmin, zmax + res[2]/2, res[2])
+    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z, indexing='ij'))
+
     if xmin == xmax:
-        dim1vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
-        dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
-        yarr, zarr = np.meshgrid(dim1vec, dim2vec)
-        xarr = np.full_like(yarr, xmin)
+        dim1vec, dim2vec = y, z
+        step1, step2 = res[1]/2, res[2]/2 # these are for proper registration of particles and layers to the pixel grid
         titlestr = '$x$ = {} '.format(xmin) + simulation.length_unit
         dim1name = '$y$ (' + simulation.length_unit + ')'
         dim2name = '$z$ (' + simulation.length_unit + ')'
     elif ymin == ymax:
-        dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
-        dim2vec = np.arange(zmin, zmax + resolution_step/2, resolution_step)
-        xarr, zarr = np.meshgrid(dim1vec, dim2vec)
-        yarr = np.full_like(xarr, ymin)
+        dim1vec, dim2vec = x, z
+        step1, step2 = res[0]/2, res[2]/2
         titlestr = '$y$ = {} '.format(ymin) + simulation.length_unit
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$z$ (' + simulation.length_unit + ')'
-    else:
-        dim1vec = np.arange(xmin, xmax + resolution_step/2, resolution_step)
-        dim2vec = np.arange(ymin, ymax + resolution_step/2, resolution_step)
-        xarr, yarr = np.meshgrid(dim1vec, dim2vec)
-        zarr = np.full_like(xarr, zmin)
+    elif zmin == zmax:
+        dim1vec, dim2vec = x, y
+        step1, step2 = res[0]/2, res[1]/2
         titlestr = '$z$ = {} '.format(zmin) + simulation.length_unit
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$y$ (' + simulation.length_unit + ')'
 
-    scat_fld_exp = sf.scattered_field_piecewise_expansion(vacuum_wavelength,
-                                                          simulation.particle_list, simulation.layer_system,
-                                                          k_parallel, azimuthal_angles, angular_resolution)
     sys.stdout.write("Evaluate fields ...\n")
     sys.stdout.flush()
-    e_x_scat, e_y_scat, e_z_scat = scat_fld_exp.electric_field(xarr, yarr, zarr)
-    e_x_init, e_y_init, e_z_init = simulation.initial_field.electric_field(xarr, yarr, zarr, simulation.layer_system)
+    e_x_scat, e_y_scat, e_z_scat = calculate_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='scat')
+    e_x_init, e_y_init, e_z_init = calculate_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='init')
 
     if show_internal_field:
-        int_fld_exp = intf.internal_field_piecewise_expansion(vacuum_wavelength, simulation.particle_list,
-                                                              simulation.layer_system)
-        e_x_int, e_y_int, e_z_int = int_fld_exp.electric_field(xarr, yarr, zarr)
+        e_x_int, e_y_int, e_z_int = calculate_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='inte')
 
     sys.stdout.write("Generate plots ...\n")
     sys.stdout.flush()
@@ -255,8 +280,6 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         import matplotlib
         default_backend = matplotlib.get_backend()
         matplotlib.use('Agg') # a non-gui backend to avoid opening figure windows
-
-    step2 = resolution_step/2 # proper registration of particles and layers to the pixel grid
 
     for quantity in quantities_to_plot:
 
@@ -286,14 +309,14 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
                 if 'norm' in quantity:
-                    e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
+                    e = np.transpose(np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2))
                     vmax = np.abs(e).max()
                     color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',0), vmax=show_opt.get('vmax',vmax)))
                     plt.imshow(e,
                                alpha=show_opt.get('alpha'), norm=color_norm,
                                cmap=show_opt.get('cmap','inferno'), origin=show_opt.get('origin','lower'),
                                interpolation=show_opt.get('interpolation','none'),
-                               extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                               extent=show_opt.get('extent', [dim1vec.min()-step1, dim1vec.max()+step1,
                                                               dim2vec.min()-step2, dim2vec.max()+step2]))
                     plt_title = '$|' + filename + '^{' + field_type_string + '}|$ at ' + titlestr \
                                 + ('' if label_str == '' else ' (' + label_str + ')')
@@ -301,13 +324,13 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     plt.title(plt_title)
                 else:
                     if '_x' in quantity:
-                        e = e_x
+                        e = np.transpose(e_x)
                         filename = filename + '_x'
                     elif '_y' in quantity:
-                        e = e_y
+                        e = np.transpose(e_y)
                         filename = filename + '_y'
                     elif '_z' in quantity:
-                        e = e_z
+                        e = np.transpose(e_z)
                         filename = filename + '_z'
                     else:
                         print('Quantity:', quantity)
@@ -318,7 +341,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                alpha=show_opt.get('alpha'), norm=color_norm,
                                cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
                                interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
-                               extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                               extent=show_opt.get('extent', [dim1vec.min()-step1, dim1vec.max()+step1,
                                                               dim2vec.min()-step2, dim2vec.max()+step2]))
                     plt_title = '$ ' + filename + '^{' + field_type_string + '}$' + ' at ' + titlestr \
                                 + ('' if label_str == '' else ' (' + label_str + ')')
@@ -351,7 +374,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                        alpha=show_opt.get('alpha'), norm=color_norm,
                                        cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
                                        interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
-                                       extent=show_opt.get('extent', [dim1vec.min()-step2, dim1vec.max()+step2,
+                                       extent=show_opt.get('extent', [dim1vec.min()-step1, dim1vec.max()+step1,
                                                                       dim2vec.min()-step2, dim2vec.max()+step2]))
                             plt.title(plt_title)
                             plt.colorbar()
@@ -382,7 +405,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 if not show_plots:
                     plt.close(fig)
 
-            except e:
+            except Exception as e: # TODO: parse to understand if this is due to incompatible options or trying to plot non-2D data
                 print("Skipping " + quantity + " for show_opt = ", show_opt, " and save_opt = ", save_opt)
 
     if not show_plots:
@@ -406,15 +429,17 @@ def show_near_field(simulation=None, quantities_to_plot=None,
             with h5py.File(outputdir + '/data.hdf5', 'a') as f:
                 f.attrs.update(metadata)
                 g = f.require_group('near_field')
-                g.create_dataset('1st_dim_axis', data=dim1vec)
-                g.create_dataset('2nd_dim_axis', data=dim2vec)
+                g.create_dataset('x', data=x)
+                g.create_dataset('y', data=y)
+                g.create_dataset('z', data=z)
                 g.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
                 g.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
                 if show_internal_field:
-                    g.create_dataset('int_electric_field', data=En, dtype='c16', compression="gzip")
+                    g.create_dataset('inte_electric_field', data=En, dtype='c16', compression="gzip")
         elif data_format.lower() == 'ascii':
-            np.savetxt(outputdir + '/1st_dim_axis.dat', dim1vec, fmt='%g')
-            np.savetxt(outputdir + '/2nd_dim_axis.dat', dim2vec, fmt='%g')
+            np.savetxt(outputdir + '/1st_dim_axis.dat', x, fmt='%g')
+            np.savetxt(outputdir + '/2nd_dim_axis.dat', y, fmt='%g')
+            np.savetxt(outputdir + '/3rd_dim_axis.dat', z, fmt='%g')
             fmt = list(np.repeat('%.15g %+.15gj', np.size(dim1vec)))
             np.savetxt(outputdir + '/e_init_x.dat', Ei[0,], fmt=fmt, delimiter=',')
             np.savetxt(outputdir + '/e_init_y.dat', Ei[1,], fmt=fmt, delimiter=',')
