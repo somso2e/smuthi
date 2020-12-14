@@ -136,6 +136,22 @@ class InitialPropagatingWave(InitialField):
 
         pfe = self.piecewise_field_expansion(layer_system=layer_system)
         return pfe.electric_field(x, y, z)
+    
+    def magnetic_field(self, x, y, z, layer_system):
+        """Evaluate the complex magnetic field corresponding to the wave.
+
+        Args:
+            x (array like):     Array of x-values where to evaluate the field (length unit)
+            y (array like):     Array of y-values where to evaluate the field (length unit)
+            z (array like):     Array of z-values where to evaluate the field (length unit)
+            layer_system (smuthi.layer.LayerSystem):    Stratified medium
+
+        Returns
+            Tuple (H_x, H_y, H_z) of magnetic field values
+        """
+
+        pfe = self.piecewise_field_expansion(layer_system=layer_system)
+        return pfe.magnetic_field(x, y, z, self.vacuum_wavelength)
 
 
 class GaussianBeam(InitialPropagatingWave):
@@ -450,6 +466,29 @@ class DipoleSource(InitialField):
         pfe = self.piecewise_field_expansion(layer_system=layer_system, include_direct_field=include_direct_field,
                                              include_layer_response=include_layer_response)
         return pfe.electric_field(x, y, z)
+    
+    def magnetic_field(self, x, y, z, layer_system, include_direct_field=True, include_layer_response=True):
+        """Evaluate the complex magnetic field of the dipole source.
+
+        Args:
+            x (array like):     Array of x-values where to evaluate the field (length unit)
+            y (array like):     Array of y-values where to evaluate the field (length unit)
+            z (array like):     Array of z-values where to evaluate the field (length unit)
+            layer_system (smuthi.layer.LayerSystem):    Stratified medium
+            include_direct_field (bool):                if True (default), the direct dipole field is included.
+                                                        otherwise, only the layer response of the dipole field is
+                                                        returned.
+            include_layer_response (bool):              if True (default), the layer response of the dipole field is 
+                                                        included. otherwise, only the direct dipole field is
+                                                        returned.
+
+
+        Returns
+            Tuple (H_x, H_y, H_z) of electric field values
+        """
+        pfe = self.piecewise_field_expansion(layer_system=layer_system, include_direct_field=include_direct_field,
+                                             include_layer_response=include_layer_response)
+        return pfe.magnetic_field(x, y, z, self.vacuum_wavelength)
 
     def dissipated_power_homogeneous_background(self, layer_system):
         r"""Compute the power that the dipole would radiate in an infinite homogeneous medium of the same refractive
@@ -698,6 +737,21 @@ class DipoleCollection(InitialField):
         """
         pfe = self.piecewise_field_expansion(layer_system=layer_system)
         return pfe.electric_field(x, y, z)
+    
+    def magnetic_field(self, x, y, z, layer_system):
+        """Evaluate the complex magnetic field of the dipole collection.
+
+        Args:
+            x (array like):     Array of x-values where to evaluate the field (length unit)
+            y (array like):     Array of y-values where to evaluate the field (length unit)
+            z (array like):     Array of z-values where to evaluate the field (length unit)
+            layer_system (smuthi.layer.LayerSystem):    Stratified medium
+
+        Returns
+            Tuple (H_x, H_y, H_z) of magnetic field values
+        """
+        pfe = self.piecewise_field_expansion(layer_system=layer_system)
+        return pfe.magnetic_field(x, y, z, self.vacuum_wavelength)
 
     def dissipated_power(self, particle_list, layer_system, k_parallel='default',
                          azimuthal_angles='default', angular_resolution=None):
