@@ -65,6 +65,22 @@ class FieldExpansion:
             coordinates of complex electric field.
         """
         pass
+    
+    def magnetic_field(self, x, y, z, vacuum_wavelength):
+        """Evaluate magnetic field. Virtual method to be overwritten in child 
+        classes.
+        
+        Args:
+            x (numpy.ndarray):          x-coordinates of query points
+            y (numpy.ndarray):          y-coordinates of query points
+            z (numpy.ndarray):          z-coordinates of query points
+            vacuum_wavelength (float):  Vacuum wavelength in length units
+         
+        Returns:
+            Tuple of (H_x, H_y, H_z) numpy.ndarray objects with the Cartesian 
+            coordinates of complex magnetic field.
+        """
+        pass
 
 
 class PiecewiseFieldExpansion(FieldExpansion):
@@ -145,6 +161,30 @@ class PiecewiseFieldExpansion(FieldExpansion):
             dex, dey, dez = fex.electric_field(x, y, z)
             ex[vld], ey[vld], ez[vld] = ex[vld] + dex[vld], ey[vld] + dey[vld], ez[vld] + dez[vld]
         return ex, ey, ez
+    
+    def magnetic_field(self, x, y, z, vacuum_wavelength):
+        """Evaluate magnetic field. Virtual method to be overwritten in child 
+        classes.
+        
+        Args:
+            x (numpy.ndarray):          x-coordinates of query points
+            y (numpy.ndarray):          y-coordinates of query points
+            z (numpy.ndarray):          z-coordinates of query points
+            vacuum_wavelength (float):  Vacuum wavelength in length units
+         
+        Returns:
+            Tuple of (H_x, H_y, H_z) numpy.ndarray objects with the Cartesian 
+            coordinates of complex magnetic field.
+        """
+        x, y, z = np.array(x, ndmin=1), np.array(y, ndmin=1), np.array(z, ndmin=1)
+        hx = np.zeros(x.shape, dtype=complex)
+        hy = np.zeros(x.shape, dtype=complex)
+        hz = np.zeros(x.shape, dtype=complex)
+        vld = self.valid(x, y, z)
+        for fex in self.expansion_list:
+            dhx, dhy, dhz = fex.magnetic_field(x, y, z, vacuum_wavelength)
+            hx[vld], hy[vld], hz[vld] = hx[vld] + dhx[vld], hy[vld] + dhy[vld], hz[vld] + dhz[vld]
+        return hx, hy, hz
 
     def compatible(self, other):
         """Returns always true, because any field expansion can be added to a 
@@ -331,6 +371,49 @@ class SphericalWaveExpansion(FieldExpansion):
                     ey[self.valid(x, y, z)] += b * Ny
                     ez[self.valid(x, y, z)] += b * Nz
         return ex, ey, ez
+    
+    def magnetic_field(self, x, y, z, vacuum_wavelength):
+        """Evaluate magnetic field.
+        
+        Args:
+            x (numpy.ndarray):          x-coordinates of query points
+            y (numpy.ndarray):          y-coordinates of query points
+            z (numpy.ndarray):          z-coordinates of query points
+            vacuum_wavelength (float):  Vacuum wavelength in length units
+         
+        Returns:
+            Tuple of (H_x, H_y, H_z) numpy.ndarray objects with the Cartesian
+            coordinates of complex electric field.
+        """
+        omega = smuthi.fields.angular_frequency(vacuum_wavelength)
+        
+        x = np.array(x, ndmin=1)
+        y = np.array(y, ndmin=1)
+        z = np.array(z, ndmin=1)
+
+        xr = x[self.valid(x, y, z)] - self.reference_point[0]
+        yr = y[self.valid(x, y, z)] - self.reference_point[1]
+        zr = z[self.valid(x, y, z)] - self.reference_point[2]
+        hx = np.zeros(x.shape, dtype=complex)
+        hy = np.zeros(x.shape, dtype=complex)
+        hz = np.zeros(x.shape, dtype=complex)
+        for tau in range(2):
+            for m in range(-self.m_max, self.m_max + 1):
+                for l in range(max(1, abs(m)), self.l_max + 1):
+                    b = self.coefficients_tlm(1-tau, l, m)
+                    if self.kind == 'regular':
+                        Nx, Ny, Nz = vwf.spherical_vector_wave_function(xr, yr, zr, self.k, 1, tau, l, m)
+                    elif self.kind == 'outgoing':
+                        Nx, Ny, Nz = vwf.spherical_vector_wave_function(xr, yr, zr, self.k, 3, tau, l, m)
+                    hx[self.valid(x, y, z)] += b * Nx
+                    hy[self.valid(x, y, z)] += b * Ny
+                    hz[self.valid(x, y, z)] += b * Nz
+        
+        hx = - 1j * self.k / omega * hx
+        hy = - 1j * self.k / omega * hy
+        hz = - 1j * self.k / omega * hz      
+        
+        return hx, hy, hz
 
     def compatible(self, other):
         """Check if two spherical wave expansions are compatible in the sense 
@@ -638,3 +721,131 @@ class PlaneWaveExpansion(FieldExpansion):
             ez[self.valid(x, y, z)] = e_z_flat.reshape(xr.shape)
 
         return ex, ey, ez
+    
+    def magnetic_field(self, x, y, z, vacuum_wavelength, chunksize=50):
+        """Evaluate magnetic field.
+        
+        Args:
+            x (numpy.ndarray):          x-coordinates of query points
+            y (numpy.ndarray):          y-coordinates of query points
+            z (numpy.ndarray):          z-coordinates of query points
+            vacuum_wavelength (float):  Vacuum wavelength in length units
+            chunksize (int):            number of field points that are simultaneously 
+                                        evaluated when running in CPU mode
+        Returns:
+            Tuple of (H_x, H_y, H_z) numpy.ndarray objects with the Cartesian
+            coordinates of complex magnetic field.
+        """
+        # todo: replace chunksize argument by automatic estimate (considering available RAM)
+        hx = np.zeros(x.shape, dtype=complex)
+        hy = np.zeros(x.shape, dtype=complex)
+        hz = np.zeros(x.shape, dtype=complex)
+
+        xr = x[self.valid(x, y, z)] - self.reference_point[0]
+        yr = y[self.valid(x, y, z)] - self.reference_point[1]
+        zr = z[self.valid(x, y, z)] - self.reference_point[2]
+        
+        omega = smuthi.fields.angular_frequency(vacuum_wavelength)
+        
+        if cu.use_gpu and xr.size and len(self.k_parallel) > 1:  # run calculations on gpu
+            
+            re_k_d = cu.gpuarray.to_gpu(np.array(self.k).real.astype(np.float32))
+            im_k_d = cu.gpuarray.to_gpu(np.array(self.k).imag.astype(np.float32)) 
+            
+            re_kp_d = cu.gpuarray.to_gpu(self.k_parallel.real.astype(np.float32))
+            im_kp_d = cu.gpuarray.to_gpu(self.k_parallel.imag.astype(np.float32))
+            
+            re_kz_d = cu.gpuarray.to_gpu(self.k_z().real.astype(np.float32))
+            im_kz_d = cu.gpuarray.to_gpu(self.k_z().imag.astype(np.float32))
+            
+            alpha_d = cu.gpuarray.to_gpu(self.azimuthal_angles.astype(np.float32))
+            
+            xr_d = cu.gpuarray.to_gpu(xr.astype(np.float32))
+            yr_d = cu.gpuarray.to_gpu(yr.astype(np.float32))
+            zr_d = cu.gpuarray.to_gpu(zr.astype(np.float32))
+            
+            re_g_te_d = cu.gpuarray.to_gpu(self.coefficients[0, :, :].real.astype(np.float32))
+            im_g_te_d = cu.gpuarray.to_gpu(self.coefficients[0, :, :].imag.astype(np.float32))
+            re_g_tm_d = cu.gpuarray.to_gpu(self.coefficients[1, :, :].real.astype(np.float32))
+            im_g_tm_d = cu.gpuarray.to_gpu(self.coefficients[1, :, :].imag.astype(np.float32))
+            
+            re_h_x_d = cu.gpuarray.to_gpu(np.zeros(xr.shape, dtype=np.float32))
+            im_h_x_d = cu.gpuarray.to_gpu(np.zeros(xr.shape, dtype=np.float32))
+            re_h_y_d = cu.gpuarray.to_gpu(np.zeros(xr.shape, dtype=np.float32))
+            im_h_y_d = cu.gpuarray.to_gpu(np.zeros(xr.shape, dtype=np.float32))
+            re_h_z_d = cu.gpuarray.to_gpu(np.zeros(xr.shape, dtype=np.float32))
+            im_h_z_d = cu.gpuarray.to_gpu(np.zeros(xr.shape, dtype=np.float32))
+                        
+            kernel_source = cu_src.pwe_magnetic_field_evaluation_code%(xr.size, len(self.k_parallel), 
+                                                                   len(self.azimuthal_angles), (self.k).real, 
+                                                                   (self.k).imag)
+            
+            kernel_function = cu.SourceModule(kernel_source).get_function("magnetic_field") 
+            cuda_blocksize = 128
+            cuda_gridsize = (xr.size + cuda_blocksize - 1) // cuda_blocksize
+            
+            kernel_function(re_kp_d, im_kp_d, re_kz_d, im_kz_d, alpha_d, xr_d, yr_d, zr_d, re_g_te_d, im_g_te_d,
+                            re_g_tm_d, im_g_tm_d, re_h_x_d, im_h_x_d, re_h_y_d, im_h_y_d, re_h_z_d, im_h_z_d,
+                            block=(cuda_blocksize,1,1), grid=(cuda_gridsize,1))
+          
+            hx[self.valid(x, y, z)] = 1 / omega * (re_h_x_d.get() + 1j * im_h_x_d.get())
+            hy[self.valid(x, y, z)] = 1 / omega * (re_h_y_d.get() + 1j * im_h_y_d.get())
+            hz[self.valid(x, y, z)] = 1 / omega * (re_h_z_d.get() + 1j * im_h_z_d.get())
+            
+        else:  # run calculations on cpu               
+            kpgrid = self.k_parallel_grid()
+            agrid = self.azimuthal_angle_grid()
+            kx = kpgrid * np.cos(agrid)
+            ky = kpgrid * np.sin(agrid)
+            kz = self.k_z_grid()
+    
+            h_x_flat = np.zeros(xr.size, dtype=np.complex64)
+            h_y_flat = np.zeros(xr.size, dtype=np.complex64)
+            h_z_flat = np.zeros(xr.size, dtype=np.complex64)
+    
+            for i_chunk in range(math.ceil(xr.size / chunksize)):
+                chunk_idcs = range(i_chunk * chunksize, min((i_chunk + 1) * chunksize, xr.size))
+                xr_chunk = xr.flatten()[chunk_idcs]
+                yr_chunk = yr.flatten()[chunk_idcs]
+                zr_chunk = zr.flatten()[chunk_idcs]
+    
+                kr = np.zeros((len(xr_chunk), len(self.k_parallel),
+                               len(self.azimuthal_angles)), dtype=np.complex64)
+                kr += np.tensordot(xr_chunk, kx, axes=0)
+                kr += np.tensordot(yr_chunk, ky, axes=0)
+                kr += np.tensordot(zr_chunk, kz, axes=0)
+    
+                eikr = np.exp(1j * kr)
+        
+                integrand_x = np.zeros((len(xr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
+                                       dtype=np.complex64)
+                integrand_y = np.zeros((len(yr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
+                                       dtype=np.complex64)
+                integrand_z = np.zeros((len(zr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
+                                       dtype=np.complex64)
+    
+                # pol=0
+                integrand_x += (-kz * np.cos(agrid) * self.coefficients[0, :, :])[None, :, :] * eikr
+                integrand_y += (-kz * np.sin(agrid) * self.coefficients[0, :, :])[None, :, :] * eikr
+                integrand_z += (kpgrid * self.coefficients[0, :, :])[None, :, :] * eikr
+                # pol=1
+                integrand_x += (- np.sin(agrid) * self.k * self.coefficients[1, :, :])[None, :, :] * eikr
+                integrand_y += (np.cos(agrid) * self.k * self.coefficients[1, :, :])[None, :, :] * eikr              
+    
+                if len(self.k_parallel) > 1:
+                    h_x_flat[chunk_idcs] = 1 / omega * np.trapz(np.trapz(integrand_x, self.azimuthal_angles)
+                                                                * self.k_parallel, self.k_parallel)
+                    h_y_flat[chunk_idcs] = 1 / omega * np.trapz(np.trapz(integrand_y, self.azimuthal_angles)
+                                                                * self.k_parallel, self.k_parallel)
+                    h_z_flat[chunk_idcs] = 1 / omega * np.trapz(np.trapz(integrand_z, self.azimuthal_angles)
+                                                                * self.k_parallel, self.k_parallel)
+                else:
+                    h_x_flat[chunk_idcs] = 1 / omega * np.squeeze(integrand_x)
+                    h_y_flat[chunk_idcs] = 1 / omega * np.squeeze(integrand_y)
+                    h_z_flat[chunk_idcs] = 1 / omega * np.squeeze(integrand_z)
+    
+            hx[self.valid(x, y, z)] = h_x_flat.reshape(xr.shape)
+            hy[self.valid(x, y, z)] = h_y_flat.reshape(xr.shape)
+            hz[self.valid(x, y, z)] = h_z_flat.reshape(xr.shape)
+
+        return hx, hy, hz
