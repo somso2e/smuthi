@@ -17,13 +17,22 @@ The user provides:
 - a `simulation` object
 - a detector function
 - a realtive tolerance
+- some other numerical settings
 
 The detector function
 ~~~~~~~~~~~~~~~~~~~~~
 
 The **detector function** is a function defined by the user. It accepts a simulation object (one that has already been run) and returns a single quantity which we call the detector quantity. In other words, the detector function does some *post processing* to yield a value that we use to monitor convergence. If no function but one of the strings "extinction cross section" , "total scattering cross section" or "integrated scattered far field" is specified, the corresponding figure is used as the detector quantity. Other possible detector functions could map to the electric field at a certain point, or the scattered far field in a certain direction or whatever seems to the user to be a suitable measure for convergence of the simulation. 
 
+Parameter selection algorithm
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The automatic parameter selection routine repeatedly runs the simulation and evaluates the detector quantity with subsequently modified numerical input parameters until the relative deviation of the detector quantity is less than the specified tolerance.
+
+The below animation illustrates the typical graphical output during a parameter selection routine. The left panel shows the extinction cross section as a function of multipole cutoff `l_max`, where each line corresponds to a different Sommerfeld integral cutoff `neff_max`. The right panel shows the resulting converged extinction cross sections, this time as a function of Sommerfeld integral cutoff.
+
+.. image:: images/Fig1_anim.webp
+   :align: center
 
 For flat particles near planar interfaces, the multipole truncation and the Sommerfeld integral truncation cannot be chosen independently, because we are dealing with a *relative convergence*, see :doc:`[Egel et al. 2016b] <../literature>`. In that case, the user can set the `relative_convergence` flag to true (default). In that case, a convergence test for the multipole truncation parameters is triggered during each iteration of the `neff_max` selection routine:
 
