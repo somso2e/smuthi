@@ -114,9 +114,9 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
-def calculate_near_field(simulation=None, X=None, Y=None, Z=None, type='scat',
+def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
                          k_parallel='default', azimuthal_angles='default', angular_resolution=None):
-    """Calculate a certain component of the electric near field"""
+    """Compute a certain component of the electric near field"""
     X, Y, Z = np.atleast_1d(X), np.atleast_1d(Y), np.atleast_1d(Z)
     e_x = np.zeros_like(X, dtype=np.complex128)
     e_y = np.zeros_like(X, dtype=np.complex128)
@@ -131,7 +131,8 @@ def calculate_near_field(simulation=None, X=None, Y=None, Z=None, type='scat',
         int_fld_exp = intf.internal_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength, simulation.particle_list,
                                                               simulation.layer_system)
 
-    for s in tqdm(range(X.shape[0]), desc='Calc. '+type+'. near-field    ', file=sys.stdout,
+    descr = 'Compute '+type+' near-field'
+    for s in tqdm(range(X.shape[0]), desc=descr.ljust(26), file=sys.stdout,
                                      bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
         xarr, yarr, zarr = X[s,], Y[s,], Z[s,]
         if 'sca' in type:
@@ -227,8 +228,6 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                                                 sphere of particles.
         show_internal_field (bool):             If true, compute also the field inside the particles (only for spheres)
     """
-    sys.stdout.write("Compute near field ...\n")
-    sys.stdout.flush()
 
     if (not os.path.exists(outputdir)) and (save_plots or save_data):
         os.makedirs(outputdir)
@@ -267,11 +266,11 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
     sys.stdout.write("Evaluate fields ...\n")
     sys.stdout.flush()
-    e_x_scat, e_y_scat, e_z_scat = calculate_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='scat')
-    e_x_init, e_y_init, e_z_init = calculate_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='init')
+    e_x_scat, e_y_scat, e_z_scat = compute_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='scatt.')
+    e_x_init, e_y_init, e_z_init = compute_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='initl.')
 
     if show_internal_field:
-        e_x_int, e_y_int, e_z_int = calculate_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='inte')
+        e_x_int, e_y_int, e_z_int = compute_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='intrn.')
 
     sys.stdout.write("Generate plots ...\n")
     sys.stdout.flush()
