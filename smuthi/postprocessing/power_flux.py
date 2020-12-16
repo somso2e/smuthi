@@ -63,6 +63,9 @@ def power_flux_through_zplane(vacuum_wavelength, z, upgoing_pwe=None, downgoing_
             ejkzdz = np.exp(1j * downgoing_pwe.k_z_grid() * (z - downgoing_pwe.reference_point[2]))
             gmn = downgoing_pwe.coefficients * ejkzdz
     
+    if any(kpar.imag):
+        raise ValueError('complex in-plane wavenumbers are not allowed')
+    
     if not upgoing_pwe:
         gpl = np.zeros(gmn.shape, dtype=complex)
     if not downgoing_pwe:
