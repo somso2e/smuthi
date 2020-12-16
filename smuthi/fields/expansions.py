@@ -523,7 +523,10 @@ class PlaneWaveExpansion(FieldExpansion):
             numpy.ndarray of bool datatype indicating if points are inside 
             definition domain.
         """
-        vld = np.logical_and(z >= self.lower_z, z < self.upper_z)
+        if self.upper_z == float('inf'):
+            vld = np.logical_and(z >= self.lower_z, 1)
+        else:
+            vld = np.logical_and(z >= self.lower_z, z < self.upper_z)
         vld_custom = FieldExpansion.valid(self, x, y, z)
         return np.logical_and(vld, vld_custom)
 
