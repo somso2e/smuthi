@@ -1,4 +1,4 @@
-subroutine TLAY
+subroutine TLAY(kuser,ind_ref,surf,Npart,Nsurfmax,Nrankpmax,btot)
 !------------------------------------------------------------------------------------
 ! 1. General Considerations                                                         !
 ! --------------------------                                                        !
@@ -469,15 +469,18 @@ subroutine TLAY
 !------------------------------------------------------------------------------------
   use parameters
   use derived_parameters
-  use allocation, only: Nsurf, Nparam, Nrankp, Nrankp1, surf, zpart, zRe, zIm,      &
-                        zRe1, zIm1, lnorm, ind_ref, ComplexPlane, EpsZReIm 
+  use allocation, only: Nsurf, Nparam, Nrankp, Nrankp1, zpart, zRe, zIm,      &
+                        zRe1, zIm1, lnorm, ComplexPlane, EpsZReIm 
   implicit none 
   integer       :: TypeGeom, Npart, dNint, TypeConvTest, Nsurfmax, Nparammax,       &
-                   Nrankpmax, Nrankpmax1, Nint, dNintMrank 
+                   Nrankpmax, Nrankpmax1, Nint, dNintMrank, ipart
   real(O)       :: k, ind_refMed, wavelength, anorm, snorm, epsNint, epsNrank,      &
-                   epsMrank                                           
+                   epsMrank, kuser,                 &
+                   surf(Npart, Nsurfmax)                                        
   logical       :: DoConvTest, DS, autGenDS, PrnProgress 
   character(80) :: FileTmat  
+  complex(O) :: ref1, ref2, ind_ref(Npart)
+  complex(O),intent(out) :: btot(2*Nrankpmax*(Nrankpmax+2),2*Nrankpmax*(Nrankpmax+2))
 ! -----------------------------------------------------------------------------------
 !                            Read the input file                                    ! 
 ! -----------------------------------------------------------------------------------       
@@ -485,14 +488,18 @@ subroutine TLAY
        DoConvTest, DS, autGenDS, Nint, epsNint, epsNrank, epsMrank, dNint,          &
        dNintMrank, FileTmat, PrnProgress, k, snorm, Nsurfmax, Nparammax,            &
        Nrankpmax, Nrankpmax1, TypeConvTest )
+  k=kuser
+  do ipart = 1, Npart
+    Nrankp(ipart)=Nrankpmax
+  end do
 ! -----------------------------------------------------------------------------------
 !                                      Main                                         !
 ! -----------------------------------------------------------------------------------   
-  open (unit = iOutput, file = FileOutput, status = "replace") 
-  call printinputLAY (TypeConvTest, TypeGeom, Nsurfmax, Nsurf, surf, Nparam, Npart, &
-       lnorm, anorm, Nrankpmax, Nrankp, zpart, zRe, zIm, Nrankpmax1, Nrankp1, zRe1, &
-       zIm1, ind_ref, dNintMrank, dNint, wavelength, ind_refMed, epsNint, epsNrank, &
-       epsMrank, DS, autGenDS)  
+!  open (unit = iOutput, file = FileOutput, status = "replace") 
+!  call printinputLAY (TypeConvTest, TypeGeom, Nsurfmax, Nsurf, surf, Nparam, Npart, &
+!       lnorm, anorm, Nrankpmax, Nrankp, zpart, zRe, zIm, Nrankpmax1, Nrankp1, zRe1, &
+!       zIm1, ind_ref, dNintMrank, dNint, wavelength, ind_refMed, epsNint, epsNrank, &
+!       epsMrank, DS, autGenDS)  
   if (DoConvTest) then
     if (TypeConvTest == 1) then
       if (.not. DS) then
@@ -518,7 +525,7 @@ subroutine TLAY
       if (.not. DS) then
         call convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,     &
              Nparammax, Nparam, Npart, Nrankpmax, Nrankp, zpart, Nint, epsMrank,    &
-             FileTmat, PrnProgress)          
+             FileTmat, PrnProgress, btot)          
       else 
         call convergence_MrankDSLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,   &
              Nparammax, Nparam, Npart, Nrankpmax, Nrankp, zRe, zIm, zpart, Nint,    &
@@ -530,7 +537,7 @@ subroutine TLAY
     if (.not. DS) then
       call convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,       &
            Nparammax, Nparam, Npart, Nrankpmax, Nrankp, zpart, Nint, epsMrank,      &
-           FileTmat, PrnProgress)            
+           FileTmat, PrnProgress, btot)            
     else 
       call convergence_MrankDSLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,     &
            Nparammax, Nparam, Npart, Nrankpmax, Nrankp, zRe, zIm, zpart, Nint,      &
@@ -538,11 +545,52 @@ subroutine TLAY
            FileTmat, PrnProgress)                
     end if  
   end if             
-  close (unit = iOutput)           
+!  close (unit = iOutput)           
   deallocate (zRe, zIm, zRe1, zIm1)   
-  deallocate (surf, Nsurf, Nparam, Nrankp, Nrankp1, ind_ref, zpart, lnorm) 
+  deallocate (Nsurf, Nparam, Nrankp, Nrankp1, zpart, lnorm) 
   deallocate (ComplexPlane, EpsZReIm)   
 end subroutine TLAY
+!*****************************************************************************
+subroutine tlayappendtotmat (b,btot,m,Nrank,Nmax,Nmaxmax)
+  use parameters
+  implicit none   
+  integer       :: Nrank, m, Nmax, Nmaxmax, k1, k2, N0, j, &
+                   mmax
+  complex(O)    :: btot(2*Nmaxmax,2*Nmaxmax)
+  complex(O)    :: b(2*Nrank,2*Nrank)
+!
+  if (m==0) then    
+    N0 = 0    
+    mmax = Nrank
+    do k1 = 1, mmax
+      do k2 = 1, Nrank
+        btot(k1+N0,k2+N0) = b(k1,k2)
+        btot(k1+N0+Nmaxmax,k2+N0+Nmaxmax) = b(k1+Nmax,k2+Nmax)
+        btot(k1+N0,k2+N0+Nmaxmax) = b(k1,k2+Nmax)
+        btot(k1+N0+Nmaxmax,k2+N0) = b(k1+Nmax,k2)
+      end do
+    end do
+  else
+    N0 = Nrank + (m - 1) * (2 * Nrank - m + 2)
+    mmax = Nrank - m + 1
+    do j = 1,2
+      do k1 = 1, mmax
+        do k2 = 1, mmax          
+          btot(k1+N0,k2+N0) = b(k1,k2)
+          btot(k1+N0+Nmaxmax,k2+N0+Nmaxmax) = b(k1+Nmax,k2+Nmax)
+          if (j==2) then
+            b(k1,k2+Nmax)=-b(k1,k2+Nmax)
+            b(k1+Nmax,k2)=-b(k1+Nmax,k2)
+          end if
+          btot(k1+N0,k2+N0+Nmaxmax) = b(k1,k2+Nmax)
+          btot(k1+N0+Nmaxmax,k2+N0) = b(k1+Nmax,k2)
+        end do
+      end do
+      N0 = N0 + Nrank - m + 1
+    end do  
+  end if
+end subroutine tlayappendtotmat
+
 !***********************************************************************************
 subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,           &
            DoConvTest, DS, autGenDS, Nint, epsNint, epsNrank, epsMrank, dNint,      &
@@ -550,8 +598,8 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
            Nrankpmax, Nrankpmax1, TypeConvTest ) 
   use parameters
   use derived_parameters
-  use allocation, only: Nsurf, Nparam, Nrankp, Nrankp1, surf, zpart, zRe, zIm,      &
-                        zRe1, zIm1, lnorm, EpsZReIm, ind_ref, ComplexPlane  
+  use allocation, only: Nsurf, Nparam, Nrankp, Nrankp1, zpart, zRe, zIm,            &
+                        zRe1, zIm1, lnorm, EpsZReIm, ComplexPlane  
   implicit none 
   integer       :: TypeGeom, Npart, NsurfPart, NparamPart, dNint, TypeConvTest,     &
                    i, ipart, isurf, NrankPart, NrankW, Nsurfmax, Nparammax,         &
@@ -567,161 +615,43 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
 ! -----------------------------------------------------------------------------------
 !                           Read the input file FileInputLAY                        ! 
 ! -----------------------------------------------------------------------------------
-  call DrvParameters 
-  open (unit = iInputLAY, file = FileInputLAY, status = "old", position = "rewind")   
+  call DrvParameters  
   wavelength = 0.1_O * 2._O * Pi 
   ind_refMed = 1._O  
-  string     = 'OptProp'
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) wavelength
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable wavelength;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) ind_refMed
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable ind_refMed;')"
-      stop
-    end if         
-  else
-    print "(/,2x,'Group name OptProp not found;')"
-    stop  
-  end if                                                          
+                                                         
   k = 2._O * Pi * ind_refMed / wavelength 
 !
   TypeGeom = 1
-  Npart = 2
   anorm = 1._O
   string   = 'GeomProp'
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) TypeGeom
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable TypeGeom;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) Npart
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable Npart;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) anorm
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable anorm;')"
-      stop
-    end if
-  else
-    print "(/,2x,'Group name GeomProp not found;')"
-    stop  
-  end if 
+
   call check_anorm (anorm)  
   xpart = k * anorm
   snorm = Pi * xpart * xpart 
 !
-  DoConvTest = .true.    
-  string     = 'ConvTest'
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) DoConvTest
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable DoConvTest;')"
-      stop
-    end if          
-  else
-    print "(/,2x,'Group name ConvTest not found;')"
-    stop  
-  end if                         
+  DoConvTest = .false.    
+!                       
 !
   DS = .false.
   autGenDS = .true.
-  string   = 'Sources'
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) DS
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable DS;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) autGenDS
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable autGenDS;')"
-      stop
-    end if         
-  else
-    print "(/,2x,'Group name Sources not found;')"
-    stop  
-  end if  
+!  
   InputDS = .false.
   if (DS .and. .not. autGenDS) InputDS = .true. 
 !
-  allocate (Nsurf(Npart), Nparam(Npart), ind_ref(Npart), zpart(Npart), lnorm(Npart))
+  allocate (Nsurf(Npart), Nparam(Npart), zpart(Npart), lnorm(Npart))
   Nsurfmax  = 1
   Nparammax = 1
   do ipart = 1, Npart
     ind_refPartRel = (1.5_O,0._O)
     string = 'OptRegProp'
-    if (XFindPar (iInputLAY, string)) then
-      read (iInputLAY, *, iostat = ios) ind_refPartRel
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable ind_refPartRel;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if               
-    else
-      print "(/,2x,'Group name OptRegProp not found;')"
-      print "(  2x,'for the layer ',i3,';')", ipart
-      stop  
-    end if
     call check_ind_ref1 (ipart, ind_refPartRel)
-    ind_ref(ipart) = ind_refPartRel
     NsurfPart  = 2
     NparamPart = 1
     OriginPart = 0._O
     do isurf = 1, NsurfPD
       surfPart(isurf) = 1._O
     end do
-    lnormPart = 1._O
-    string    = 'GeomRegProp'
-    if (XFindPar (iInputLAY, string)) then
-      read (iInputLAY, *, iostat = ios) NsurfPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable NsurfPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-      if (NsurfPart > NsurfPD) then
-        print "(/,2x,'Input error: NsurfPart exceeds NsurfPD for the layer',i3)",   &
-                ipart                                    
-        stop
-      end if      
-      read (iInputLAY, *, iostat = ios) NparamPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable NparamPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-      read (iInputLAY, *, iostat = ios) OriginPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable OriginPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-      do isurf = 1, NsurfPart
-        read (iInputLAY, *, iostat = ios) surfPart(isurf)
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variable surfPart;')"
-          print "(  2x,'for the layer ',i3,';')", ipart
-          stop
-        end if
-      end do
-      read (iInputLAY, *, iostat = ios) lnormPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable lnormPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-    else
-      print "(/,2x,'Group name GeomRegProp not found;')"
-      print "(  2x,'for the layer ',i3,';')", ipart
-      stop  
-    end if    
+    lnormPart = 1._O    
     Nsurf(ipart) = NsurfPart
     Nparam(ipart)= NparamPart
     zpart(ipart) = OriginPart
@@ -729,12 +659,9 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
     if (Nsurf(ipart)  > Nsurfmax)  Nsurfmax  = Nsurf(ipart)
     if (Nparam(ipart) > Nparammax) Nparammax = Nparam(ipart)
   end do
-  rewind (unit = iInputLAY)
-  allocate (surf(Npart, Nsurfmax))
+!
+!
   do ipart = 1, Npart  
-    do isurf = 1, Nsurfmax
-      surf(ipart,isurf) = 0._O
-    end do   
     NsurfPart  = 2
     NparamPart = 1
     OriginPart = 0._O
@@ -742,78 +669,17 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
       surfPart(isurf) = 1._O
     end do
     lnormPart = 1._O
-    string    = 'GeomRegProp'
-    if (XFindPar (iInputLAY, string)) then
-      read (iInputLAY, *, iostat = ios) NsurfPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable NsurfPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-      read (iInputLAY, *, iostat = ios) NparamPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable NparamPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-      read (iInputLAY, *, iostat = ios) OriginPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable OriginPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-      do isurf = 1, NsurfPart
-        read (iInputLAY, *, iostat = ios) surfPart(isurf)
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variable surfPart;')"
-          print "(  2x,'for the layer ',i3,';')", ipart
-          stop
-        end if
-      end do
-      read (iInputLAY, *, iostat = ios) lnormPart
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable lnormPart;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop
-      end if
-    else
-      print "(/,2x,'Group name GeomRegProp not found;')"
-      print "(  2x,'for the layer ',i3,';')", ipart
-      stop  
-    end if
-    do isurf = 1, NsurfPart
-      surf(ipart,isurf) = surfPart(isurf)
-    end do
   end do  
   call check_geomLAY (TypeGeom, Npart, Nsurf, Nparam)
 !
   allocate (ComplexPlane(Npart), EpsZReIm(Npart))
-  rewind (unit = iInputLAY)
+!
   do ipart = 1, Npart
     ComplexPlane(ipart) = .false.
     EpsZReIm(ipart) = 0.95_O
     if (DS .and. autGenDS) then
       ComplexPlanePart = .false.
-      EpsZReImPart = 0.95_O
-      string     = 'SourceRegPosAut'
-      if (XFindPar (iInputLAY, string)) then
-        read (iInputLAY, *, iostat = ios) ComplexPlanePart
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variable ComplexPlanePart;')"
-          print "(  2x,'for the layer ',i3,';')", ipart
-          stop
-        end if
-        read (iInputLAY, *, iostat = ios) EpsZReImPart
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variable EpsZReImPart;')"
-          print "(  2x,'for the layer ',i3,';')", ipart
-          stop
-        end if               
-      else
-        print "(/,2x,'Group name SourceRegPosAut not found;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop  
-      end if       
+      EpsZReImPart = 0.95_O     
       ComplexPlane(ipart) = ComplexPlanePart
       EpsZReIm(ipart) = EpsZReImPart
     end if
@@ -827,31 +693,18 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
     print "(  2x,'--------------------------------------------------')"    
   end if                          
   allocate (Nrankp(Npart), Nrankp1(Npart)) 
-  rewind (unit = iInputLAY)
-  Nrankpmax  = 0
+!
+!  Nrankpmax  = 0
   Nrankpmax1 = 0
   do ipart = 1, Npart
     if (ipart == 1) then
       x = k * lnorm(ipart)
     else
-      x = k * lnorm(ipart) * abs(ind_ref(ipart)) ! or the real part of the ref. index
+      x = k * lnorm(ipart)! * abs(ind_ref(ipart))  or the real part of the ref. index
     end if
     NrankW = int(x + 4.05_O * x**0.33_O + 2._O)
     if (.not. DoConvTest .or. InputDS) then
-      NrankPart = 17
-      string    = 'NrankReg'
-      if (XFindPar (iInputLAY, string)) then
-        read (iInputLAY, *, iostat = ios) NrankPart
-        if (ios /= 0) then
-          print "(/,2x,'Error by reading the input variable NrankPart;')"
-          print "(  2x,'for the layer ',i3,';')", ipart
-          stop
-        end if
-      else
-        print "(/,2x,'Group name NrankReg not found;')"
-        print "(  2x,'for the layer ',i3,';')", ipart
-        stop  
-      end if        
+      NrankPart = 17       
       Nrankp(ipart) = NrankPart
       if (ipart == 1) print "(/,2x,'Nrank input values:')"
       print "(2x,'the input value of Nrank for the layer ',i3,' is ', i4,',')",     &
@@ -865,12 +718,12 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
       print "(2x,'- enter the estimated value of Nrank for layer ',i2)", ipart      
       call read_integer (Nrankp(ipart))
     end if
-    if (Nrankp(ipart) > Nrankpmax) Nrankpmax = Nrankp(ipart)
+!    if (Nrankp(ipart) > Nrankpmax) Nrankpmax = Nrankp(ipart)
     Nrankp1(ipart) = Nrankp(ipart) - 1
     if (Nrankp1(ipart) > Nrankpmax1) Nrankpmax1 = Nrankp1(ipart)
   end do
 !
-  rewind (unit = iInputLAY)  
+!  
   if (DoConvTest) then
     print "(/,2x, a)",                                                              &
    '- enter the estimated values of Nint, where Nint = Ndgs * Nrankpmax,'        
@@ -878,17 +731,6 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
     call read_integer (Nint) 
   else    
     Nint   = 100
-    string = 'NintGlobal'
-    if (XFindPar (iInputLAY, string)) then
-      read (iInputLAY, *, iostat = ios) Nint
-      if (ios /= 0) then
-        print "(/,2x,'Error by reading the input variable Nint;')"
-        stop
-      end if          
-    else
-      print "(/,2x,'Group name NintGlobal not found;')"
-      stop  
-    end if 
     print "(/,2x,'Nint input value:')"
     print "(  2x, a, i4, a)",                                                       &
    'the input value of Nint is ', Nint, ', while Nint = Ndgs * Nrankpmax,'
@@ -905,7 +747,7 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
 !
   allocate (zRe(Npart,Nrankpmax), zIm(Npart,Nrankpmax), zRe1(Npart,Nrankpmax1),     &
             zIm1(Npart,Nrankpmax1)) 
-  rewind (unit = iInputLAY)
+!
   do ipart = 1, Npart
     do i = 1, Nrankpmax     
       zRe(ipart,i) = 0._O
@@ -918,11 +760,12 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
     if (DS) then
       call check_MaxNrank (Nrankpmax)
       if (autGenDS) then
-        call zDSLAY (TypeGeom, Npart, Nsurfmax, surf, Nrankpmax, Nrankp, zpart,     &
-             ComplexPlane, EpsZReIm, zRe, zIm)
-        if (TypeConvTest == 2) call zDSLAY (TypeGeom, Npart, Nsurfmax, surf,        &
-                                    Nrankpmax1, Nrankp1, zpart, ComplexPlane,       &
-                                    EpsZReIm, zRe1, zIm1)
+          print "( 2x, 'false')"  
+!        call zDSLAY (TypeGeom, Npart, Nsurfmax, surf, Nrankpmax, Nrankp, zpart,     &
+!             ComplexPlane, EpsZReIm, zRe, zIm)
+!        if (TypeConvTest == 2) call zDSLAY (TypeGeom, Npart, Nsurfmax, surf,        &
+!                                    Nrankpmax1, Nrankp1, zpart, ComplexPlane,       &
+!                                    EpsZReIm, zRe1, zIm1)
       else
         do i = 1, NrankPD
           zRePart(i)  = 0._O
@@ -930,34 +773,6 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
           zRePart1(i) = 0._O
           zImPart1(i) = 0._O
         end do
-        string = 'SourceRegPosInp'
-        if (XFindPar (iInputLAY, string)) then
-          do i = 1, Nrankp(ipart)
-            read (iInputLAY, *, iostat = ios) zRePart(i), zImPart(i)
-            if (ios /= 0) then
-              print "(/,2x, a)",                                                    &
-             'Error by reading the input variables zRePart and zImPart;'   	      
-              print "(  2x,'for the layer ',i3,';')", ipart
-              stop
-            end if 
-          end do
-          if (TypeConvTest == 2) then	  
-            read (iInputLAY, *)
-            do i = 1, Nrankp(ipart) - 1
-              read (iInputLAY, *, iostat = ios) zRePart1(i), zImPart1(i)
-              if (ios /= 0) then
-                print "(/,2x, a)",                                                  &
-               'Error by reading the input variables zRePart1 and zImPart1;'		
-                print "(  2x,'for the layer ',i3,';')", ipart
-                stop
-              end if 
-            end do
-          end if	    
-        else
-          print "(/,2x,'Group name SourceRegPosInp not found;')"
-          print "(  2x,'for the layer ',i3,';')", ipart
-          stop  
-        end if
         do i = 1, Nrankp(ipart)
           zRe(ipart,i) = zRePart(i)  
           zIm(ipart,i) = zImPart(i)               
@@ -977,64 +792,10 @@ subroutine readinputLAY ( wavelength, ind_refMed, TypeGeom, Npart, anorm,       
   epsMrank = 5.e-2
   dNint = 4
   dNintMrank = 10
-  string     = 'Errors'
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) epsNint
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsNint;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) epsNrank
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsNrank;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) epsMrank
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable epsMrank;')"
-      stop
-    end if 
-    read (iInputLAY, *, iostat = ios) dNint
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable dNint;')"
-      stop
-    end if
-    read (iInputLAY, *, iostat = ios) dNintMrank
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable dNintMrank;')"
-      stop
-    end if         
-  else
-    print "(/,2x,'Group name Errors not found;')"
-    stop  
-  end if
 !
   FileTmat = '../TMATFILES/T.dat'
-  string   = 'Tmat' 
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) FileTmat
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable FileTmat;')"
-      stop
-    end if             
-  else
-    print "(/,2x,'Group name Tmat not found;')"
-    stop  
-  end if
 !
-  PrnProgress = .true.
-  string   = 'PrintProgress' 
-  if (XFindPar (iInputLAY, string)) then
-    read (iInputLAY, *, iostat = ios) PrnProgress
-    if (ios /= 0) then
-      print "(/,2x,'Error by reading the input variable PrnProgress;')"
-      stop
-    end if             
-  else
-    print "(/,2x,'Group name PrintProgress not found;')"
-    stop  
-  end if  
-  close (unit = iInputLAY)     
+  PrnProgress = .true.    
 end subroutine readinputLAY    
 !***********************************************************************************
 subroutine printinputLAY (ic, TypeGeom, Nsurfmax, Nsurf, surf, Nparam, Npart,       &
@@ -1452,11 +1213,11 @@ end subroutine convergence_NrankLAY
 ! **********************************************************************************
 subroutine convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,       &
            Nparammax, Nparam, Npart, Nrankpmax, Nrankp, zpart, Nint, epsMrank,      &
-           FileTmat, PrnProgress)          
+           FileTmat, PrnProgress, btot)          
   use parameters 
   implicit none
   integer       :: TypeGeom, Nsurfmax, Nparammax, Npart, Nrankpmax, Nint,           &
-                   Nrankp(Npart), Nparam(Npart)
+                   Nrankp(Npart), Nparam(Npart), isurf
   real(O)       :: k, surf(Npart,Nsurfmax), zpart(Npart), snorm, epsMrank                
   complex(O)    :: ind_ref(Npart)
   character(80) :: FileTmat
@@ -1471,6 +1232,7 @@ subroutine convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,   
                             oldv(:)
   complex(O),allocatable :: aa(:,:), bb(:,:), a(:,:), b(:,:), c(:,:), cv(:),        &
                             cv1(:), cc(:)
+  complex(O),intent(out) :: btot(2*Nrankpmax*(Nrankpmax+2),2*Nrankpmax*(Nrankpmax+2))
 !
   tetaGI = 0._O
   phiGI  = 0._O
@@ -1482,10 +1244,6 @@ subroutine convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,   
   alfap  = Pi / 4._O  
   Mstart = 0
   Mrank  = Nrankpmax   
-  open (unit = iTmat, file = FileTmat, status = 'replace')
-  call write_HeadFileTmat (Nrankpmax, Nrankpmax)    
-  call write_TypeConvHead (3)
-  call write_2ConvParamReg (Nint, Npart, Nrankp)
   Nrank = 0
   do ipart = 1, Npart        
     if(ipart < Npart) then
@@ -1560,7 +1318,7 @@ subroutine convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,   
     call product_matrices (2*Nmaxpmax, 2*Nmaxpmax, 2*Nmaxpmax, a, 2*Nrankpmax,      &
          2*Nrankpmax, c, 2*Nrankpmax, 2*Nrankpmax)
     if (PrnProgress) call write_progress_m (.false., m, 6, 6) 
-    call write_FileTmat (Nrankpmax, Nrankpmax, a)        
+    call tlayappendtotmat(a, btot, m, Nrankpmax, Nmaxpmax, Nmaxmax)
     call PWcoefficients_ab_m (tetaGI, phiGI, alfa, beta, gama, alfap, m,            &
          Nrankpmax, Nmaxpmax, cv)
     call product_matrix_vector (2*Nmaxpmax, 2*Nmaxpmax, a, 2*Nrankpmax,             &
@@ -1579,25 +1337,8 @@ subroutine convergence_MrankLAY (TypeGeom, k, ind_ref, snorm, Nsurfmax, surf,   
          snorm,.false.,.true., h, v)    
     call delta_DSCS (Nteta, h, v, oldh, oldv, epsMrank, NthetaConv)    
     call write_DSCS (Nteta,.false., h, v)
-    if (NthetaConv >= int(0.8d0*Nteta)) exit
-  end do  
-  close (unit = iTmat)  
-  call CQscat (cc, Mrank, Nrankpmax, Nmaxmax, k, snorm, Cscat, Qscat)
-  call CQext (cc, Mrank, Nrankpmax, Nmaxmax, tetaGI, phiGI, alfa, beta, gama,       &
-       alfap, k, snorm, Cext, Qext)
-  call write_Effic (Qscat, Qext)
-  call write_MrankConvRes (NthetaConv, epsMrank)               
-  if (NthetaConv >= int(0.8*Nteta)) then
-    print "(/,2x,'Convergence criterion for Mrank is satisfied;')"                            
-  else
-    print "(/,2x,'Convergence criterion for Mrank is not satisfied;')"
-  end if
-  call write_InfoFileTmat (FileTmat, Mrank, Nrankpmax, .true., .false., .false.)
-  call ScatCharact (k, FileTmat, Mrank, Nrankpmax, .true., .false., .false.)    
-  print "(/,2x,'T matrix is stored in ',a50)", FileTmat
-  print "(  2x,'The dimensions of the T matrix are given by:')"
-  print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrankpmax   
-  print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank  
+!    if (NthetaConv >= int(0.8d0*Nteta)) exit
+  end do   
   deallocate (aa, bb, a, b, c, cv, cv1, cc, h, v, oldh, oldv, paramG, weightsG,     &
               Nintparam)
 end subroutine convergence_MrankLAY    
