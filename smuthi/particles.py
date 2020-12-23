@@ -400,6 +400,10 @@ class LayeredSpheroid(Particle):
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, layer_refractive_indices=1 + 0j,
                  layer_semi_axes_c=1, layer_semi_axes_a=1, l_max=None, m_max=None, n_rank=None):
         Particle.__init__(self, position=position, refractive_index=None, l_max=l_max, m_max=m_max)
+        if n_rank is None:
+            self.n_rank = self.l_max + 2
+        else:
+            self.n_rank = n_rank
         self.layer_refractive_indices = layer_refractive_indices
         self.layer_semi_axes_c = layer_semi_axes_c
         self.layer_semi_axes_a = layer_semi_axes_a
@@ -411,7 +415,7 @@ class LayeredSpheroid(Particle):
             nrank_temp = self.l_max + 5
         k = 2 * np.pi / vacuum_wavelength
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tlay(k,ind_ref,surf,nrank_temp)
+            tnfmds = nfmds.tlay(k,self.layer_refractive_indices,surf,nrank_temp)
 
         t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
         return t
