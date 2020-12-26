@@ -131,7 +131,7 @@ class CustomParticle(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used for in NFMDS
+        n_rank (int):               Maximal multipole order used in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
@@ -193,7 +193,7 @@ class AnisotropicSphere(Particle):
                                       scattered field
         m_max (int):                  Maximal multipole order used for the spherical wave expansion of incoming and
                                       scattered field
-        n_rank (int):                 Maximal multipole order used for in NFMDS
+        n_rank (int):                 Maximal multipole order used in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
@@ -243,7 +243,7 @@ class AxisymmetricParticle(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used for in NFMDS
+        n_rank (int):               Maximal multipole order used in NFMDS
 
 !    Particle      TypeGeom   Nsurf   Nparam                surf                   !
 !    spheroid         1         2       1         surf(1) - length of the semi-    !
@@ -317,7 +317,7 @@ class Spheroid(AxisymmetricParticle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used for in NFMDS
+        n_rank (int):               Maximal multipole order used in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
@@ -355,7 +355,7 @@ class FiniteCylinder(AxisymmetricParticle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used for in NFMDS
+        n_rank (int):               Maximal multipole order used in NFMDS
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
@@ -376,3 +376,46 @@ class FiniteCylinder(AxisymmetricParticle):
         if hasattr(self, 'cylinder_height') and hasattr(self, 'cylinder_radius'):
             super(FiniteCylinder,self).__setattr__('geometry_parameters', [self.cylinder_height / 2, self.cylinder_radius])
         super(FiniteCylinder,self).__setattr__(name, value)
+
+class LayeredSpheroid(Particle):
+    """Particle subclass for layered spheroid.
+
+    Args:
+        position (list):            Particle position in the format [x, y, z] (length unit)
+        euler_angles (list):        Euler angles [alpha, beta, gamma] in (zy'z''-convention) in radian.
+                                    Alternatively, you can specify the polar and azimuthal angle of the axis of 
+                                    revolution.
+        polar_angle (float):        Polar angle of axis of revolution. 
+        azimuthal_angle (float):    Azimuthal angle of axis of revolution.
+        layer_refractive_indices (complex): Complex refractive index of particle
+        layer_semi_axes_c (float):    Spheroid half axis in direction of axis of revolution (z-axis if not rotated)
+        layer_semi_axes_a (float):    Spheroid half axis in lateral direction (x- and y-axis if not rotated)
+        l_max (int):                Maximal multipole degree used for the spherical wave expansion of incoming and
+                                    scattered field
+        m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
+                                    scattered field
+        n_rank (int):               Maximal multipole order used in NFMDS
+    """
+
+    def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, layer_refractive_indices=1 + 0j,
+                 layer_semi_axes_c=1, layer_semi_axes_a=1, l_max=None, m_max=None, n_rank=None):
+        Particle.__init__(self, position=position, refractive_index=None, l_max=l_max, m_max=m_max)
+        if n_rank is None:
+            self.n_rank = self.l_max + 2
+        else:
+            self.n_rank = n_rank
+        self.layer_refractive_indices = layer_refractive_indices
+        self.layer_semi_axes_c = layer_semi_axes_c
+        self.layer_semi_axes_a = layer_semi_axes_a
+
+    def compute_t_matrix(self, vacuum_wavelength, n_medium):
+        surf = np.hstack((self.layer_semi_axes_c[:,np.newaxis],self.layer_semi_axes_a[:,np.newaxis]))
+        nrank_temp = self.n_rank
+        if self.n_rank is None:
+            nrank_temp = self.l_max + 5
+        k = 2 * np.pi / vacuum_wavelength
+        with log.LoggerLowLevelMuted(filename=nfmds_logfile):
+            tnfmds = nfmds.tlay(k,self.layer_refractive_indices,surf,nrank_temp)
+
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
+        return t
