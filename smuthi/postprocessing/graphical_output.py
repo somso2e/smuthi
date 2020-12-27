@@ -117,7 +117,7 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
 def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
                          k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
-    X, Y, Z = np.atleast_1d(X), np.atleast_1d(Y), np.atleast_1d(Z)
+    X, Y, Z = np.transpose(np.atleast_1d(X)), np.transpose(np.atleast_1d(Y)), np.transpose(np.atleast_1d(Z))
     e_x = np.zeros_like(X, dtype=np.complex128)
     e_y = np.zeros_like(X, dtype=np.complex128)
     e_z = np.zeros_like(X, dtype=np.complex128)
@@ -243,7 +243,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     x = np.arange(xmin, xmax + res[0]/2, res[0])
     y = np.arange(ymin, ymax + res[1]/2, res[1])
     z = np.arange(zmin, zmax + res[2]/2, res[2])
-    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z, indexing='ij'))
+    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z))
 
     if xmin == xmax:
         dim1vec, dim2vec = y, z
@@ -308,7 +308,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
 
                 if 'norm' in quantity:
-                    e = np.transpose(np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2))
+                    e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
                     vmax = np.abs(e).max()
                     color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',0), vmax=show_opt.get('vmax',vmax)))
                     plt.imshow(e,
@@ -323,13 +323,13 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     plt.title(plt_title)
                 else:
                     if '_x' in quantity:
-                        e = np.transpose(e_x)
+                        e = e_x
                         filename = filename + '_x'
                     elif '_y' in quantity:
-                        e = np.transpose(e_y)
+                        e = e_y
                         filename = filename + '_y'
                     elif '_z' in quantity:
-                        e = np.transpose(e_z)
+                        e = e_z
                         filename = filename + '_z'
                     else:
                         print('Quantity:', quantity)
