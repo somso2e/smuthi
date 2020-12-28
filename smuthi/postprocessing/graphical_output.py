@@ -577,7 +577,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
     infld = simulation.initial_field
     plst = simulation.particle_list
     lsys = simulation.layer_system
-    far_field = ff.total_far_field(vacuum_wavelength=infld.vacuum_wavelength,
+    far_field = ff.total_far_field(initial_field=infld,
                                    particle_list=plst,
                                    layer_system=lsys,
                                    polar_angles=polar_angles,
