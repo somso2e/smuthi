@@ -132,7 +132,7 @@ class AnisotropicSphere(Particle):
                                       scattered field
         m_max (int):                  Maximal multipole order used for the spherical wave expansion of incoming and
                                       scattered field
-        n_rank (int):                 Maximal multipole order used for in NFMDS
+        n_rank (int):                 Maximal multipole order used for in NFMDS (default: l_max + 5)
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
@@ -163,9 +163,9 @@ class AnisotropicSphere(Particle):
             tnfmds = nfmds.tnonaxsym([r, r, r, 0, 0, 0, 0, 0, 0, 0], Nmax, filegeom=0,
                                      wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
                                      ind_refrelz=self.refractive_index_z / n_medium + 0j,
-                                     nrank=self.n_rank, mrank=self.n_rank, ind_refmed=n_medium,
+                                     nrank=nrank, mrank=nrank, ind_refmed=n_medium,
                                      anisotropic=1, typegeom=1, nsurf=3, nparam=1)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
         return t
 
 
@@ -236,7 +236,7 @@ class LayeredSpheroid(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used in NFMDS
+        n_rank (int):               Maximal multipole order used in NFMDS (default: l_max + 5)
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, layer_refractive_indices=1 + 0j,
@@ -276,7 +276,7 @@ class FiniteCylinder(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used for in NFMDS
+        n_rank (int):               Maximal multipole order used for in NFMDS (default: l_max + 5)
         use_python_tmatrix (bool):  If true, use Alan Zhan's Python code to compute the T-matrix rather than NFM-DS
         nint (int):                 Number of angles used in integral (only for python t-mnatrix)
     """
@@ -316,12 +316,13 @@ class FiniteCylinder(Particle):
         return t
 
     def _compute_t_matrix_python(self, vacuum_wavelength, n_medium):
+        nrank = self.nrank if self.nrank is not None else self.l_max + 5
         Ntheta = self.nint
         geometric_params = [self.cylinder_radius, self.cylinder_height]
-        t, dt = t_alan.compute_T(lmax=self.nrank, Ntheta=Ntheta, geometric_params=geometric_params,
+        t, dt = t_alan.compute_T(lmax=nrank, Ntheta=Ntheta, geometric_params=geometric_params,
                                  n0=n_medium, ns=self.refractive_index, wavelength=vacuum_wavelength,
                                  particle_type="cylinder")
-        t = -nfic.python_to_smuthi_matrix(t, Nrank=self.nrank, l_max=self.l_max, m_max=self.m_max)
+        t = -nfic.python_to_smuthi_matrix(t, Nrank=nrank, l_max=self.l_max, m_max=self.m_max)
         return t
 
 
@@ -341,7 +342,7 @@ class CustomParticle(Particle):
                                     scattered field
         m_max (int):                Maximal multipole order used for the spherical wave expansion of incoming and
                                     scattered field
-        n_rank (int):               Maximal multipole order used for in NFMDS
+        n_rank (int):               Maximal multipole order used for in NFMDS (default: l_max + 5)
     """
 
     def __init__(self, position=None, euler_angles=None, polar_angle=0, azimuthal_angle=0, refractive_index=1 + 0j,
@@ -350,13 +351,8 @@ class CustomParticle(Particle):
             euler_angles = [azimuthal_angle, polar_angle, 0]
         Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
                 l_max=l_max, m_max=m_max)
-        if n_rank is None:
-            self.n_rank = self.l_max + 2
-        else:
-            self.n_rank = n_rank
-
+        self.n_rank = n_rank
         self.geometry_filename = geometry_filename
-
         self.scale = scale
 
     def circumscribing_sphere_radius(self):
@@ -376,11 +372,12 @@ class CustomParticle(Particle):
 
     def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium, fem_file):
         """Private t-matrix method function"""
+        nrank = self.nrank if self.nrank is not None else self.l_max + 5
         Nmax = self.n_rank * (2 + self.n_rank)
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
             tnfmds = nfmds.tnonaxsym([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], Nmax, filefem=fem_file,
                                      wavelength=vacuum_wavelength / self.scale,
                                      ind_refrel=self.refractive_index / n_medium + 0j,
-                                     nrank=self.n_rank, mrank=self.n_rank, ind_refmed=n_medium)
+                                     nrank=nrank, mrank=nrank, ind_refmed=n_medium)
         t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
         return t
