@@ -577,12 +577,12 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
     infld = simulation.initial_field
     plst = simulation.particle_list
     lsys = simulation.layer_system
-    far_field = ff.total_far_field(initial_field=infld,
-                                   particle_list=plst,
-                                   layer_system=lsys,
-                                   polar_angles=polar_angles,
-                                   azimuthal_angles=azimuthal_angles,
-                                   angular_resolution=angular_resolution)
+    far_field, _, _ = ff.total_far_field(initial_field=infld,
+                                         particle_list=plst,
+                                         layer_system=lsys,
+                                         polar_angles=polar_angles,
+                                         azimuthal_angles=azimuthal_angles,
+                                         angular_resolution=angular_resolution)
 
     [d.setdefault('label','total_far_field') for d in show_opts]
 
