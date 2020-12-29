@@ -434,8 +434,8 @@ def total_scattering_cross_section(simulation=None, initial_field=None, particle
     scs = dscs.integral()
     return scs[0] + scs[1]
 
-
-def extinction_cross_section(simulation=None, initial_field=None, particle_list=None, layer_system=None):
+def extinction_cross_section(simulation=None, initial_field=None, particle_list=None, layer_system=None,
+                                only_l=None, only_m=None, only_pol=None, only_tau=None):
     """Evaluate the extinction cross section.
 
     Args:
@@ -443,6 +443,11 @@ def extinction_cross_section(simulation=None, initial_field=None, particle_list=
         initial_field (smuthi.initial_field.PlaneWave): Plane wave object (optional)
         particle_list (list): List of smuthi.particles.Particle objects (optional)
         layer_system (smuthi.layers.LayerSystem): Representing the stratified medium
+        only_pol (int):  if set to 0 or 1, only this plane wave polarization (0=TE, 1=TM) is considered
+        only_tau (int):  if set to 0 or 1, only this spherical vector wave polarization (0 — magnetic, 1 — electric) is
+                         considered
+        only_l (int):    if set to positive number, only this multipole degree is considered
+        only_m (int):    if set non-negative number, only this multipole order is considered
 
     Returns:
         Dictionary with following entries
@@ -498,9 +503,11 @@ def extinction_cross_section(simulation=None, initial_field=None, particle_list=
 
     initial_intensity = abs(A_P) ** 2 * n_P / 2
 
-    pwe_scat_top, _ = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, i_top, kappa_P, alpha_P)
+    pwe_scat_top, _ = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, i_top, kappa_P, alpha_P,
+                                             only_l=only_l, only_m=only_m, only_pol=only_pol, only_tau=only_tau)
 
-    _, pwe_scat_bottom = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, 0, kappa_P, alpha_P)
+    _, pwe_scat_bottom = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, 0, kappa_P, alpha_P,
+                                                only_l=only_l, only_m=only_m, only_pol=only_pol, only_tau=only_tau)
 
     # bottom extinction
     _, pwe_init_bottom = initial_field.plane_wave_expansion(layer_system, 0)
