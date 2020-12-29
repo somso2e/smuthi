@@ -77,7 +77,8 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
 
 
 def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_number, k_parallel='default',
-                        azimuthal_angles='default', angular_resolution=None, include_direct=True, include_layer_response=True):
+                        azimuthal_angles='default', angular_resolution=None, include_direct=True, include_layer_response=True,
+                        only_l=None, only_m=None, only_pol=None, only_tau=None):
     """Calculate the plane wave expansion of the scattered field of a set of particles.
 
     Args:
@@ -93,6 +94,11 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
                                                 (expressed in degrees) over the default angular range
         include_direct (bool):                  If True, include the direct scattered field
         include_layer_response (bool):          If True, include the layer system response
+        only_pol (int):  if set to 0 or 1, only this plane wave polarization (0=TE, 1=TM) is considered
+        only_tau (int):  if set to 0 or 1, only this spherical vector wave polarization (0 — magnetic, 1 — electric) is
+                         considered
+        only_l (int):    if set to positive number, only this multipole degree is considered
+        only_m (int):    if set to non-negative number, only this multipole order is considered
 
     Returns:
         A tuple of PlaneWaveExpansion objects for upgoing and downgoing waves.
@@ -126,7 +132,8 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
         # direct contribution
         if i_iS == layer_number and include_direct:
             pu, pd = trf.swe_to_pwe_conversion(swe=particle.scattered_field, k_parallel=k_parallel,
-                                               azimuthal_angles=azimuthal_angles, layer_system=layer_system)
+                                               azimuthal_angles=azimuthal_angles, layer_system=layer_system,
+                                               only_l=only_l, only_m=only_m, only_pol=only_pol, only_tau=only_tau)
             pwe_up = pwe_up + pu
             pwe_down = pwe_down + pd
 
@@ -134,7 +141,8 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
         if include_layer_response:
             pu, pd = trf.swe_to_pwe_conversion(swe=particle.scattered_field, k_parallel=k_parallel,
                                                azimuthal_angles=azimuthal_angles, layer_system=layer_system,
-                                               layer_number=layer_number, layer_system_mediated=True)
+                                               layer_number=layer_number, layer_system_mediated=True,
+                                               only_l=only_l, only_m=only_m, only_pol=only_pol, only_tau=only_tau)
             pwe_up = pwe_up + pu
             pwe_down = pwe_down + pd
 

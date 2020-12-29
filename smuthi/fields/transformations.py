@@ -128,7 +128,8 @@ def pwe_to_swe_conversion(pwe, l_max, m_max, reference_point):
 
 
 def swe_to_pwe_conversion(swe, k_parallel, azimuthal_angles, layer_system=None, layer_number=None,
-                          layer_system_mediated=False):
+                          layer_system_mediated=False,
+                          only_l=None, only_m=None, only_pol=None, only_tau=None):
     """Convert SphericalWaveExpansion object to a PlaneWaveExpansion object.
 
     Args:
@@ -139,6 +140,11 @@ def swe_to_pwe_conversion(swe, k_parallel, azimuthal_angles, layer_system=None, 
         layer_number (int):                       Layer number in which the PWE should be valid.
         layer_system_mediated (bool):             If True, the PWE refers to the layer system response of the SWE, 
                                                   otherwise it is the direct transform.
+        only_pol (int):  if set to 0 or 1, only this plane wave polarization (0=TE, 1=TM) is considered
+        only_tau (int):  if set to 0 or 1, only this spherical vector wave polarization (0 — magnetic, 1 — electric) is
+                         considered
+        only_l (int):    if set to positive number, only this multipole degree is considered
+        only_m (int):    if set to non-negative number, only this multipole order is considered
 
     Returns:
         Tuple of two PlaneWaveExpansion objects, first upgoing, second downgoing.
@@ -186,12 +192,20 @@ def swe_to_pwe_conversion(swe, k_parallel, azimuthal_angles, layer_system=None, 
     plm_list_down, pilm_list_down, taulm_list_down = mathfunc.legendre_normalized(ct_down, st_down, swe.l_max)
     
     for m in range(-swe.m_max, swe.m_max + 1):
+        if only_m is not None and m != only_m:
+            continue
         eima = np.exp(1j * m * pwe_up.azimuthal_angles)  # indices: alpha_idx
         for pol in range(2):
+            if only_pol is not None and pol != only_pol:
+                continue
             dbB_up = np.zeros(len(k_parallel), dtype=complex)
             dbB_down = np.zeros(len(k_parallel), dtype=complex)
             for l in range(max(1, abs(m)), swe.l_max + 1):
+                if only_l is not None and l != only_l:
+                    continue
                 for tau in range(2):
+                    if only_tau is not None and tau != only_tau:
+                        continue
                     dbB_up += swe.coefficients_tlm(tau, l, m) * transformation_coefficients_vwf(
                         tau, l, m, pol, pilm_list=pilm_list_up, taulm_list=taulm_list_up)
                     dbB_down += swe.coefficients_tlm(tau, l, m) * transformation_coefficients_vwf(
