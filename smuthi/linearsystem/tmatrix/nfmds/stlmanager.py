@@ -14,7 +14,7 @@ def readstl(stlname):
     with open(stlname) as f:
         nsurf = 0
         for line in f:
-            if "solid" in line and "end" not in line:
+            if "solid" in line and "endsolid" not in line:
                 nsurf += 1
                 if nsurf > 1:
                     surf = {'nsurf': nsurf - 1,

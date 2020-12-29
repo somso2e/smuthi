@@ -351,7 +351,7 @@ class CustomParticle(Particle):
             euler_angles = [azimuthal_angle, polar_angle, 0]
         Particle.__init__(self, position=position, euler_angles=euler_angles, refractive_index=refractive_index,
                 l_max=l_max, m_max=m_max)
-        self.n_rank = n_rank
+        self.nrank = n_rank
         self.geometry_filename = geometry_filename
         self.scale = scale
 
@@ -360,20 +360,20 @@ class CustomParticle(Particle):
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
         if self.geometry_filename.endswith(".fem") or self.geometry_filename.endswith(".FEM"):
-            return self._compute_t_matrix(vacuum_wavelength, n_medium, self.geometry_filename)
+            return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium, self.geometry_filename)
 
         elif self.geometry_filename.endswith(".stl") or self.geometry_filename.endswith(".STL"):
             with tempfile.TemporaryDirectory() as tempdir:
                 stlc.convert_stl_to_fem(stlname=self.geometry_filename,
                                         femname=tempdir + "/temp.fem")
-                return self._compute_t_matrix(vacuum_wavelength, n_medium, tempdir + "/temp.fem")
+                return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium, tempdir + "/temp.fem")
         else:
             raise Exception("Invalid geometry file extension.")
 
     def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium, fem_file):
         """Private t-matrix method function"""
         nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        Nmax = self.n_rank * (2 + self.n_rank)
+        Nmax = nrank * (2 + nrank)
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
             tnfmds = nfmds.tnonaxsym([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], Nmax, filefem=fem_file,
                                      wavelength=vacuum_wavelength / self.scale,

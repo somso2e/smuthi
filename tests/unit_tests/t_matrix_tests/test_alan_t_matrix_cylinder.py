@@ -2,7 +2,7 @@ import sys
 import subprocess
 
 # -*- coding: utf-8 -*-
-"""Test the custom particle t-matrix"""
+"""Test the python only t-matrix"""
 import unittest
 import smuthi.fields as flds
 import smuthi.particles as part
@@ -30,14 +30,14 @@ axsym_cylinder = part.FiniteCylinder(position=(0, 0, 0),
 t_axsym = axsym_cylinder.compute_t_matrix(vacuum_wavelength=wl,
                                           n_medium=nmed)
 
-axsym_cylinder.pytho_tmt = True
+axsym_cylinder.python_tmt = True
 axsym_cylinder.nrank = 10
 
 t_python = axsym_cylinder.compute_t_matrix(vacuum_wavelength=wl,
                                            n_medium=nmed)
 
 
-def test_custom_cylinder():
+def test_python_cylinder():
     print(t_axsym[0, 0])
     print(t_python[0, 0])
 
@@ -47,4 +47,5 @@ def test_custom_cylinder():
 
 
 if __name__ == '__main__':
-    test_custom_cylinder()
+    # test_python_cylinder()  <- uncomment when Alan's code is on PyPi
+    pass
