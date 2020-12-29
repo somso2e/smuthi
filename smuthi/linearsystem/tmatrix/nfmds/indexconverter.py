@@ -113,3 +113,49 @@ def nfmds_to_smuthi_matrix(T, Nrank=None, Mrank=None, l_max=None, m_max=None):
             jj_sm = flds.multi_to_single_index(tau, l_jj, m_jj, l_max, m_max)
             Tsm[ii_sm, jj_sm] = T[ii, jj]
     return Tsm
+
+
+@jit(nopython=True, cache=True)
+def python_to_smuthi_matrix(T, Nrank, Mrank=None, l_max=None, m_max=None):
+    """Converts a T-matrix obtained with Alan's code to SMUTHI compatible format.
+
+    Args:
+        T (array):      T-matrix in NFMDS convention
+        Nrank (int):    Alan's lmax parameter
+        Mrank (int):    Alan's lmax parameter
+        l_max (int):    Maximal multipole degree used for the spherical wave expansion of incoming and
+                        scattered field
+        m_max (int):    Maximal multipole order used for the spherical wave expansion of incoming and
+                        scattered field
+
+    Returns:
+        Tsm (array):    T-matrix in SMUTHI convention
+    """
+
+    if Mrank is None:
+        Mrank = Nrank
+
+    if l_max is None:
+        l_max = Nrank
+
+    if m_max is None:
+        m_max = l_max
+
+    Tsm = np.zeros((flds.blocksize(l_max, m_max), flds.blocksize(l_max, m_max)), dtype=np.complex128)
+
+    mlim = min(m_max, Mrank)
+    llim = min(l_max, Nrank)
+
+    for tau1 in range(2):
+        for m1 in range(-mlim, mlim + 1):
+            for l1 in range(max(1, abs(m1)), llim + 1):
+                n1_py = flds.multi_to_single_index(tau1, l1, m1, Nrank, Mrank)
+                n1_sm = flds.multi_to_single_index(tau1, l1, m1, l_max, m_max)
+                for tau2 in range(2):
+                    for m2 in range(-mlim, mlim + 1):
+                        for l2 in range(max(1, abs(m2)), llim + 1):
+                            n2_py = flds.multi_to_single_index(tau2, l2, m2, Nrank, Mrank)
+                            n2_sm = flds.multi_to_single_index(tau2, l2, m2, l_max, m_max)
+                            Tsm[n1_sm, n2_sm] = T[n1_py, n2_py]
+
+    return Tsm
