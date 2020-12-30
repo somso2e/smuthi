@@ -38,7 +38,7 @@ def readstl(stlname):
                 baricenter = 0
                 triangle = []
             if "vertex" in line:
-                vertex = np.array([float(i) for i in line.split(" ")[5:]])
+                vertex = np.array([float(i) for i in line.split()[1:]])
                 baricenter += vertex / 3
                 triangle.append(vertex)
 
@@ -80,5 +80,8 @@ def convert_stl_to_fem(stlname, femname):
         stlname (string):    name of STL file
         femname (string):    name of FEM file
     """    
-    surfaces=readstl(stlname)
+    try:
+        surfaces=readstl(stlname)
+    except(UnicodeDecodeError):
+        raise Exception("Binary STL files are not supported.")
     writefem(femname,surfaces)
