@@ -38,6 +38,7 @@ t_python = axsym_cylinder.compute_t_matrix(vacuum_wavelength=wl,
 
 
 def test_python_cylinder():
+    pass # test_python_cylinder()  <- uncomment when Alan's code is on PyPi
     print(t_axsym[0, 0])
     print(t_python[0, 0])
 
@@ -47,5 +48,4 @@ def test_python_cylinder():
 
 
 if __name__ == '__main__':
-    # test_python_cylinder()  <- uncomment when Alan's code is on PyPi
-    pass
+    test_python_cylinder()  <- uncomment when Alan's code is on PyPi
