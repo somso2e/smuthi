@@ -48,4 +48,4 @@ def test_python_cylinder():
 
 
 if __name__ == '__main__':
-    test_python_cylinder()  <- uncomment when Alan's code is on PyPi
+    test_python_cylinder()
