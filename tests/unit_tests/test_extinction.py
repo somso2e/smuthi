@@ -41,9 +41,14 @@ class TestExtinction(unittest.TestCase):
                                             initial_field=plane_wave)
         simulation.run()
 
-        general_ecs = ff.extinction_cross_section(initial_field=plane_wave,
-                                        particle_list=two_spheres,
-                                        layer_system=two_layers)
+        general_transmitted_ecs = ff.extinction_cross_section(initial_field=plane_wave,
+                                                              particle_list=two_spheres,
+                                                              layer_system=two_layers,
+                                                              extinction_direction='transmission')
+        general_reflected_ecs = ff.extinction_cross_section(initial_field=plane_wave,
+                                                            particle_list=two_spheres,
+                                                            layer_system=two_layers,
+                                                            extinction_direction='reflection')
 
         ecs_bottom=0  
         ecs_top=0                                      
@@ -51,16 +56,18 @@ class TestExtinction(unittest.TestCase):
             for tau in range(2):
                 for pol in range(2):
                     ecs_top += ff.extinction_cross_section(initial_field=plane_wave,
-                                        particle_list=two_spheres,
-                                        layer_system=two_layers,
-                                        only_l=l, only_tau=tau, only_pol=pol)['top']
+                                                           particle_list=two_spheres,
+                                                           layer_system=two_layers,
+                                                           only_l=l, only_tau=tau, only_pol=pol,
+                                                           extinction_direction='reflection')
                     ecs_bottom += ff.extinction_cross_section(initial_field=plane_wave,
-                                        particle_list=two_spheres,
-                                        layer_system=two_layers,
-                                        only_l=l, only_tau=tau, only_pol=pol)['bottom']
+                                                              particle_list=two_spheres,
+                                                              layer_system=two_layers,
+                                                              only_l=l, only_tau=tau, only_pol=pol,
+                                                              extinction_direction='transmission')
 
-        top_difference = np.abs(ecs_top - general_ecs['top'])
-        bottom_difference = np.abs(ecs_bottom - general_ecs['bottom'])
+        top_difference = np.abs(ecs_top - general_reflected_ecs)
+        bottom_difference = np.abs(ecs_bottom - general_transmitted_ecs)
         
         self.assertEqual(top_difference < 10**(-9), True)
         self.assertEqual(bottom_difference < 10**(-9), True)

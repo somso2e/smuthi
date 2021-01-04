@@ -5,7 +5,6 @@ import numpy as np
 import smuthi.fields as flds
 import smuthi.postprocessing.scattered_field as sf
 
-
 class FarField:
     r"""Represent the far field intensity of an electromagnetic field.
 
@@ -396,7 +395,6 @@ def scattering_cross_section(initial_field, particle_list, layer_system,
 
     return dscs
 
-
 def total_scattering_cross_section(simulation=None, initial_field=None, particle_list=None, layer_system=None,
                                    polar_angles='default', azimuthal_angles='default', angular_resolution=None):
     """Evaluate the total scattering cross section.
@@ -434,8 +432,10 @@ def total_scattering_cross_section(simulation=None, initial_field=None, particle
     scs = dscs.integral()
     return scs[0] + scs[1]
 
+
 def extinction_cross_section(simulation=None, initial_field=None, particle_list=None, layer_system=None,
-                                only_l=None, only_m=None, only_pol=None, only_tau=None):
+                             only_l=None, only_m=None, only_pol=None, only_tau=None,
+                             extinction_direction='both'):
     """Evaluate the extinction cross section.
 
     Args:
@@ -448,11 +448,12 @@ def extinction_cross_section(simulation=None, initial_field=None, particle_list=
                          considered
         only_l (int):    if set to positive number, only this multipole degree is considered
         only_m (int):    if set non-negative number, only this multipole order is considered
-
+        extinction_direction (string): if set to 'both': return full excinction,
+                                       if to 'reflection': extinction of reflected wave,
+                                       if to 'transmission': extinction of transmitted wave.
+                                       See section on :ref:`ExtinctionCrossSectionAnchor` for details.
     Returns:
-        Dictionary with following entries
-            - 'top':      Extinction in the positinve z-direction (top layer)
-            - 'bottom':     Extinction in the negative z-direction (bottom layer)
+        Extinction cross section.
     """
     if initial_field is None:
         initial_field = simulation.initial_field
@@ -525,6 +526,18 @@ def extinction_cross_section(simulation=None, initial_field=None, particle_list=
     P_top_ext = 4 * np.pi ** 2 * kz_top / omega * (gRPtop * np.conj(g_scat_top)).real
     top_extinction_cs = - P_top_ext / initial_intensity
 
-    extinction_cs = {'top': top_extinction_cs, 'bottom': bottom_extinction_cs}
-
-    return extinction_cs
+    if extinction_direction == 'both':
+        return bottom_extinction_cs + top_extinction_cs
+    elif extinction_direction == 'reflection':
+        if i_P == 0:
+            return bottom_extinction_cs
+        else:
+            return top_extinction_cs
+    elif extinction_direction == 'transmission':
+        if i_P == 0:
+            return top_extinction_cs
+        else:
+            return bottom_extinction_cs
+    else:
+        raise ValueError('extinction_direction can be only \'both\', \
+                                        \'reflection\' or \'transmission\'')
