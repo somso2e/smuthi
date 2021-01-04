@@ -27,6 +27,8 @@ where :math:`W_\mathrm{scat}` is the total scattered power and :math:`I_\mathrm{
 
 .. note:: In Smuthi versions < 1.0, a different definition of cross sections was used. In these versions, the incident irradiance was defined as "power per unit area parallel to the layer system", such that cross section figures computed with previous versions can deviate from the current version by a factor :math:`\cos(\beta_\mathrm{inc})`, where :math:`\beta_\mathrm{inc}` is the propagation angle of the incoming plane wave.
 
+.. _ExtinctionCrossSectionAnchor:
+
 Extinction cross section
 ~~~~~~~~~~~~~~~~~~~~~~~~
 The term "extinction" means that particles take away power from the incindent plane wave, such that they partially extinguish the incindent wave.

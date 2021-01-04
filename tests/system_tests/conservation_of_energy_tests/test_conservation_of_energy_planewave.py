@@ -50,7 +50,7 @@ ecs = farf.extinction_cross_section(initial_field=simulation.initial_field,parti
 
 
 def test_optical_theorem():
-    relerr = abs((sum(scs.integral()) - ecs['top'] - ecs['bottom']) / sum(scs.integral()))
+    relerr = abs((sum(scs.integral()) - ecs) / sum(scs.integral()))
     print('error: ', relerr)
     assert relerr < 1e-4
 

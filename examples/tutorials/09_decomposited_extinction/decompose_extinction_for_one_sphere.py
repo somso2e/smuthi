@@ -51,7 +51,6 @@ def get_extinctions(wavelength, sphere_refractive_index,
     general_ecs = ff.extinction_cross_section(initial_field=plane_wave,
                                         particle_list=spheres_list,
                                         layer_system=layers, only_l=1, only_pol=polarization)
-    general_extinction_sum = general_ecs['top'] + general_ecs['bottom']
 
     extinctions = [[], [], []]
     # extinctions[0] -- magnetic projections,
@@ -63,9 +62,8 @@ def get_extinctions(wavelength, sphere_refractive_index,
                                         particle_list=spheres_list,
                                         layer_system=layers, only_l=1, only_pol=polarization, 
                                         only_tau=tau, only_m=m)
-            extinction_sum = counted_extinction['top'] + counted_extinction['bottom']
-            extinctions[tau].append(extinction_sum)
-    extinctions[2].append(general_extinction_sum)
+            extinctions[tau].append(counted_extinction)
+    extinctions[2].append(general_ecs)
 
     return extinctions
 
