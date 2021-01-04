@@ -379,5 +379,5 @@ class CustomParticle(Particle):
                                      wavelength=vacuum_wavelength / self.scale,
                                      ind_refrel=self.refractive_index / n_medium + 0j,
                                      nrank=nrank, mrank=nrank, ind_refmed=n_medium)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max)
+        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
         return t
