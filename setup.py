@@ -108,7 +108,7 @@ def get_extensions(static=True):
                           extra_link_args=extra_link_args,f2py_options=f2py_options)]
     else:
         return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
-                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90,f2py_options=f2py_options'])]
+                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'],f2py_options=f2py_options)]
 
 
 setup(
