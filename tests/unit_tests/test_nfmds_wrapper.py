@@ -1,5 +1,5 @@
 import unittest
-
+import numpy as np
 import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 
