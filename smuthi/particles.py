@@ -158,13 +158,14 @@ class AnisotropicSphere(Particle):
         nrank = self.nrank if self.nrank is not None else self.l_max + 5
         Nmax = nrank * (2 + nrank)
         r = self.radius
+        surf = np.array([r,r,r])
         
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tnonaxsym(np.array([r,r,r]), Nmax, filegeom=0,
+            tnfmds = nfmds.tnonaxsym(surf, Nmax, filegeom=0,
                                      wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
                                      ind_refrelz=self.refractive_index_z / n_medium + 0j,
                                      nrank=nrank, mrank=nrank, ind_refmed=n_medium,
-                                     anisotropic=1, typegeom=1, nsurf=3, nparam=1)
+                                     anisotropic=1, typegeom=1, nparam=1)
         t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
         return t
 
@@ -210,9 +211,9 @@ class Spheroid(Particle):
     def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium):
         nrank = self.nrank if self.nrank is not None else self.l_max + 5
         Nmax = nrank * (2 + nrank)
-        surf = [self.semi_axis_c, self.semi_axis_a, 0, 0, 0, 0, 0, 0, 0, 0]
+        surf = [self.semi_axis_c, self.semi_axis_a]
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.taxsym(surf, Nmax, typegeom=1, nsurf=2, nparam=1,
+            tnfmds = nfmds.taxsym(surf, Nmax, typegeom=1, nparam=1,
                                   wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
                                   nrank=nrank, ind_refmed=n_medium)
         t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
@@ -308,9 +309,9 @@ class FiniteCylinder(Particle):
     def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium):
         nrank = self.nrank if self.nrank is not None else self.l_max + 5
         Nmax = nrank * (2 + nrank)
-        surf = [self.cylinder_height / 2, self.cylinder_radius, 0, 0, 0, 0, 0, 0, 0, 0]
+        surf = [self.cylinder_height / 2, self.cylinder_radius]
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.taxsym(surf, Nmax, typegeom=2, nsurf=2, nparam=3, wavelength=vacuum_wavelength,
+            tnfmds = nfmds.taxsym(surf, Nmax, typegeom=2, nparam=3, wavelength=vacuum_wavelength,
                                   ind_refrel=self.refractive_index / n_medium + 0j, nrank=nrank, ind_refmed=n_medium)
         t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
         return t
@@ -374,8 +375,9 @@ class CustomParticle(Particle):
         """Private t-matrix method function"""
         nrank = self.nrank if self.nrank is not None else self.l_max + 5
         Nmax = nrank * (2 + nrank)
+        surf = np.array([1, 1, 1])	
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tnonaxsym([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], Nmax, filefem=fem_file,
+            tnfmds = nfmds.tnonaxsym(surf, Nmax, filefem=fem_file,
                                      wavelength=vacuum_wavelength / self.scale,
                                      ind_refrel=self.refractive_index / n_medium + 0j,
                                      nrank=nrank, mrank=nrank, ind_refmed=n_medium)
