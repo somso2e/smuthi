@@ -25,19 +25,8 @@ include 'Random.f90'
 include 'SCT.f90'
 include 'SCTAVRGSPH.f90'
 include 'SVWF.f90'
-include 'TCOMP.f90'
-include 'TINHOM.f90'
-include 'TINHOM2SPH.f90'
-include 'TINHOMSPH.f90'
-include 'TINHOMSPHREC.f90'
 include 'TLAY.f90'
-include 'TMULT.f90'
-include 'TMULT2SPH.f90'
-include 'TMULTSPH.f90'
-include 'TMULTSPHREC.f90'
 include 'TNONAXSYM.f90'
-include 'TPARTSUB.f90'
-include 'TSPHERE.f90'
 
 !************************************************************************************
 subroutine readinputAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,        &
@@ -1378,7 +1367,7 @@ subroutine convergence_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsur
   print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank             
   deallocate (a, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine convergence_MrankDSAXSYM
-subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,              &
+subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,                &
            chiral, kb, FileGeom, TypeGeom, FileFEM, Nsurf, surf, Nparam, anorm,     &
            Rcirc, miror, DoConvTest, MishConvTest, DS, autGenDS, ComplexPlane,      &
            epsZReIm, Nint, Nrank, epsNint, epsNrank, epsMrank, dNint, dNintMrank,   &
@@ -1387,9 +1376,9 @@ subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,            
   use derived_parameters  
   implicit none 
   integer       :: TypeGeom, Nsurf, Nparam, TypeConvTest, dNint, Nrank, Nint,       &
-                   Nrank1, dNintMrank, Ndgs, NrankMax, NrankW, Nface, i, j, Mrank,   &
+                   Nrank1, dNintMrank, Ndgs, NrankMax, NrankW, Nface, i, j, Mrank,  &
                    Nmaxmax
-  real(O)       :: k, ind_refMed, wavelength, anorm, surf(NsurfPD), snorm,          &
+  real(O)       :: k, ind_refMed, wavelength, anorm, surf(Nsurf), snorm,            &
                    kb, epsNint, epsNrank, epsMrank, zRe(NrankPD), zIm(NrankPD),     &
                    zRe1(NrankPD), zIm1(NrankPD), Rcirc, x, delta, Cscat1, Cext1,    &
                    epsZReIm, rp(2,NfacePD), np(2,NfacePD), area(NfacePD)                          
@@ -1413,8 +1402,7 @@ subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,            
   !f2py real(O) :: kb     = 0 
   !f2py logical :: FileGeom = 0
   !f2py character(80) :: FileFEM  = ' '  
-  !f2py integer :: TypeGeom = 1  
-  !f2py integer :: Nsurf    = 2
+  !f2py integer :: TypeGeom = 1 
   !f2py integer :: Nparam = 1
   !f2py real(O) :: anorm  = 1
   !f2py real(O) :: Rcirc  = 1 

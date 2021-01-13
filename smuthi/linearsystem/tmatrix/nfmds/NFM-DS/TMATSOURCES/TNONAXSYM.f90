@@ -1121,7 +1121,7 @@ subroutine TNONAXSYM (wavelength, ind_refMed, ind_refRel, ind_RefRelZ,          
   implicit none 
   integer       :: TypeGeom, Nsurf, Nface, Nparam, Nazimutsym, TypeConvTest, Mrank, &
                    Nrank, Nbeta, Nint1, Nint2, dNint1, dNint2, Nmax                     
-  real(O)       :: k, ind_refMed, wavelength, anorm, surf(NsurfPD), snorm,          &
+  real(O)       :: k, ind_refMed, wavelength, anorm, surf(Nsurf), snorm,            &
                    kb, epsNint, epsNrank, epsMrank, Rcirc, rp(3,NfacePD),           &
                    np(3,NfacePD), area(NfacePD), alphaPR, betaPR, gammaPR
   complex(O)    :: ind_refRel, ind_RefRelZ
@@ -1139,7 +1139,6 @@ subroutine TNONAXSYM (wavelength, ind_refMed, ind_refRel, ind_RefRelZ,          
   !f2py logical :: miror  = 0 
   !f2py logical :: FileGeom = 1   
   !f2py integer :: TypeGeom = 1  
-  !f2py integer :: Nsurf = 3
   !f2py integer :: Nparam = 1 
   !f2py real(O) :: anorm  = 1
   !f2py real(O) :: Rcirc  = 1

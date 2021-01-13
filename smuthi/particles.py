@@ -160,7 +160,7 @@ class AnisotropicSphere(Particle):
         r = self.radius
         
         with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tnonaxsym([r, r, r, 0, 0, 0, 0, 0, 0, 0], Nmax, filegeom=0,
+            tnfmds = nfmds.tnonaxsym(np.array([r,r,r]), Nmax, filegeom=0,
                                      wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
                                      ind_refrelz=self.refractive_index_z / n_medium + 0j,
                                      nrank=nrank, mrank=nrank, ind_refmed=n_medium,
