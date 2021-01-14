@@ -66,7 +66,7 @@ class TestNFMDSWrapper(unittest.TestCase):
         n=1
         qscat = 2*np.pi/k**2*(2*n+1)*np.sum(np.abs(diagt)**2)/area/3 #orientation averaged scattering efficiency
         err=np.abs(qscat-ref)/ref
-        self.assertAlmostEqual(err, 0.0, places=4)
+        self.assertAlmostEqual(err, 0.0, places=3)
 
     def test_cylinder_tmatrix_against_prototype(self):
         typegeom = 2    
