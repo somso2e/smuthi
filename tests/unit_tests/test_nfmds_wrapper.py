@@ -44,6 +44,30 @@ class TestNFMDSWrapper(unittest.TestCase):
         t4210 = -4.663469643281004e-04 - 3.215630661547245e-04j
         self.assertAlmostEqual(t_s[42, 10], t4210, places=5)
 
+    def test_layered_sphere_tmatrix_against_prototype(self):
+        ind_host = 4+0j
+        ind_shell = 2+0j
+        R=100
+        H=10
+        wavelength = 847.5
+        ref = 10.35853 # reference value from Kostya
+        area = np.pi*(R+H)**2
+        surf=np.array([[R+H,R+H],[R,R]])
+        zpart=np.array([0,0])
+        nparam=np.array([1,1])
+        nsurf=np.array([2,2])
+        ind_ref=np.array([ind_shell,ind_host])
+        nrankpmax=5
+        l_max=2
+
+        k=2*np.pi/wavelength
+        tnfmds = nfmds.tlay(k,ind_ref,surf,nrankpmax)
+        diagt = np.diag(tnfmds)
+        n=1
+        qscat = 2*np.pi/k**2*(2*n+1)*np.sum(np.abs(diagt)**2)/area/3 #orientation averaged scattering efficiency
+        err=np.abs(qscat-ref)/ref
+        self.assertAlmostEqual(err, 0.0, places=4)
+
     def test_cylinder_tmatrix_against_prototype(self):
         typegeom = 2    
         nparam = 3
