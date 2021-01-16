@@ -95,6 +95,7 @@ def get_extensions(static=True):
     """Depending on the platform, pick suitable Extension object. This is important such that if
     MinGW is used, the DLLs are statically linked (otherwise the user cannot use the binary if he 
     doesn't have MinGW on his computer, too."""
+    f2py_options = ['only:', 'tlay','taxsym','tnonaxsym', ':']
     if os.environ.get('READTHEDOCS'):
         return []
     if sys.platform.startswith('win'):
@@ -104,10 +105,10 @@ def get_extensions(static=True):
             extra_link_args = []
         return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
                           ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/TAXSYM_SMUTHI.f90'],
-                          extra_link_args=extra_link_args)]
+                          extra_link_args=extra_link_args,f2py_options=f2py_options)]
     else:
         return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
-                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'])]
+                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'],f2py_options=f2py_options)]
 
 
 setup(

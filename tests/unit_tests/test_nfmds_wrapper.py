@@ -1,5 +1,5 @@
 import unittest
-
+import numpy as np
 import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 
@@ -21,8 +21,8 @@ class TestNFMDSWrapper(unittest.TestCase):
     def test_spheroid_tmatrix_against_prototype(self):
         typegeom = 1
         surf = [half_axis_z, half_axis_xy]
-        nsurf=len(surf)
-        surf=list(surf)+[0]*(10-nsurf)
+        
+        surf=np.array(surf)
         Mrank = n_rank
         Nmax = n_rank + Mrank * (2 * n_rank - Mrank + 1)
         nparam = 1
@@ -33,7 +33,7 @@ class TestNFMDSWrapper(unittest.TestCase):
                                     semi_axis_c=half_axis_z, semi_axis_a=half_axis_xy, use_ds=use_ds,
                                     nint=n_int, nrank=n_rank, l_max=4, m_max=4)
         """                            
-        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=typegeom, nsurf=nsurf, nparam=nparam,
+        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=typegeom, nparam=nparam,
                               wavelength=vacuum_wavelength, ind_refrel=particle_refractive_index/layer_refractive_index,
                               nrank=n_rank,nint=n_int,ind_refmed=layer_refractive_index,ds=use_ds)
         t_s = nfic.nfmds_to_smuthi_matrix(tnfmds,l_max=l_max)
@@ -44,15 +44,39 @@ class TestNFMDSWrapper(unittest.TestCase):
         t4210 = -4.663469643281004e-04 - 3.215630661547245e-04j
         self.assertAlmostEqual(t_s[42, 10], t4210, places=5)
 
+    def test_layered_sphere_tmatrix_against_prototype(self):
+        ind_host = 4+0j
+        ind_shell = 2+0j
+        R=100
+        H=10
+        wavelength = 847.5
+        ref = 10.35853 # reference value from Kostya
+        area = np.pi*(R+H)**2
+        surf=np.array([[R+H,R+H],[R,R]])
+        zpart=np.array([0,0])
+        nparam=np.array([1,1])
+        nsurf=np.array([2,2])
+        ind_ref=np.array([ind_shell,ind_host])
+        nrankpmax=5
+        l_max=2
+
+        k=2*np.pi/wavelength
+        tnfmds = nfmds.tlay(k,ind_ref,surf,nrankpmax)
+        diagt = np.diag(tnfmds)
+        n=1
+        qscat = 2*np.pi/k**2*(2*n+1)*np.sum(np.abs(diagt)**2)/area/3 #orientation averaged scattering efficiency
+        err=np.abs(qscat-ref)/ref
+        self.assertAlmostEqual(err, 0.0, places=3)
+
     def test_cylinder_tmatrix_against_prototype(self):
         typegeom = 2    
         nparam = 3
         surf = [cylinder_height / 2, cylinder_radius]
-        nsurf=len(surf)
-        surf=list(surf)+[0]*(10-nsurf)
+        
+        surf=np.array(surf)
         Mrank = n_rank
         Nmax = n_rank + Mrank * (2 * n_rank - Mrank + 1)
-        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=typegeom, nsurf=nsurf, nparam=nparam,
+        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=typegeom, nparam=nparam,
                               wavelength=vacuum_wavelength, ind_refrel=particle_refractive_index/layer_refractive_index,
                               nrank=n_rank,nint=n_int,ind_refmed=layer_refractive_index,ds=use_ds)
         """
