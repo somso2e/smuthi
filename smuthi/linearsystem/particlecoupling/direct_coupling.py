@@ -233,7 +233,7 @@ def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, a
 
 
 def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, 
-                                        k_parallel):
+                                        k_parallel, alpha=None, beta=None):
     """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
     For details, see: 
     Dominik Theobald et al., Phys. Rev. A 96, 033822, DOI: 10.1103/PhysRevA.96.033822 or arXiv:1708.04808 
@@ -245,12 +245,13 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
         emitting_particle (smuthi.particles.Particle):      Particle that emits the scattered field
         layer_system (smuthi.layers.LayerSystem):           Stratified medium in which the coupling takes place
         k_parallel (numpy.array):                           In-plane wavenumber for plane wave expansion
+        alpha (float):                                      First Euler angle, rotation around z-axis, in rad
+        beta (float):                                       Second Euler angle, rotation around y'-axis in rad
 
     Returns:
         Direct coupling matrix block (numpy array).
     """    
-    if type(receiving_particle).__name__ != 'Spheroid' or type(emitting_particle).__name__ != 'Spheroid':
-        raise NotImplementedError('plane wave coupling currently implemented only for spheroids')
+
     
     lmax1 = receiving_particle.l_max
     mmax1 = receiving_particle.m_max
@@ -264,12 +265,16 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     blocksize2 = flds.blocksize(lmax2, mmax2)
     
     n_medium = layer_system.refractive_indices[layer_system.layer_number(receiving_particle.position[2])]
-      
-    # finding the orientation of a plane separating the spheroids
-    _, _, alpha, beta = spheroids_closest_points(
-        emitting_particle.semi_axis_a, emitting_particle.semi_axis_c, emitting_particle.position, 
-        emitting_particle.euler_angles, receiving_particle.semi_axis_a, receiving_particle.semi_axis_c,
-        receiving_particle.position, receiving_particle.euler_angles)
+    
+    if not alpha and not beta:
+        if type(receiving_particle).__name__ != 'Spheroid' or type(emitting_particle).__name__ != 'Spheroid':
+            raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids!')
+        
+        # finding the orientation of a plane separating the spheroids
+        _, _, alpha, beta = spheroids_closest_points(
+            emitting_particle.semi_axis_a, emitting_particle.semi_axis_c, emitting_particle.position, 
+            emitting_particle.euler_angles, receiving_particle.semi_axis_a, receiving_particle.semi_axis_c,
+            receiving_particle.position, receiving_particle.euler_angles)
     
     # positions
     r1 = np.array(receiving_particle.position)
