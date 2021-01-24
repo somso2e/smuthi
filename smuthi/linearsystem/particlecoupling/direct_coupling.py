@@ -235,6 +235,10 @@ def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, a
 def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, 
                                         k_parallel, alpha=None, beta=None):
     """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
+	Plane wave coupling is performed in a rotated coordinate system, in which both particles are separated by 
+	a plane that is parallel to the xy-plane. Two angles (alpha and beta) are required to rotate the emitting
+	particle's coordiante system to ensure the plane of separation.
+	For spheroids, alpha and beta can be determinded automatically, else please provide both alpha and beta.
     For details, see: 
     Dominik Theobald et al., Phys. Rev. A 96, 033822, DOI: 10.1103/PhysRevA.96.033822 or arXiv:1708.04808 
 
@@ -266,9 +270,9 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     
     n_medium = layer_system.refractive_indices[layer_system.layer_number(receiving_particle.position[2])]
     
-    if not alpha and not beta:
+    if not alpha or not beta:
         if type(receiving_particle).__name__ != 'Spheroid' or type(emitting_particle).__name__ != 'Spheroid':
-            raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids!')
+            raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids! Please provide alpha and beta.')
         
         # finding the orientation of a plane separating the spheroids
         _, _, alpha, beta = spheroids_closest_points(
