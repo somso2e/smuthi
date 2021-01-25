@@ -234,10 +234,15 @@ def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, a
 
 def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, 
                                         k_parallel, alpha=None, beta=None):
-    """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
-    For details, see: 
-    Dominik Theobald et al., Phys. Rev. A 96, 033822, DOI: 10.1103/PhysRevA.96.033822 or arXiv:1708.04808 
+     """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
+    For details, see:
+    Dominik Theobald et al., Phys. Rev. A 96, 033822, DOI: 10.1103/PhysRevA.96.033822 or arXiv:1708.04808
 
+    The plane wave coupling is performed in a rotated coordinate system, which must be chosen such that both particles can be separated by a plane that is parallel to the xy-plane (such that the emitting particle is entirely above that plane and the receiving particle is entirely below that plane).
+
+    Two angles (alpha and beta) are required to specify the active rotation into that coordinate system, i.e., the rotation which rotates the particle locations such that the abovementioned condition is fulfilled.
+
+    For spheroids, alpha and beta can be determinded automatically, for other particle shapes the user needs to provide alpha and beta.
 
     Args:
         vacuum_wavelength (float):                          Vacuum wavelength :math:`\lambda` (length unit)
@@ -266,9 +271,9 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     
     n_medium = layer_system.refractive_indices[layer_system.layer_number(receiving_particle.position[2])]
     
-    if not alpha and not beta:
+    if not alpha or not beta:
         if type(receiving_particle).__name__ != 'Spheroid' or type(emitting_particle).__name__ != 'Spheroid':
-            raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids!')
+            raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids! Please provide alpha and beta.')
         
         # finding the orientation of a plane separating the spheroids
         _, _, alpha, beta = spheroids_closest_points(
