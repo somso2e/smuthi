@@ -234,7 +234,7 @@ def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, a
 
 def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, 
                                         k_parallel, alpha=None, beta=None):
-     """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
+    """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
     For details, see:
     Dominik Theobald et al., Phys. Rev. A 96, 033822, DOI: 10.1103/PhysRevA.96.033822 or arXiv:1708.04808
 
