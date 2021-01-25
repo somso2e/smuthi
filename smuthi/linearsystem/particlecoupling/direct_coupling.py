@@ -256,8 +256,6 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     Returns:
         Direct coupling matrix block (numpy array).
     """    
-
-    
     lmax1 = receiving_particle.l_max
     mmax1 = receiving_particle.m_max
     assert lmax1 == mmax1, 'PVWF coupling requires lmax == mmax for each particle.'
