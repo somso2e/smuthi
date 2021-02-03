@@ -7,6 +7,7 @@ import smuthi.fields
 import smuthi.fields.vector_wave_functions as vwf
 import smuthi.fields.expansions_cuda as cu_src
 import smuthi.utility.cuda as cu
+import smuthi.utility.numba_helpers as nh
 import copy
 import math
 
@@ -708,12 +709,17 @@ class PlaneWaveExpansion(FieldExpansion):
                 integrand_z += (-kpgrid / self.k * self.coefficients[1, :, :])[None, :, :] * eikr
 
                 if len(self.k_parallel) > 1:
-                    e_x_flat[chunk_idcs] = np.trapz(np.trapz(integrand_x, self.azimuthal_angles)
-                                                    * self.k_parallel, self.k_parallel)
-                    e_y_flat[chunk_idcs] = np.trapz(np.trapz(integrand_y, self.azimuthal_angles)
-                                                    * self.k_parallel, self.k_parallel)
-                    e_z_flat[chunk_idcs] = np.trapz(np.trapz(integrand_z, self.azimuthal_angles)
-                                                    * self.k_parallel, self.k_parallel)
+                    e_x_flat[chunk_idcs] = np.trapz(
+                        nh.numba_trapz_3dim_array(integrand_x, self.azimuthal_angles)
+                        * self.k_parallel, self.k_parallel)
+
+                    e_y_flat[chunk_idcs] = np.trapz(
+                        nh.numba_trapz_3dim_array(integrand_y, self.azimuthal_angles)
+                        * self.k_parallel, self.k_parallel)
+                        
+                    e_z_flat[chunk_idcs] = np.trapz(
+                        nh.numba_trapz_3dim_array(integrand_z, self.azimuthal_angles)
+                        * self.k_parallel, self.k_parallel)
                 else:
                     e_x_flat[chunk_idcs] = np.squeeze(integrand_x)
                     e_y_flat[chunk_idcs] = np.squeeze(integrand_y)
