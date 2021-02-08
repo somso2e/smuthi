@@ -598,7 +598,7 @@ class PlaneWaveExpansion(FieldExpansion):
         pwe_sum.coefficients = self.coefficients + other.coefficients
         return pwe_sum
     
-    def electric_field(self, x, y, z, chunksize=50):
+    def electric_field(self, x, y, z, chunksize=50, cpu_precision='single precision'):
         """Evaluate electric field.
         
         Args:
@@ -607,7 +607,9 @@ class PlaneWaveExpansion(FieldExpansion):
             z (numpy.ndarray):    z-coordinates of query points
             chunksize (int):      number of field points that are simultaneously 
                                   evaluated when running in CPU mode
-         
+            cpu_precision (string): set 'double precision' to use float64 and complex128 types
+                                    instead of float32 and complex64
+          
         Returns:
             Tuple of (E_x, E_y, E_z) numpy.ndarray objects with the Cartesian 
             coordinates of complex electric field.
@@ -669,15 +671,25 @@ class PlaneWaveExpansion(FieldExpansion):
             ez[self.valid(x, y, z)] = re_e_z_d.get() + 1j * im_e_z_d.get()
             
         else:  # run calculations on cpu
-            kpgrid = self.k_parallel_grid()
-            agrid = self.azimuthal_angle_grid()
+            float_type = np.float32
+            complex_type = np.complex64
+            if cpu_precision == 'double precision':
+                float_type = np.float64
+                complex_type = np.complex128
+
+            kpgrid = self.k_parallel_grid().astype(complex_type)
+            agrid = self.azimuthal_angle_grid().astype(float_type)
             kx = kpgrid * np.cos(agrid)
             ky = kpgrid * np.sin(agrid)
-            kz = self.k_z_grid()
+            kz = self.k_z_grid().astype(complex_type)
 
-            e_x_flat = np.zeros(xr.size, dtype=np.complex64)
-            e_y_flat = np.zeros(xr.size, dtype=np.complex64)
-            e_z_flat = np.zeros(xr.size, dtype=np.complex64)
+            xr = xr.astype(float_type)
+            yr = yr.astype(float_type)
+            zr = zr.astype(float_type)
+
+            e_x_flat = np.zeros(xr.size, dtype=complex_type)
+            e_y_flat = np.zeros(xr.size, dtype=complex_type)
+            e_z_flat = np.zeros(xr.size, dtype=complex_type)
 
             for i_chunk in range(math.ceil(xr.size / chunksize)):
                 chunk_idcs = range(i_chunk * chunksize, min((i_chunk + 1) * chunksize, xr.size))
@@ -686,7 +698,7 @@ class PlaneWaveExpansion(FieldExpansion):
                 zr_chunk = zr.flatten()[chunk_idcs]
 
                 kr = np.zeros((len(xr_chunk), len(self.k_parallel), 
-                               len(self.azimuthal_angles)), dtype=np.complex64)
+                               len(self.azimuthal_angles)), dtype=complex_type)
                 kr += np.tensordot(xr_chunk, kx, axes=0)
                 kr += np.tensordot(yr_chunk, ky, axes=0)
                 kr += np.tensordot(zr_chunk, kz, axes=0)
@@ -694,11 +706,11 @@ class PlaneWaveExpansion(FieldExpansion):
                 eikr = np.exp(1j * kr)
         
                 integrand_x = np.zeros((len(xr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
-                                       dtype=np.complex64)
+                                       dtype=complex_type)
                 integrand_y = np.zeros((len(yr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
-                                       dtype=np.complex64)
+                                       dtype=complex_type)
                 integrand_z = np.zeros((len(zr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
-                                       dtype=np.complex64)
+                                       dtype=complex_type)
 
                 # pol=0
                 integrand_x += (-np.sin(agrid) * self.coefficients[0, :, :])[None, :, :] * eikr
