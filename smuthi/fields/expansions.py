@@ -704,21 +704,17 @@ class PlaneWaveExpansion(FieldExpansion):
                 kr += np.tensordot(zr_chunk, kz, axes=0)
 
                 eikr = np.exp(1j * kr)
-        
-                integrand_x = np.zeros((len(xr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
-                                       dtype=complex_type)
-                integrand_y = np.zeros((len(yr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
-                                       dtype=complex_type)
-                integrand_z = np.zeros((len(zr_chunk), len(self.k_parallel), len(self.azimuthal_angles)),
-                                       dtype=complex_type)
 
                 # pol=0
-                integrand_x += (-np.sin(agrid) * self.coefficients[0, :, :])[None, :, :] * eikr
-                integrand_y += (np.cos(agrid) * self.coefficients[0, :, :])[None, :, :] * eikr
+                integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :])[None, :, :]
+                integrand_y = (np.cos(agrid) * self.coefficients[0, :, :])[None, :, :]
                 # pol=1
-                integrand_x += (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :])[None, :, :] * eikr
-                integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :])[None, :, :] * eikr
-                integrand_z += (-kpgrid / self.k * self.coefficients[1, :, :])[None, :, :] * eikr
+                integrand_x += (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :])[None, :, :]
+                integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :])[None, :, :]
+
+                integrand_x = integrand_x * eikr
+                integrand_y = integrand_y * eikr
+                integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :])[None, :, :] * eikr
 
                 if len(self.k_parallel) > 1:
                     e_x_flat[chunk_idcs] = np.trapz(
