@@ -697,11 +697,7 @@ class PlaneWaveExpansion(FieldExpansion):
                 yr_chunk = yr.flatten()[chunk_idcs]
                 zr_chunk = zr.flatten()[chunk_idcs]
 
-                kr = np.zeros((len(xr_chunk), len(self.k_parallel), 
-                               len(self.azimuthal_angles)), dtype=complex_type)
-                kr += np.tensordot(xr_chunk, kx, axes=0)
-                kr += np.tensordot(yr_chunk, ky, axes=0)
-                kr += np.tensordot(zr_chunk, kz, axes=0)
+                kr = nh.numba_3tensordots_1dim_times_2dim(xr_chunk, yr_chunk, zr_chunk, kx, ky, kz)
 
                 eikr = np.exp(1j * kr)
 
