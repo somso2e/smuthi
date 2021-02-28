@@ -691,6 +691,14 @@ class PlaneWaveExpansion(FieldExpansion):
             e_y_flat = np.zeros(xr.size, dtype=complex_type)
             e_z_flat = np.zeros(xr.size, dtype=complex_type)
 
+            # pol=0
+            integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+            integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+            # pol=1
+            integrand_x += (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+            integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+            integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+
             for i_chunk in range(math.ceil(xr.size / chunksize)):
                 chunk_idcs = range(i_chunk * chunksize, min((i_chunk + 1) * chunksize, xr.size))
                 xr_chunk = xr.flatten()[chunk_idcs]
@@ -701,33 +709,26 @@ class PlaneWaveExpansion(FieldExpansion):
 
                 eikr = np.exp(1j * kr)
 
-                # pol=0
-                integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :])[None, :, :]
-                integrand_y = (np.cos(agrid) * self.coefficients[0, :, :])[None, :, :]
-                # pol=1
-                integrand_x += (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :])[None, :, :]
-                integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :])[None, :, :]
-
-                integrand_x = integrand_x * eikr
-                integrand_y = integrand_y * eikr
-                integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :])[None, :, :] * eikr
+                integrand_x_eikr = integrand_x * eikr
+                integrand_y_eikr = integrand_y * eikr
+                integrand_z_eikr = integrand_z * eikr
 
                 if len(self.k_parallel) > 1:
                     e_x_flat[chunk_idcs] = np.trapz(
-                        nh.numba_trapz_3dim_array(integrand_x, self.azimuthal_angles)
+                        nh.numba_trapz_3dim_array(integrand_x_eikr, self.azimuthal_angles)
                         * self.k_parallel, self.k_parallel)
 
                     e_y_flat[chunk_idcs] = np.trapz(
-                        nh.numba_trapz_3dim_array(integrand_y, self.azimuthal_angles)
+                        nh.numba_trapz_3dim_array(integrand_y_eikr, self.azimuthal_angles)
                         * self.k_parallel, self.k_parallel)
                         
                     e_z_flat[chunk_idcs] = np.trapz(
-                        nh.numba_trapz_3dim_array(integrand_z, self.azimuthal_angles)
+                        nh.numba_trapz_3dim_array(integrand_z_eikr, self.azimuthal_angles)
                         * self.k_parallel, self.k_parallel)
                 else:
-                    e_x_flat[chunk_idcs] = np.squeeze(integrand_x)
-                    e_y_flat[chunk_idcs] = np.squeeze(integrand_y)
-                    e_z_flat[chunk_idcs] = np.squeeze(integrand_z)
+                    e_x_flat[chunk_idcs] = np.squeeze(integrand_x_eikr)
+                    e_y_flat[chunk_idcs] = np.squeeze(integrand_y_eikr)
+                    e_z_flat[chunk_idcs] = np.squeeze(integrand_z_eikr)
 
             ex[self.valid(x, y, z)] = e_x_flat.reshape(xr.shape)
             ey[self.valid(x, y, z)] = e_y_flat.reshape(xr.shape)
