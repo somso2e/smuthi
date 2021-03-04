@@ -26,7 +26,7 @@ class Simulation:
                                                         expansions. if 'default', use
                                                         smuthi.fields.default_Sommerfeld_k_parallel_array
         angular_resolution (float):                     If provided, angular arrays are generated with this angular
-                                                        resolution (expressed in degrees) over the default angular range
+                                                        resolution over the default angular range
         neff_waypoints (list or ndarray):               Used to set default k_parallel arrays.
                                                         Corner points through which the contour runs
                                                         This quantity is dimensionless (effective
@@ -86,7 +86,7 @@ class Simulation:
                  particle_list=None,
                  initial_field=None,
                  k_parallel='default',
-                 angular_resolution=0.5,
+                 angular_resolution=np.pi/360,
                  neff_waypoints=None,
                  neff_imag=1e-2,
                  neff_max=None,
@@ -252,7 +252,7 @@ class Simulation:
             overlap = np.triu(distmatrix < r1+r2, k=1)
             pidx = np.where(overlap)
             s = 's' if np.count_nonzero(overlap) > 1 else '' # pluralize message string
-            msg = 'The circumscribing sphere of particle' + s 
+            msg = 'The circumscribing sphere of particle' + s
             for idx in pidx[0]:
                 msg += " %i"%idx
             msg += ' overlaps with that of particle'+ s
@@ -265,7 +265,7 @@ class Simulation:
                 overlap = np.squeeze(dists < csr[i] + csr[i+1:])
                 if overlap.any():
                     pidx = np.where(overlap)
-                    msg = 'Found overlap between circumscribing sphere of particle %i and particle %i.\n'%(i,i+1+pidx[0][0]) 
+                    msg = 'Found overlap between circumscribing sphere of particle %i and particle %i.\n'%(i,i+1+pidx[0][0])
                     break
         if overlap.any():
             sys.stdout.write(msg)
