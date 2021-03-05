@@ -420,13 +420,35 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
         if data_format.lower() == 'hdf5':
             import h5py
-            metadata = {'vacuum_wavelength': simulation.initial_field.vacuum_wavelength,
-                        'polar_angle': simulation.initial_field.polar_angle,
-                        'azimuthal_angle': simulation.initial_field.azimuthal_angle,
-                        'polarization': simulation.initial_field.polarization,}
+            # TODO: move metadata writing to auxiliary function
+            # TODO: add metadata relative to particles and layer system ?
+            if type(simulation.initial_field).__name__ == "DipoleSource":
+                metadata = {'initial_field': type(simulation.initial_field).__name__,
+                            'dipole_moment': simulation.initial_field.dipole_moment,
+                            'dipole_position': simulation.initial_field.position,}
+            elif type(simulation.initial_field).__name__ == "DipoleCollection":
+                metadata = {'initial_field': type(simulation.initial_field).__name__,
+                            'dipole_moments': [dip.dipole_moment for dip in simulation.initial_field.dipole_list],
+                            'dipole_positions': [dip.position for dip in simulation.initial_field.dipole_list],}
+            elif type(simulation.initial_field).__name__ == "PlaneWave":
+                metadata = {'initial_field': type(simulation.initial_field).__name__,
+                            'polar_angle': simulation.initial_field.polar_angle,
+                            'azimuthal_angle': simulation.initial_field.azimuthal_angle,
+                            'polarization': simulation.initial_field.polarization,}
+            elif type(simulation.initial_field).__name__ == "GaussianBeam":
+                metadata = {'initial_field': type(simulation.initial_field).__name__,
+                            'polar_angle': simulation.initial_field.polar_angle,
+                            'azimuthal_angle': simulation.initial_field.azimuthal_angle,
+                            'polarization': simulation.initial_field.polarization,
+                            'reference_point': simulation.initial_field.reference_point,
+                            'beam_waist': simulation.initial_field.beam_waist,}
 
             with h5py.File(outputdir + '/data.hdf5', 'a') as f:
+                # add attributes that are dependent on the initial field
                 f.attrs.update(metadata)
+                # additional attributes that are common to all simulations
+                f.attrs['vacuum_wavelength'] = simulation.initial_field.vacuum_wavelength
+                # write actual data
                 g = f.require_group('near_field')
                 g.create_dataset('x', data=x)
                 g.create_dataset('y', data=y)
