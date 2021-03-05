@@ -23,7 +23,7 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
         azimuthal_angles (numpy.ndarray or str):    azimuthal angles array
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):                 If provided, angular arrays are generated with this angular
-                                                    resolution (expressed in degrees) over the default angular range
+                                                    resolution over the default angular range
         layer_numbers (list):                       if specified, append only plane wave expansions for these layers
 
 
@@ -91,7 +91,7 @@ def scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, layer_nu
         azimuthal_angles (numpy.ndarray or str):azimuthal angles array
                                                 if 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
-                                                (expressed in degrees) over the default angular range
+                                                over the default angular range
         include_direct (bool):                  If True, include the direct scattered field
         include_layer_response (bool):          If True, include the layer system response
         only_pol (int):  if set to 0 or 1, only this plane wave polarization (0=TE, 1=TM) is considered

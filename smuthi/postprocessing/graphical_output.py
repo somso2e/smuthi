@@ -223,7 +223,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
         azimuthal_angles (numpy.ndarray or str):azimuthal angles for the plane wave expansion
                                                 if 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):             If provided, angular arrays are generated with this angular
-                                                resolution (expressed in degrees) over the default angular range
+                                                resolution over the default angular range
         draw_circumscribing_sphere (bool):      If true (default), draw a circle indicating the circumscribing
                                                 sphere of particles.
         show_internal_field (bool):             If true, compute also the field inside the particles (only for spheres)
@@ -503,7 +503,7 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
-                                                (expressed in degrees) over the default angular range
+                                                over the default angular range
     """
 
     infld = simulation.initial_field
@@ -572,7 +572,7 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
-                                                (expressed in degrees) over the default angular range
+                                                over the default angular range
     """
     infld = simulation.initial_field
     plst = simulation.particle_list
@@ -640,7 +640,7 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
         azimuthal_angles (numpy.ndarray or str):Azimuthal angle values (radian).
                                                 If 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):             If provided, angular arrays are generated with this angular resolution
-                                                (expressed in degrees) over the default angular range
+                                                over the default angular range
     """
 
     infld = simulation.initial_field
@@ -795,7 +795,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         plt.plot(polar_array, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180, alpha=show_opt.get('alpha'),
                  lw=show_opt.get('linewidth'), ls=show_opt.get('linestyle'), marker=show_opt.get('marker'))
 
-        plt.xlabel('polar angle (degree)')
+        plt.xlabel('polar angle (degree)') # TODO: use radians instead?
         if far_field.signal_type == 'differential scattering cross section':
             plt.ylabel('d_CS/d_cos(beta)') # TODO: add units based on simulation.length_unit?
         elif far_field.signal_type == 'intensity':

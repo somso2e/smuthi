@@ -136,7 +136,7 @@ class InitialPropagatingWave(InitialField):
 
         pfe = self.piecewise_field_expansion(layer_system=layer_system)
         return pfe.electric_field(x, y, z)
-    
+
     def magnetic_field(self, x, y, z, layer_system):
         """Evaluate the complex magnetic field corresponding to the wave.
 
@@ -466,7 +466,7 @@ class DipoleSource(InitialField):
         pfe = self.piecewise_field_expansion(layer_system=layer_system, include_direct_field=include_direct_field,
                                              include_layer_response=include_layer_response)
         return pfe.electric_field(x, y, z)
-    
+
     def magnetic_field(self, x, y, z, layer_system, include_direct_field=True, include_layer_response=True):
         """Evaluate the complex magnetic field of the dipole source.
 
@@ -478,7 +478,7 @@ class DipoleSource(InitialField):
             include_direct_field (bool):                if True (default), the direct dipole field is included.
                                                         otherwise, only the layer response of the dipole field is
                                                         returned.
-            include_layer_response (bool):              if True (default), the layer response of the dipole field is 
+            include_layer_response (bool):              if True (default), the layer response of the dipole field is
                                                         included. otherwise, only the direct dipole field is
                                                         returned.
 
@@ -649,7 +649,7 @@ class DipoleCollection(InitialField):
         azimuthal_angles_array (numpy.ndarray or str):  Azimuthal angles for plane wave expansions
                                                         If 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):                     If provided, angular arrays are generated with this angular resolution
-                                                        (expressed in degrees) over the default angular range
+                                                        over the default angular range
         compute_swe_by_pwe (bool):    If True, the initial field coefficients are computed through a plane wave
                                       expansion of the whole dipole collection field. This is slower for few dipoles
                                       and particles, but can become faster than the default for many dipoles and
@@ -737,7 +737,7 @@ class DipoleCollection(InitialField):
         """
         pfe = self.piecewise_field_expansion(layer_system=layer_system)
         return pfe.electric_field(x, y, z)
-    
+
     def magnetic_field(self, x, y, z, layer_system):
         """Evaluate the complex magnetic field of the dipole collection.
 
@@ -778,7 +778,7 @@ class DipoleCollection(InitialField):
             azimuthal_angles (ndarray or str):  array of azimuthal angles for plane wave expansions. If 'default', use
                                                 smuthi.fields.default_azimuthal_angles
             angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
-                                                (expressed in degrees) over the default angular range
+                                                over the default angular range
 
         Returns:
             dissipated power of each dipole (list of floats)
@@ -855,7 +855,7 @@ class DipoleCollection(InitialField):
             azimuthal_angles (ndarray or str):  array of azimuthal angles for plane wave expansions. If 'default', use
                                                 smuthi.fields.default_azimuthal_angles
             angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
-                                                (expressed in degrees) over the default angular range
+                                                over the default angular range
 
         Returns:
             dissipated power of each dipole (list of floats)

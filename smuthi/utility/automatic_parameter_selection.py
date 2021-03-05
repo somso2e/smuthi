@@ -614,7 +614,7 @@ def converge_angular_resolution(simulation,
     log.write_blue("Find suitable angular_resolution")
 
     angular_resolution = simulation.angular_resolution # NOTE: should we have a starting-value flag?
-    print("Starting value: angular_resolution=%f degrees" % angular_resolution)
+    print("Starting value: angular_resolution=%f rad" % angular_resolution)
     current_value = evaluate(simulation, detector)
 
     if ax is not None:
@@ -633,7 +633,7 @@ def converge_angular_resolution(simulation,
         simulation.set_default_angles()
 
         print("---------------------------------------")
-        print("Try angular_resolution = %f degrees" % angular_resolution)
+        print("Try angular_resolution = %f rad" % angular_resolution)
 
         new_value = evaluate(simulation, detector)
 
