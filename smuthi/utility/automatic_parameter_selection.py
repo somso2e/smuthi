@@ -124,7 +124,10 @@ def converge_l_max(simulation,
         r = np.append(r, rel_diff)
         if ax is not None:
             line1.set_data(x, np.real(y))
-            line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
+            if neff_max is not None:
+                line1.set_label('$n_{eff}^{max} = %g$'%neff_max.real)
+            else:
+                line1.set_label('$l_{max}$')
             line2.set_data(x[1:], r)
             for axi in ax:
                 axi.relim()
@@ -733,32 +736,6 @@ def select_numerical_parameters(simulation,
                                                     least in the case of flat particles near interfaces.
     """
 
-    def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None, cols=1):
-        """
-        Inner utility function returning figure and axes handles initialized
-        following a common template for all parameter selection runs.
-
-        Args:
-            xlabel (string):    column-wise common x axis label
-            ylabel (string):    y axis label for the detector quantity
-            title  (string):    title string for the (lefmost, if cols=2) detector panel
-            tol (float):        user-set tolerance level to be drawn in relative difference panel
-            allowedtol (float): when specified, also draw the actual tolerance level for the current run
-            cols (int):         number of subplot columns. select_neff_max() accepts 2
-        """
-        fig, ax_array = plt.subplots(2, cols, sharex='col', figsize=(cols*6.4,8), gridspec_kw={'height_ratios': [3, 1]})
-        ax_array = ax_array.flatten(order='F')
-        ax_array[1].set_xlabel(xlabel)
-        ax_array[0].set_ylabel(ylabel)
-        ax_array[1].set_ylabel('relative difference')
-        ax_array[0].set_title(title)
-        [ax.axhline(tol, color='grey', linestyle='dashed', label='tolerance') for ax in ax_array[::-2]]
-        if allowedtol is not None:
-            ax_array[1].axhline(allowedtol, color='grey', linestyle='dotted', label='allowed tolerance')
-        [( ax.set_yscale('log'), ax.grid(), ax.legend() ) for ax in ax_array[::-2]]
-
-        return fig, ax_array
-
     print("")
     print("----------------------------------------")
     print("Starting automatic paramateter selection")
@@ -768,41 +745,104 @@ def select_numerical_parameters(simulation,
         raise ValueError('please provide 0 < tolerance_factor <= 1')
 
     if select_neff_max:
-        if show_plot:
-            plt.ion()
-            _, ax_array = _init_fig('$l_{max}$', detector, 'multipole cutoff', tolerance, tolerance_factor*tolerance, 2)
-        else:
-            ax_array = None
-        target_value = converge_neff_max(simulation=simulation,
-                                         detector=detector,
-                                         tolerance=tolerance,
-                                         tolerance_factor=tolerance_factor,
-                                         tolerance_steps=tolerance_steps,
-                                         max_iter=max_iter,
-                                         neff_imag=neff_imag,
-                                         neff_resolution=neff_resolution,
-                                         neff_max_increment=neff_max_increment,
-                                         neff_max_offset=neff_max_offset,
-                                         converge_lm=relative_convergence,
-                                         ax=ax_array)
-        neff_max = simulation.neff_max
-    else:
-        simulation.neff_max = neff_max
-        target_value = None
+        if relative_convergence:
+            if show_plot:
+                plt.ion()
+                _, ax_array = _init_fig('$l_{max}$', detector,
+                                        'multipole cutoff',
+                                        tolerance, tolerance_factor * tolerance,
+                                        2)
+            else:
+                ax_array = None
 
-    if select_multipole_cutoff:
-        if show_plot:
-            plt.ion()
-            _, ax_array = _init_fig('multipole order', detector, 'multipole cutoff selection', tolerance)
-        else:
-            ax_array = None
-        converge_multipole_cutoff(simulation=simulation,
-                                  detector=detector,
-                                  tolerance=tolerance,
-                                  tolerance_steps=tolerance_steps,
-                                  max_iter=max_iter,
-                                  current_value=target_value,
-                                  ax=ax_array)
+            target_value = converge_neff_max(simulation=simulation,
+                                             detector=detector,
+                                             tolerance=tolerance,
+                                             tolerance_factor=tolerance_factor,
+                                             tolerance_steps=tolerance_steps,
+                                             max_iter=max_iter,
+                                             neff_imag=neff_imag,
+                                             neff_resolution=neff_resolution,
+                                             neff_max_increment=neff_max_increment,
+                                             neff_max_offset=neff_max_offset,
+                                             converge_lm=relative_convergence,
+                                             ax=ax_array)
+            neff_max = simulation.neff_max
+
+            if select_multipole_cutoff:
+                if show_plot:
+                    plt.ion()
+                    _, ax_array = _init_fig('multipole order', detector,
+                                            'multipole cutoff selection',
+                                            tolerance)
+                else:
+                    ax_array = None
+                converge_multipole_cutoff(simulation=simulation,
+                                          detector=detector,
+                                          tolerance=tolerance,
+                                          tolerance_steps=tolerance_steps,
+                                          max_iter=max_iter,
+                                          current_value=target_value,
+                                          ax=ax_array)
+
+        else:  # select neff_max but no relative convergence
+            if select_multipole_cutoff:
+                if show_plot:
+                    plt.ion()
+                    _, ax_array = _init_fig('multipole order', detector,
+                                            'multipole cutoff selection',
+                                            tolerance)
+                else:
+                    ax_array = None
+                converge_multipole_cutoff(simulation=simulation,
+                                          detector=detector,
+                                          tolerance=tolerance,
+                                          tolerance_steps=tolerance_steps,
+                                          max_iter=max_iter,
+                                          current_value=None,
+                                          ax=ax_array)
+
+            if show_plot:
+                plt.ion()
+                _, ax_array = _init_fig('$l_{max}$', detector,
+                                        'multipole cutoff',
+                                        tolerance, tolerance_factor * tolerance,
+                                        2)
+            else:
+                ax_array = None
+
+            target_value = converge_neff_max(simulation=simulation,
+                                             detector=detector,
+                                             tolerance=tolerance,
+                                             tolerance_factor=tolerance_factor,
+                                             tolerance_steps=tolerance_steps,
+                                             max_iter=max_iter,
+                                             neff_imag=neff_imag,
+                                             neff_resolution=neff_resolution,
+                                             neff_max_increment=neff_max_increment,
+                                             neff_max_offset=neff_max_offset,
+                                             converge_lm=relative_convergence,
+                                             ax=ax_array)
+            neff_max = simulation.neff_max
+
+    else:  # no neff_max selection
+        ax_array = None
+        if select_multipole_cutoff:
+            if show_plot:
+                plt.ion()
+                _, ax_array = _init_fig('multipole order', detector,
+                                        'multipole cutoff selection',
+                                        tolerance)
+            else:
+                ax_array = None
+            converge_multipole_cutoff(simulation=simulation,
+                                      detector=detector,
+                                      tolerance=tolerance,
+                                      tolerance_steps=tolerance_steps,
+                                      max_iter=max_iter,
+                                      current_value=None,
+                                      ax=ax_array)
+
 
     if select_neff_resolution:
         if show_plot:
@@ -832,3 +872,30 @@ def select_numerical_parameters(simulation,
 
     if show_plot:
         plt.ioff()
+
+
+def _init_fig(xlabel='x', ylabel='y', title=None, tol=None, allowedtol=None, cols=1):
+    """
+    Inner utility function returning figure and axes handles initialized
+    following a common template for all parameter selection runs.
+
+    Args:
+        xlabel (string):    column-wise common x axis label
+        ylabel (string):    y axis label for the detector quantity
+        title  (string):    title string for the (lefmost, if cols=2) detector panel
+        tol (float):        user-set tolerance level to be drawn in relative difference panel
+        allowedtol (float): when specified, also draw the actual tolerance level for the current run
+        cols (int):         number of subplot columns. select_neff_max() accepts 2
+    """
+    fig, ax_array = plt.subplots(2, cols, sharex='col', figsize=(cols*6.4,8), gridspec_kw={'height_ratios': [3, 1]})
+    ax_array = ax_array.flatten(order='F')
+    ax_array[1].set_xlabel(xlabel)
+    ax_array[0].set_ylabel(ylabel)
+    ax_array[1].set_ylabel('relative difference')
+    ax_array[0].set_title(title)
+    [ax.axhline(tol, color='grey', linestyle='dashed', label='tolerance') for ax in ax_array[::-2]]
+    if allowedtol is not None:
+        ax_array[1].axhline(allowedtol, color='grey', linestyle='dotted', label='allowed tolerance')
+    [( ax.set_yscale('log'), ax.grid(), ax.legend() ) for ax in ax_array[::-2]]
+
+    return fig, ax_array
