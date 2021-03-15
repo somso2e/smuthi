@@ -45,6 +45,11 @@ def evaluate(simulation, detector):
         simulation.run()
         return detector(simulation)
 
+def update_lmax_mmax(simulation, l_max):
+    """ Assign the same l_max and m_max = l_max to all particles in simulation """
+    for particle in simulation.particle_list:
+        particle.l_max = l_max
+        particle.m_max = l_max
 
 def converge_l_max(simulation,
                    detector="extinction cross section",
@@ -74,14 +79,11 @@ def converge_l_max(simulation,
         ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
-        Detector value of converged or break-off parameter settings.
+        A 3-tuple containing 
+          - detector value of converged or break-off parameter settings.
+          - series of lmax values
+          - the detector values for the given lmax values
       """
-
-    def update_lmax_mmax(simulation, l_max):
-        """ Assign the same l_max and m_max = l_max to all particles in simulation """
-        for particle in simulation.particle_list:
-            particle.l_max = l_max
-            particle.m_max = l_max
 
     print("")
     print("------------------------")
@@ -98,7 +100,7 @@ def converge_l_max(simulation,
     current_value = evaluate(simulation, detector)
 
     x = np.array([l_max])
-    y = np.array([current_value.real])
+    y = np.array([current_value])
     r = np.array([])
     if ax is not None:
         line1, = ax[0].plot(x, np.real(y), '.-')
@@ -140,12 +142,12 @@ def converge_l_max(simulation,
             old_l_max = l_max - tolerance_steps
             update_lmax_mmax(simulation, old_l_max)
             log.write_green("Relative difference smaller than tolerance. Keep l_max = %i" % old_l_max)
-            return y[-tolerance_steps-1]
+            return y[-tolerance_steps-1], x, y
         else:
             current_value = new_value
 
     log.write_red("No convergence achieved. Keep l_max = %i"%l_max)
-    return current_value
+    return current_value, x, y
 
 
 def converge_m_max(simulation,
@@ -249,6 +251,8 @@ def converge_multipole_cutoff(simulation,
                               tolerance_steps=2,
                               max_iter=100,
                               current_value=None,
+                              l_max_list=None,
+                              detector_value_list=None,
                               converge_m=True,
                               ax=None):
     """Find suitable multipole cutoff degree `l_max` and order `m_max` for all particles in a given simulation object.
@@ -268,12 +272,19 @@ def converge_multipole_cutoff(simulation,
         current_value (float):                      If specified, skip l_max run and use this value for the
                                                     resulting detector value.
                                                     Otherwise, start with l_max run.
+        l_max_list (list):                          If current_value was specified, the l_max run is skipped.
+                                                    Then, this list is returned as the second item in the returned tuple.
+        detector_value_list (list):                 If current_value was specified, the l_max run is skipped.
+                                                    Then, this list is returned as the third item in the returned tuple.
         converge_m (logical):                       If false, only converge `l_max`, but keep `m_max=l_max`. Default
                                                     is true
         ax (np.array of AxesSubplot):               Array of AxesSubplots where to live-plot convergence output
 
     Returns:
-        Detector value of converged or break-off parameter settings.
+        A 3-tuple containing
+          - detector value of converged or break-off parameter settings.
+          - series of lmax values
+          - the detector values for the given lmax values
     """
     print("")
     print("-----------------------------------")
@@ -281,13 +292,17 @@ def converge_multipole_cutoff(simulation,
 
     with log.LoggerIndented():
         if current_value is None:
-            current_value = converge_l_max(simulation=simulation,
-                                           detector=detector,
-                                           tolerance=tolerance,
-                                           tolerance_steps=tolerance_steps,
-                                           max_iter=max_iter,
-                                           start_from_1=True, # start_from_1
-                                           ax=ax)
+            current_value, lmx, values = converge_l_max(simulation=simulation,
+                                                        detector=detector,
+                                                        tolerance=tolerance,
+                                                        tolerance_steps=tolerance_steps,
+                                                        max_iter=max_iter,
+                                                        start_from_1=True, # start_from_1
+                                                        ax=ax)
+        else:
+            log.write_green("Keep l_max = %i"%simulation.particle_list[0].l_max)
+            lmx = l_max_list
+            values = detector_value_list
 
         if converge_m:
             current_value = converge_m_max(simulation=simulation,
@@ -296,7 +311,7 @@ def converge_multipole_cutoff(simulation,
                                            target_value=current_value, # passing current_value as the target_value
                                            ax=ax)
 
-    return current_value
+    return current_value, lmx, values
 
 
 def update_contour(simulation, neff_imag=5e-3, neff_max=None, neff_max_offset=0.5, neff_resolution=2e-3):
@@ -389,19 +404,21 @@ def converge_neff_max(simulation,
 
     if converge_lm:
         with log.LoggerIndented():
-            current_value = converge_multipole_cutoff(simulation=simulation,
-                                                      detector=detector,
-                                                      tolerance=tolerance*tolerance_factor,
-                                                      tolerance_steps=tolerance_steps,
-                                                      max_iter=max_iter,
-                                                      converge_m=False,
-                                                      ax=ax)
+            current_value, lmx_list, values = converge_multipole_cutoff(simulation=simulation,
+                                                                        detector=detector,
+                                                                        tolerance=tolerance*tolerance_factor,
+                                                                        tolerance_steps=tolerance_steps,
+                                                                        max_iter=max_iter,
+                                                                        converge_m=False,
+                                                                        ax=ax)
     else:
         current_value = evaluate(simulation, detector)
 
     x = np.array([neff_max.real])
     y = np.array([current_value.real])
     r = np.array([])
+    lmx_lists = [lmx_list]
+    lmx_values_lists = [values]
     if ax is not None:
         line1, = ax[-2].plot(x, y, 'k.-')
         line2, = ax[-1].plot(x[1:], r, 'k.-')
@@ -418,16 +435,17 @@ def converge_neff_max(simulation,
 
         if converge_lm:
             with log.LoggerIndented():
-                new_value = converge_multipole_cutoff(simulation=simulation,
-                                                      detector=detector,
-                                                      tolerance=tolerance*tolerance_factor,
-                                                      tolerance_steps=tolerance_steps,
-                                                      max_iter=max_iter,
-                                                      current_value=None,
-                                                      converge_m=False,
-                                                      ax=ax)
+                new_value, lmx_list, values = converge_multipole_cutoff(simulation=simulation,
+                                                                        detector=detector,
+                                                                        tolerance=tolerance*tolerance_factor,
+                                                                        tolerance_steps=tolerance_steps,
+                                                                        max_iter=max_iter,
+                                                                        current_value=None,
+                                                                        converge_m=False,
+                                                                        ax=ax)
         else:
             new_value = evaluate(simulation, detector)
+
 
         rel_diff = abs(new_value - current_value) / abs(current_value)
         print("Old detector value:", current_value)
@@ -438,19 +456,35 @@ def converge_neff_max(simulation,
         x = np.append(x, neff_max.real)
         y = np.append(y, new_value.real)
         r = np.append(r, rel_diff)
+        lmx_lists.append(lmx_list)
+        lmx_values_lists.append(values)
         if ax is not None:
             line1.set_data(x, y)
             line1.set_label('$n_{eff}^{max}$')
             line2.set_data(x[1:], r)
-            [( ax.relim(), ax.autoscale_view()) for ax in ax]
+            for axi in ax:
+                axi.relim()
+                axi.autoscale_view()
             plt.draw()
             plt.pause(0.001)
-            [ax.legend() for ax in ax[::-2]]
+            for axi in ax[::-2]:
+                axi.legend()
 
         if rel_diff < tolerance:  # then, discard neff_max increment
             neff_max = old_neff_max
             update_contour(simulation=simulation, neff_imag=neff_imag, neff_max=neff_max, neff_resolution=neff_resolution)
-            log.write_green("Relative difference smaller than tolerance. Keep neff_max = %g"%neff_max.real)
+            log.write_green(
+                "Relative difference smaller than tolerance. Keep neff_max = %g" % neff_max.real)
+            if converge_lm:
+                for idx, lmx in enumerate(lmx_lists[-2]):
+                    update_lmax_mmax(simulation, lmx)
+                    rel_diff_1 = abs(
+                        lmx_values_lists[-2][idx] - lmx_values_lists[-2][idx + 1]) / abs(lmx_values_lists[-2][idx + 1])
+                    rel_diff_2 = abs(
+                        lmx_values_lists[-2][idx] - lmx_values_lists[-2][idx + 2]) / abs(lmx_values_lists[-2][idx + 2])
+                    if rel_diff_1 < tolerance and rel_diff_2 < tolerance:
+                        break
+
             if ax is not None:
                 titlestr = "relative diff < {:g}, keep $n_{{eff}}^{{max}} = {:g}$".format(tolerance, neff_max.real)
                 ax[-1].title.set_text(titlestr)
