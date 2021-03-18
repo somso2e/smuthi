@@ -482,6 +482,7 @@ def converge_neff_max(simulation,
                         lmx_values_lists[-2][idx] - lmx_values_lists[-2][idx + 1]) / abs(lmx_values_lists[-2][idx + 1])
                     rel_diff_2 = abs(
                         lmx_values_lists[-2][idx] - lmx_values_lists[-2][idx + 2]) / abs(lmx_values_lists[-2][idx + 2])
+                    current_value = lmx_values_lists[-2][idx]
                     if rel_diff_1 < tolerance and rel_diff_2 < tolerance:
                         break
 
