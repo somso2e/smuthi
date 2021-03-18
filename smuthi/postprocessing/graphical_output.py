@@ -114,7 +114,7 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
-def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
+def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', chunksize=16384,
                        k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
     X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T
@@ -137,7 +137,7 @@ def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
 
     descr = 'Compute '+type+' near-field'
 
-    nchunks = np.ceil(X.size / 10000).astype(int) # hard-coded: chunk size of about 10000 points?
+    nchunks = np.ceil(X.size / chunksize).astype(int)
     e_x, e_y, e_z = ([None] * nchunks for i in range(3))
 
     Xc, Yc, Zc = np.array_split(X, nchunks), np.array_split(Y, nchunks), np.array_split(Z, nchunks)
