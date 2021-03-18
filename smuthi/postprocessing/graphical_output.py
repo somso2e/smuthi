@@ -114,13 +114,12 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
-def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
-                         k_parallel='default', azimuthal_angles='default', angular_resolution=None):
+def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', chunksize=16384,
+                       k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
     X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T
-    e_x = np.zeros_like(X, dtype=np.complex128)
-    e_y = np.zeros_like(X, dtype=np.complex128)
-    e_z = np.zeros_like(X, dtype=np.complex128)
+    e_x, e_y, e_z = (np.zeros_like(X, dtype=np.complex128) for i in range(3))
+
     if 'sca' in type:
         min_laynum = simulation.layer_system.layer_number(Z.min())
         max_laynum = simulation.layer_system.layer_number(Z.max())
@@ -137,17 +136,23 @@ def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
                                                               simulation.layer_system)
 
     descr = 'Compute '+type+' near-field'
-    for s in tqdm(range(X.shape[0]), desc=descr.ljust(26), file=sys.stdout,
-                                     bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
-        xarr, yarr, zarr = X[s,], Y[s,], Z[s,]
-        if 'sca' in type:
-            e_x[s,], e_y[s,], e_z[s,] = scat_fld_exp.electric_field(xarr, yarr, zarr)
-        elif 'ini' in type:
-            e_x[s,], e_y[s,], e_z[s,] = simulation.initial_field.electric_field(xarr, yarr, zarr, simulation.layer_system)
-        elif 'int' in type:
-            e_x[s,], e_y[s,], e_z[s,] = int_fld_exp.electric_field(xarr, yarr, zarr)
 
-    return e_x, e_y, e_z
+    nchunks = np.ceil(X.size / chunksize).astype(int)
+    e_x, e_y, e_z = ([None] * nchunks for i in range(3))
+
+    Xc, Yc, Zc = np.array_split(X, nchunks), np.array_split(Y, nchunks), np.array_split(Z, nchunks)
+
+    for c in tqdm(range(len(Xc)), desc=descr.ljust(26), file=sys.stdout,
+                                  bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
+        xarr, yarr, zarr = Xc[c], Yc[c], Zc[c]
+        if 'sca' in type:
+            e_x[c], e_y[c], e_z[c] = scat_fld_exp.electric_field(xarr, yarr, zarr)
+        elif 'ini' in type:
+            e_x[c], e_y[c], e_z[c] = simulation.initial_field.electric_field(xarr, yarr, zarr, simulation.layer_system)
+        elif 'int' in type:
+            e_x[c], e_y[c], e_z[c] = int_fld_exp.electric_field(xarr, yarr, zarr)
+
+    return np.concatenate(e_x), np.concatenate(e_y), np.concatenate(e_z)
 
 
 def show_near_field(simulation=None, quantities_to_plot=None,
