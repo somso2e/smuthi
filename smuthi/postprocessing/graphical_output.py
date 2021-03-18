@@ -117,19 +117,19 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
 def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
                          k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
-    X, Y, Z = np.transpose(np.atleast_1d(X)), np.transpose(np.atleast_1d(Y)), np.transpose(np.atleast_1d(Z))
+    X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T
     e_x = np.zeros_like(X, dtype=np.complex128)
     e_y = np.zeros_like(X, dtype=np.complex128)
     e_z = np.zeros_like(X, dtype=np.complex128)
     if 'sca' in type:
         min_laynum = simulation.layer_system.layer_number(Z.min())
         max_laynum = simulation.layer_system.layer_number(Z.max())
-        layer_numbers = [i for i in range(min_laynum, max_laynum + 1)]        
+        layer_numbers = [i for i in range(min_laynum, max_laynum + 1)]
         scat_fld_exp = sf.scattered_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength,
                                                               simulation.particle_list,
                                                               simulation.layer_system,
                                                               k_parallel,
-                                                              azimuthal_angles, 
+                                                              azimuthal_angles,
                                                               angular_resolution,
                                                               layer_numbers)
     if 'int' in type:
@@ -248,7 +248,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     x = np.arange(xmin, xmax + res[0]/2, res[0])
     y = np.arange(ymin, ymax + res[1]/2, res[1])
     z = np.arange(zmin, zmax + res[2]/2, res[2])
-    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z))
+    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z, indexing='ij'))
 
     if xmin == xmax:
         dim1vec, dim2vec = y, z
