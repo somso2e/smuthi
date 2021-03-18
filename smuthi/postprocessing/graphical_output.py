@@ -311,7 +311,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     field_type_string = 'tot'
 
                 fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
-
+                if not zmin == zmax:
+                    plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                               draw_circumscribing_sphere, not show_internal_field)
                 if 'norm' in quantity:
                     e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
                     vmax = np.abs(e).max()
@@ -339,6 +342,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     else:
                         print('Quantity:', quantity)
                         raise ValueError('field component not specified')
+
                     vmax = np.abs(e).max()
                     color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax)))
                     plt.imshow(e.real,
@@ -355,12 +359,6 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 plt.xlabel(dim1name)
                 plt.ylabel(dim2name)
 
-                if not zmin == zmax:
-                    plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-
-                plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                               draw_circumscribing_sphere, not show_internal_field)
-
                 label_str = '' if label_str == '' else '_' + label_str # prepend underscore
                 filename = filename + '_' + field_type_string + label_str
                 export_filename = outputdir + '/' + filename
@@ -373,6 +371,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                         images = []
                         for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
                             tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+                            if not zmin == zmax:
+                                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                                           draw_circumscribing_sphere, not show_internal_field)
                             e_t = e * np.exp(-1j * t * 2 * np.pi)
                             plt.imshow(e_t.real,
                                        alpha=show_opt.get('alpha'), norm=color_norm,
@@ -384,10 +386,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                             plt.colorbar()
                             plt.xlabel(dim1name)
                             plt.ylabel(dim2name)
-                            if not zmin == zmax:
-                                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-                            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                                           draw_circumscribing_sphere, not show_internal_field)
+
                             tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
                             plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
                                         orientation=save_opt.get('orientation','portrait'),
