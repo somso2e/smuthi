@@ -43,8 +43,7 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
         azimuthal_angles = flds.default_azimuthal_angles
 
     sfld = fldex.PiecewiseFieldExpansion()
-    for i in tqdm(layer_numbers, desc='Scatt. field expansion    ', file=sys.stdout,
-                                        bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
+    for i in layer_numbers:
         # layer mediated scattered field ---------------------------------------------------------------------------
         k = flds.angular_frequency(vacuum_wavelength) * layer_system.refractive_indices[i]
         ref = [0, 0, layer_system.reference_z(i)]
@@ -53,7 +52,9 @@ def scattered_field_piecewise_expansion(vacuum_wavelength, particle_list, layer_
                                           reference_point=ref, lower_z=vb[0], upper_z=vb[1])
         pwe_down = fldex.PlaneWaveExpansion(k=k, k_parallel=k_parallel, azimuthal_angles=azimuthal_angles,
                                             kind='downgoing', reference_point=ref, lower_z=vb[0], upper_z=vb[1])
-        for particle in particle_list:
+        
+        for particle in tqdm(particle_list, desc='Scatt. field expansion (%i)'%i, file=sys.stdout,
+                                        bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
             add_up, add_down = trf.swe_to_pwe_conversion(particle.scattered_field, k_parallel, azimuthal_angles,
                                                          layer_system, i, True)
             pwe_up = pwe_up + add_up

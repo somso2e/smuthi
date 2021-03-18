@@ -122,11 +122,16 @@ def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
     e_y = np.zeros_like(X, dtype=np.complex128)
     e_z = np.zeros_like(X, dtype=np.complex128)
     if 'sca' in type:
+        min_laynum = simulation.layer_system.layer_number(Z.min())
+        max_laynum = simulation.layer_system.layer_number(Z.max())
+        layer_numbers = [i for i in range(min_laynum, max_laynum + 1)]        
         scat_fld_exp = sf.scattered_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength,
                                                               simulation.particle_list,
                                                               simulation.layer_system,
                                                               k_parallel,
-                                                              azimuthal_angles, angular_resolution)
+                                                              azimuthal_angles, 
+                                                              angular_resolution,
+                                                              layer_numbers)
     if 'int' in type:
         int_fld_exp = intf.internal_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength, simulation.particle_list,
                                                               simulation.layer_system)
