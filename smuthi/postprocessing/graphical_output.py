@@ -117,19 +117,19 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
 def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt',
                          k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
-    X, Y, Z = np.transpose(np.atleast_1d(X)), np.transpose(np.atleast_1d(Y)), np.transpose(np.atleast_1d(Z))
+    X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T
     e_x = np.zeros_like(X, dtype=np.complex128)
     e_y = np.zeros_like(X, dtype=np.complex128)
     e_z = np.zeros_like(X, dtype=np.complex128)
     if 'sca' in type:
         min_laynum = simulation.layer_system.layer_number(Z.min())
         max_laynum = simulation.layer_system.layer_number(Z.max())
-        layer_numbers = [i for i in range(min_laynum, max_laynum + 1)]        
+        layer_numbers = [i for i in range(min_laynum, max_laynum + 1)]
         scat_fld_exp = sf.scattered_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength,
                                                               simulation.particle_list,
                                                               simulation.layer_system,
                                                               k_parallel,
-                                                              azimuthal_angles, 
+                                                              azimuthal_angles,
                                                               angular_resolution,
                                                               layer_numbers)
     if 'int' in type:
@@ -248,7 +248,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     x = np.arange(xmin, xmax + res[0]/2, res[0])
     y = np.arange(ymin, ymax + res[1]/2, res[1])
     z = np.arange(zmin, zmax + res[2]/2, res[2])
-    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z))
+    xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z, indexing='ij'))
 
     if xmin == xmax:
         dim1vec, dim2vec = y, z
@@ -311,7 +311,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     field_type_string = 'tot'
 
                 fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
-
+                if not zmin == zmax:
+                    plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                               draw_circumscribing_sphere, not show_internal_field)
                 if 'norm' in quantity:
                     e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
                     vmax = np.abs(e).max()
@@ -339,6 +342,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                     else:
                         print('Quantity:', quantity)
                         raise ValueError('field component not specified')
+
                     vmax = np.abs(e).max()
                     color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax)))
                     plt.imshow(e.real,
@@ -355,12 +359,6 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 plt.xlabel(dim1name)
                 plt.ylabel(dim2name)
 
-                if not zmin == zmax:
-                    plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-
-                plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                               draw_circumscribing_sphere, not show_internal_field)
-
                 label_str = '' if label_str == '' else '_' + label_str # prepend underscore
                 filename = filename + '_' + field_type_string + label_str
                 export_filename = outputdir + '/' + filename
@@ -373,6 +371,10 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                         images = []
                         for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
                             tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+                            if not zmin == zmax:
+                                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
+                                           draw_circumscribing_sphere, not show_internal_field)
                             e_t = e * np.exp(-1j * t * 2 * np.pi)
                             plt.imshow(e_t.real,
                                        alpha=show_opt.get('alpha'), norm=color_norm,
@@ -384,10 +386,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                             plt.colorbar()
                             plt.xlabel(dim1name)
                             plt.ylabel(dim2name)
-                            if not zmin == zmax:
-                                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
-                            plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
-                                           draw_circumscribing_sphere, not show_internal_field)
+
                             tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
                             plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
                                         orientation=save_opt.get('orientation','portrait'),
