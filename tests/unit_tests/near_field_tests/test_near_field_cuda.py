@@ -1,6 +1,4 @@
 import sys
-import unittest
-
 import smuthi.initial_field as init
 import smuthi.particles as part
 import smuthi.simulation as simul
@@ -9,9 +7,11 @@ import smuthi.postprocessing.scattered_field as sf
 import smuthi.utility.cuda as cu
 import numpy as np
 
+import unittest
+
 
 class TestNearFieldCUDA(unittest.TestCase):
-    def testElectricField(self):
+    def test_fields_by_gpu_and_cpu(self):
         try:
             import pycuda.autoinit
         except ImportError:
@@ -46,21 +46,56 @@ class TestNearFieldCUDA(unittest.TestCase):
         yarr = np.array([200, -100, 400, 300])
         zarr = np.array([-50, 200, 600, 700])
 
+        wavelength = 600
+
         scat_fld_exp = sf.scattered_field_piecewise_expansion(ld, part_list, lay_sys)
         e_x_scat_cpu, e_y_scat_cpu, e_z_scat_cpu = scat_fld_exp.electric_field(xarr, yarr, zarr)
         e_x_init_cpu, e_y_init_cpu, e_z_init_cpu = simulation.initial_field.electric_field(xarr, yarr, zarr, lay_sys)
+
+        h_x_scat_cpu, h_y_scat_cpu, h_z_scat_cpu = scat_fld_exp.magnetic_field(xarr, yarr, zarr, wavelength)
+        h_x_init_cpu, h_y_init_cpu, h_z_init_cpu = simulation.initial_field.magnetic_field(xarr, yarr, zarr, lay_sys)
 
         cu.enable_gpu()
         scat_fld_exp = sf.scattered_field_piecewise_expansion(ld, part_list, lay_sys)
         e_x_scat_gpu, e_y_scat_gpu, e_z_scat_gpu = scat_fld_exp.electric_field(xarr, yarr, zarr)
         e_x_init_gpu, e_y_init_gpu, e_z_init_gpu = simulation.initial_field.electric_field(xarr, yarr, zarr, lay_sys)
+        
+        h_x_scat_gpu, h_y_scat_gpu, h_z_scat_gpu = scat_fld_exp.magnetic_field(xarr, yarr, zarr, wavelength)
+        h_x_init_gpu, h_y_init_gpu, h_z_init_gpu = simulation.initial_field.magnetic_field(xarr, yarr, zarr, lay_sys)
 
-        np.testing.assert_allclose(np.linalg.norm(e_x_scat_cpu), np.linalg.norm(e_x_scat_gpu), rtol=1e-5)
-        np.testing.assert_allclose(np.linalg.norm(e_y_scat_cpu), np.linalg.norm(e_y_scat_gpu), rtol=1e-5)
-        np.testing.assert_allclose(np.linalg.norm(e_z_scat_cpu), np.linalg.norm(e_z_scat_gpu), rtol=1e-5)
-        np.testing.assert_allclose(np.linalg.norm(e_x_init_cpu), np.linalg.norm(e_x_init_gpu), rtol=1e-5)
-        np.testing.assert_allclose(np.linalg.norm(e_y_init_cpu), np.linalg.norm(e_y_init_gpu), rtol=1e-5)
-        np.testing.assert_allclose(np.linalg.norm(e_z_init_cpu), np.linalg.norm(e_z_init_gpu), rtol=1e-5)
+        cpu_electric_fields = (e_x_scat_cpu, e_y_scat_cpu, e_z_scat_cpu,
+                                        e_x_init_cpu, e_y_init_cpu, e_z_init_cpu)
+        gpu_electric_fields = (e_x_scat_gpu, e_y_scat_gpu, e_z_scat_gpu,
+                                        e_x_init_gpu, e_y_init_gpu, e_z_init_gpu)
+
+        cpu_magnetic_fields = (h_x_scat_cpu, h_y_scat_cpu, h_z_scat_cpu,
+                                        h_x_init_cpu, h_y_init_cpu, h_z_init_cpu)
+        gpu_magnetic_fields = (h_x_scat_gpu, h_y_scat_gpu, h_z_scat_gpu,
+                                        h_x_init_gpu, h_y_init_gpu, h_z_init_gpu)
+
+        assert_electric_fields_computed_by_cpu_and_gpu(cpu_electric_fields, gpu_electric_fields)
+        assert_magnetic_fields_computed_by_cpu_and_gpu(cpu_magnetic_fields, gpu_magnetic_fields)
+
+
+def assert_arrays_in_tuples_are_close(first_tuple_with_arrays, second_tuple_with_arrays, rtol=1e-5):
+    if len(first_tuple_with_arrays) != len(second_tuple_with_arrays):
+        raise Exception("tuples must contain the same number of elements!")
+
+    for i in range(len(first_tuple_with_arrays)):
+        np.testing.assert_allclose(np.linalg.norm(first_tuple_with_arrays[i]),
+                                    np.linalg.norm(second_tuple_with_arrays[i]),
+                                    rtol=rtol)
+
+
+# we declare these wrappers just to have more clear traceback.
+def assert_electric_fields_computed_by_cpu_and_gpu(cpu_electric_fields,
+                                                            gpu_electric_fields):
+    assert_arrays_in_tuples_are_close(cpu_electric_fields, gpu_electric_fields)
+
+
+def assert_magnetic_fields_computed_by_cpu_and_gpu(cpu_magnetic_fileds,
+                                                            gpu_magnetic_fileds):
+    assert_arrays_in_tuples_are_close(cpu_magnetic_fileds, gpu_magnetic_fileds)
 
 
 if __name__ == '__main__':
