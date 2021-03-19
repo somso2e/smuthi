@@ -13,6 +13,7 @@ class TestNumba(unittest.TestCase):
 
         np.testing.assert_allclose(default_result, custom_result)
 
+
     def test_numba_tensordot(self):
         np.random.seed(1)
         test_2d_x_array = get_complex_random_array((100, 110), seed=1).astype(np.complex64)
@@ -30,6 +31,26 @@ class TestNumba(unittest.TestCase):
                                 test_2d_x_array, test_2d_y_array, test_2d_z_array)
 
         np.testing.assert_allclose(default_result, custom_result, atol=1e-6, rtol=1e-6)
+
+
+    def test_evaluate_r_times_eikr(self):
+        np.random.seed(1)
+        foo_x = get_complex_random_array((110, 120), seed=1).astype(np.complex64)[None, :, :]
+        foo_y = get_complex_random_array((110, 120), seed=2).astype(np.complex64)[None, :, :]
+        foo_z = get_complex_random_array((110, 120), seed=3).astype(np.complex64)[None, :, :]
+        kr = get_complex_random_array((100, 110, 120), seed=4).astype(np.complex64)
+
+        eikr = np.exp(1j * kr)
+        default_foo_x_eikr = foo_x * eikr
+        default_foo_y_eikr = foo_y * eikr
+        default_foo_z_eikr = foo_z * eikr
+
+        numba_foo_x_eikr, numba_foo_y_eikr, numba_foo_z_eikr = \
+                nh.evaluate_r_times_eikr(foo_x, foo_y, foo_z, kr)
+
+        np.testing.assert_allclose(default_foo_x_eikr, numba_foo_x_eikr, atol=1e-6, rtol=1e-6)
+        np.testing.assert_allclose(default_foo_y_eikr, numba_foo_y_eikr, atol=1e-6, rtol=1e-6)
+        np.testing.assert_allclose(default_foo_z_eikr, numba_foo_z_eikr, atol=1e-6, rtol=1e-6)
 
 
 def get_complex_random_array(dimensions, seed=0):
