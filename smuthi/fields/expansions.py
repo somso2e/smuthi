@@ -8,6 +8,10 @@ import smuthi.fields.vector_wave_functions as vwf
 import smuthi.fields.expansions_cuda as cu_src
 import smuthi.utility.cuda as cu
 import smuthi.utility.numba_helpers as nh
+import multiprocessing as mp
+from functools import partial
+from enum import Enum
+import platform
 import copy
 import math
 
@@ -598,15 +602,17 @@ class PlaneWaveExpansion(FieldExpansion):
         pwe_sum.coefficients = self.coefficients + other.coefficients
         return pwe_sum
     
-    def electric_field(self, x, y, z, chunksize=50, cpu_precision='single precision'):
+    def electric_field(self, x, y, z, max_chunksize=50, cpu_precision='single precision'):
         """Evaluate electric field.
         
         Args:
             x (numpy.ndarray):    x-coordinates of query points
             y (numpy.ndarray):    y-coordinates of query points
             z (numpy.ndarray):    z-coordinates of query points
-            chunksize (int):      number of field points that are simultaneously 
-                                  evaluated when running in CPU mode
+            max_chunksize (int):  max number of field points that are simultaneously 
+                                  evaluated when running in CPU mode. 
+                                  In Windows/MacOS max_chunksize = chunksize, 
+                                  in Linux it can be decreased considering available CPU cores.
             cpu_precision (string): set 'double precision' to use float64 and complex128 types
                                     instead of float32 and complex64
           
@@ -615,6 +621,10 @@ class PlaneWaveExpansion(FieldExpansion):
             coordinates of complex electric field.
         """
         # todo: replace chunksize argument by automatic estimate (considering available RAM)
+        chunksize = int(x.shape[0] / mp.cpu_count()) + 1
+        if chunksize > max_chunksize or not 'Linux' in platform.system():
+            chunksize = max_chunksize
+
         ex = np.zeros(x.shape, dtype=complex)
         ey = np.zeros(x.shape, dtype=complex)
         ez = np.zeros(x.shape, dtype=complex)
@@ -699,36 +709,45 @@ class PlaneWaveExpansion(FieldExpansion):
             integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
             integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
-            for i_chunk in range(math.ceil(xr.size / chunksize)):
-                chunk_idcs = range(i_chunk * chunksize, min((i_chunk + 1) * chunksize, xr.size))
-                xr_chunk = xr.flatten()[chunk_idcs]
-                yr_chunk = yr.flatten()[chunk_idcs]
-                zr_chunk = zr.flatten()[chunk_idcs]
+            process_field_slice_method_with_context = partial(self.__process_field_slice_and_put_into_result, 
+                        chunksize=chunksize,
+                        xr=xr, yr=yr, zr=zr,
+                        complex_type=complex_type,
+                        integrand_x=integrand_x, integrand_y=integrand_y, integrand_z = integrand_z,
+                        pwe=self,
+                        kx = kx, ky = ky, kz = kz)
 
-                kr = nh.numba_3tensordots_1dim_times_2dim(xr_chunk, yr_chunk, zr_chunk, kx, ky, kz)
+            results = []
 
-                eikr = np.exp(1j * kr)
+            if 'Linux' in platform.system(): 
+                # linux os.fork() works fine, so method "__process_field_slice_and_put_into_result" 
+                # can be paralleled from outside.
+                # in Win and MasOS we have to parallel submethods in numba_helpers, 
+                # because otherwise it works incorrect.
+                put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.put(field_slices)
+                results_q = mp.Queue()
+                processes = []
 
-                integrand_x_eikr = integrand_x * eikr
-                integrand_y_eikr = integrand_y * eikr
-                integrand_z_eikr = integrand_z * eikr
+                for i_chunk in range(math.ceil(xr.size / chunksize)):
+                    p = mp.Process(target=process_field_slice_method_with_context, 
+                                args = (i_chunk, results_q, put_into_results, self.OptimizationMethodsForLinux))
+                    processes.append(p)
 
-                if len(self.k_parallel) > 1:
-                    e_x_flat[chunk_idcs] = np.trapz(
-                        nh.numba_trapz_3dim_array(integrand_x_eikr, self.azimuthal_angles)
-                        * self.k_parallel, self.k_parallel)
+                for p in processes:
+                    p.start()
 
-                    e_y_flat[chunk_idcs] = np.trapz(
-                        nh.numba_trapz_3dim_array(integrand_y_eikr, self.azimuthal_angles)
-                        * self.k_parallel, self.k_parallel)
-                        
-                    e_z_flat[chunk_idcs] = np.trapz(
-                        nh.numba_trapz_3dim_array(integrand_z_eikr, self.azimuthal_angles)
-                        * self.k_parallel, self.k_parallel)
-                else:
-                    e_x_flat[chunk_idcs] = np.squeeze(integrand_x_eikr)
-                    e_y_flat[chunk_idcs] = np.squeeze(integrand_y_eikr)
-                    e_z_flat[chunk_idcs] = np.squeeze(integrand_z_eikr)
+                for p in processes:
+                    p.join()
+
+                results = [results_q.get() for p in processes]
+
+            else:
+                put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.append(field_slices)
+                for i_chunk in range(math.ceil(xr.size / chunksize)):
+                    process_field_slice_method_with_context(i_chunk, results, put_into_results, 
+                                                            self.OptimizationMethodsFor_Not_Linux)
+
+            self.__fill_flattened_arrays_by_field_slices(results, e_x_flat, e_y_flat, e_z_flat)
 
             ex[self.valid(x, y, z)] = e_x_flat.reshape(xr.shape)
             ey[self.valid(x, y, z)] = e_y_flat.reshape(xr.shape)
@@ -806,7 +825,7 @@ class PlaneWaveExpansion(FieldExpansion):
             hy[self.valid(x, y, z)] = 1 / omega * (re_h_y_d.get() + 1j * im_h_y_d.get())
             hz[self.valid(x, y, z)] = 1 / omega * (re_h_z_d.get() + 1j * im_h_z_d.get())
             
-        else:  # run calculations on cpu               
+        else:  # run calculations on cpu
             kpgrid = self.k_parallel_grid()
             agrid = self.azimuthal_angle_grid()
             kx = kpgrid * np.cos(agrid)
@@ -863,3 +882,98 @@ class PlaneWaveExpansion(FieldExpansion):
             hz[self.valid(x, y, z)] = h_z_flat.reshape(xr.shape)
 
         return hx, hy, hz
+
+
+    @staticmethod
+    def __process_field_slice_and_put_into_result(i_chunk, results, put_into_results, optimization_methods,
+                        chunksize, xr, yr, zr, complex_type,
+                        integrand_x, integrand_y, integrand_z, pwe,
+                        kx, ky, kz):
+            chunk_idcs = range(i_chunk * chunksize, min((i_chunk + 1) * chunksize, xr.size))
+            xr_chunk = xr.flatten()[chunk_idcs]
+            yr_chunk = yr.flatten()[chunk_idcs]
+            zr_chunk = zr.flatten()[chunk_idcs]
+
+            numba_3tensordots_1dim_times_2dim = optimization_methods.numba_3tensordots_1dim_times_2dim
+            kr = numba_3tensordots_1dim_times_2dim(xr_chunk, yr_chunk, zr_chunk, kx, ky, kz)
+
+            evaluate_r_times_eikr = optimization_methods.evaluate_r_times_eikr
+            integrand_x_eikr, integrand_y_eikr, integrand_z_eikr = evaluate_r_times_eikr(
+                                                                    integrand_x, integrand_y, integrand_z, kr)
+
+            res_x = np.zeros((chunk_idcs.stop - chunk_idcs.start), dtype=complex_type)
+            res_y = np.zeros((chunk_idcs.stop - chunk_idcs.start), dtype=complex_type)
+            res_z = np.zeros((chunk_idcs.stop - chunk_idcs.start), dtype=complex_type)
+
+            if len(pwe.k_parallel) > 1:
+                numba_trapz_3dim_array = optimization_methods.numba_trapz_3dim_array
+
+                res_x = np.trapz(
+                    numba_trapz_3dim_array(integrand_x_eikr, pwe.azimuthal_angles)
+                    * pwe.k_parallel, pwe.k_parallel)
+
+                res_y = np.trapz(
+                    numba_trapz_3dim_array(integrand_y_eikr, pwe.azimuthal_angles)
+                    * pwe.k_parallel, pwe.k_parallel)
+                        
+                res_z = np.trapz(
+                    numba_trapz_3dim_array(integrand_z_eikr, pwe.azimuthal_angles)
+                    * pwe.k_parallel, pwe.k_parallel)
+            else:
+                res_x = np.squeeze(integrand_x_eikr)
+                res_y = np.squeeze(integrand_y_eikr)
+                res_z = np.squeeze(integrand_z_eikr)
+
+            put_into_results(results, (pwe.RawSliceOfField('x', chunk_idcs, res_x), \
+                    pwe.RawSliceOfField('y', chunk_idcs, res_y), \
+                    pwe.RawSliceOfField('z', chunk_idcs, res_z)))
+
+
+    class RawSliceOfField:
+        def __init__(self, axis, chunks, values):
+            self.axis = axis
+            self.chunks = chunks
+            self.values = values
+
+
+    @staticmethod
+    def __fill_flattened_arrays_by_field_slices(results, e_x_flat, e_y_flat, e_z_flat):
+        extracted_results = []
+
+        for single_tuple in results:
+            for parallel_result in single_tuple:
+                extracted_results.append(parallel_result) # TODO Raplace by less ugly implementation.
+
+        # get list where each element contains 'x'/'y'/'z' in 'axis' field
+        results_x = list(filter(lambda x: 'x' in x.axis, extracted_results))
+        results_y = list(filter(lambda x: 'y' in x.axis, extracted_results))
+        results_z = list(filter(lambda x: 'z' in x.axis, extracted_results))
+
+        for result in results_x:
+            e_x_flat[result.chunks] = result.values
+        for result in results_y:
+            e_y_flat[result.chunks] = result.values
+        for result in results_z:
+            e_z_flat[result.chunks] = result.values
+
+
+    class OptimizationMethodsForLinux(Enum):
+        @staticmethod
+        def __evaluate_r_times_eikr(integrand_x, integrand_y, integrand_z, kr):
+            eikr = np.exp(1j * kr)
+
+            integrand_x_eikr = integrand_x * eikr
+            integrand_y_eikr = integrand_y * eikr
+            integrand_z_eikr = integrand_z * eikr
+
+            return integrand_x_eikr, integrand_y_eikr, integrand_z_eikr
+
+        numba_3tensordots_1dim_times_2dim = nh.numba_3tensordots_1dim_times_2dim
+        evaluate_r_times_eikr = __evaluate_r_times_eikr
+        numba_trapz_3dim_array = nh.numba_trapz_3dim_array
+
+
+    class OptimizationMethodsFor_Not_Linux(Enum):
+        numba_3tensordots_1dim_times_2dim = nh.numba_3tensordots_1dim_times_2dim_parallel
+        evaluate_r_times_eikr = nh.evaluate_r_times_eikr
+        numba_trapz_3dim_array = nh.numba_trapz_3dim_array_parallel
