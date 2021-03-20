@@ -24,10 +24,10 @@ License: SMUTHI is provided under the MIT license.
 
 Author: Amos Egel (amos.egel@gmail.com).
 
-The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Lorenzo Pattelli.
+The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Alexey Kuznetsov, Lorenzo Pattelli.
 
 We thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for allowing us to use their NFM-DS Fortran code, 
-Alexey Kuznetsov, Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions 
+Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions 
 and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
 
 For a guide how to install and use the software, see the `documentation <http://smuthi.readthedocs.io>`_.
@@ -38,6 +38,15 @@ The list is also a good place to ask for support from the developers or from exp
 To report a bug, you can also open an issue in Gitlab.
 
 Contributions are highly welcome! Please refer to the `contribution guidelines <https://gitlab.com/AmosEgel/smuthi/blob/master/CONTRIBUTING.rst>`_.
+
+What's new in version 1.2
+-------------------------
+Several small bug fixes, support of STL-format for custom shaped particles, support for layered spheroids, 
+accelerated near field evaluations in CPU mode, improved algorithms for automatic parameter selection, support for magnetic field calculations.
+
+**The following changes break backward compatibility:**
+- Extinction cross section is now by default a single number, as opposed to a dictionary with "top" and "bottom" part
+- Angular resolution parameters are now provided in radians (like all other angular quantities).
 
 What's new in version 1.1
 -------------------------

@@ -114,7 +114,7 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
-def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', chunksize=16384,
+def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', chunksize=4096,
                        k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
     X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T

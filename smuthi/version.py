@@ -1,5 +1,5 @@
 major = 1
-minor = 1
+minor = 2
 micro = 0
 
 pre_release = None

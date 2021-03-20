@@ -35,7 +35,7 @@ Smuthi can be applied to any scattering problem in frequency domain involving
 
   - a system of plane parallel layer interfaces separating an arbitrary number of thin metallic or dielectric layers.
 
-  - an arbitrary number of wavelength-scale scattering particles (currently available: spheres, spheroids, finite cylinders, custom particle shapes, anisotropic spheres). The particles can be metallic or dielectric and rotated to an arbitrary orientation.
+  - an arbitrary number of wavelength-scale scattering particles (currently available: spheres, spheroids, finite cylinders, custom particle shapes, anisotropic spheres, layered spheroids). The particles can be metallic or dielectric and rotated to an arbitrary orientation.
 
   - an initial field in form of a plane wave, a beam (currently available: beam with Gaussian xy-profile) or a collection of dipole sources
 
@@ -47,8 +47,7 @@ Simulation output
 
 Smuthi can compute
 
-  - the 3D electric field, for example along a cut plane and save it in the form of ascii data files,
-    png images or gif animations. 
+  - the 3D electric and/or magnetic field, for example along a cut plane and save it in the form of ascii data files, png images or gif animations. 
 
   - the far field power flux of the total field, the initial field or the scattered field. 
     For plane wave excitation, it can be processed to the form of 
