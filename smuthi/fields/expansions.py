@@ -671,30 +671,9 @@ class PlaneWaveExpansion(FieldExpansion):
             ez[self.valid(x, y, z)] = re_e_z_d.get() + 1j * im_e_z_d.get()
             
         else:  # run calculations on cpu
-            #pol=0
-            create_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (-np.sin(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-
-            create_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (np.cos(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-
-            create_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                0
-
-            #pol=1
-            get_additive_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (np.cos(agrid) * kz / pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-
-            get_additive_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (np.sin(agrid) * kz / pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-
-            get_additive_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (-kpgrid / pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-
             ex[self.valid(x, y, z)], ey[self.valid(x, y, z)], ez[self.valid(x, y, z)] = \
                 self.__process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, 1,
-                    create_integrand_x, create_integrand_y, create_integrand_z,
-                    get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z)
+                    self.__process_integrands_for_electric_field)
 
         return ex, ey, ez
     
@@ -767,38 +746,15 @@ class PlaneWaveExpansion(FieldExpansion):
             hz[self.valid(x, y, z)] = 1 / omega * (re_h_z_d.get() + 1j * im_h_z_d.get())
             
         else:  # run calculations on cpu
-            #pol=0
-            create_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (-kz * np.cos(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-
-            create_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (-kz * np.sin(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-
-            create_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (kpgrid * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-
-            #pol=1
-            get_additive_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (- np.sin(agrid) * pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-
-            get_additive_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                (np.cos(agrid) * pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-
-            get_additive_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
-                0
-
             hx[self.valid(x, y, z)], hy[self.valid(x, y, z)], hz[self.valid(x, y, z)] = \
                     self.__process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, omega,
-                    create_integrand_x, create_integrand_y, create_integrand_z,
-                    get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z)
+                    self.__process_integrands_for_magnetic_field)
 
         return hx, hy, hz
 
 
     @staticmethod
-    def __process_field_by_cpu(pwe, x, xr, yr, zr, max_chunksize, cpu_precision, omega,
-                        create_integrand_x, create_integrand_y, create_integrand_z,
-                        get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z):
+    def __process_field_by_cpu(pwe, x, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
          # todo: replace chunksize argument by automatic estimate (considering available RAM)
         chunksize = int(x.shape[0] / mp.cpu_count()) + 1
         if chunksize > max_chunksize or not 'Linux' in platform.system():
@@ -824,14 +780,7 @@ class PlaneWaveExpansion(FieldExpansion):
         f_y_flat = np.zeros(xr.size, dtype=complex_type)
         f_z_flat = np.zeros(xr.size, dtype=complex_type)
 
-        # pol=0
-        integrand_x = create_integrand_x(kz, agrid, kpgrid, pwe, complex_type)
-        integrand_y = create_integrand_y(kz, agrid, kpgrid, pwe, complex_type)
-        integrand_z = create_integrand_z(kz, agrid, kpgrid, pwe, complex_type)
-        # pol=1
-        integrand_x += get_additive_integrand_x(kz, agrid, kpgrid, pwe, complex_type)
-        integrand_y += get_additive_integrand_y(kz, agrid, kpgrid, pwe, complex_type)
-        integrand_z += get_additive_integrand_z(kz, agrid, kpgrid, pwe, complex_type)
+        integrand_x, integrand_y, integrand_z = process_integrands(kz, agrid, kpgrid, pwe, complex_type)
 
         process_field_slice_method_with_context = partial(pwe.__process_field_slice_and_put_into_result, 
                         chunksize=chunksize,
@@ -874,6 +823,32 @@ class PlaneWaveExpansion(FieldExpansion):
         pwe.__fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
 
         return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
+
+
+    def __process_integrands_for_electric_field(self, kz, agrid, kpgrid, complex_type):
+        #pol=0
+        integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+        integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+
+        #pol=1
+        integrand_x = (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        integrand_y = (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+
+        return integrand_x, integrand_y, integrand_z
+
+
+    def __process_integrands_for_magnetic_field(self, kz, agrid, kpgrid, complex_type):
+        #pol=0
+        integrand_x = (-kz * np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+        integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+        integrand_z = (kpgrid * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+
+        #pol=1
+        integrand_x = (- np.sin(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        integrand_y = (np.cos(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+
+        return integrand_x, integrand_y, integrand_z
 
 
     @staticmethod
