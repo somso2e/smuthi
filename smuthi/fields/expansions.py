@@ -780,7 +780,7 @@ class PlaneWaveExpansion(FieldExpansion):
         f_y_flat = np.zeros(xr.size, dtype=complex_type)
         f_z_flat = np.zeros(xr.size, dtype=complex_type)
 
-        integrand_x, integrand_y, integrand_z = process_integrands(kz, agrid, kpgrid, complex_type)
+        integrand_x, integrand_y, integrand_z = process_integrands(kz, agrid, kpgrid, pwe, complex_type)
 
         process_field_slice_method_with_context = partial(pwe.__process_field_slice_and_put_into_result, 
                         chunksize=chunksize,
@@ -831,8 +831,8 @@ class PlaneWaveExpansion(FieldExpansion):
         integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
 
         #pol=1
-        integrand_x = (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-        integrand_y = (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        integrand_x += (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
         integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
         return integrand_x, integrand_y, integrand_z
@@ -844,9 +844,9 @@ class PlaneWaveExpansion(FieldExpansion):
         integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_z = (kpgrid * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
 
-        #pol=1
-        integrand_x = (- np.sin(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-        integrand_y = (np.cos(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        
+        integrand_x += (- np.sin(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        integrand_y += (np.cos(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
         return integrand_x, integrand_y, integrand_z
 
