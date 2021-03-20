@@ -800,7 +800,7 @@ class PlaneWaveExpansion(FieldExpansion):
                         create_integrand_x, create_integrand_y, create_integrand_z,
                         get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z):
          # todo: replace chunksize argument by automatic estimate (considering available RAM)
-        chunksize = int(xr.shape[0] / mp.cpu_count()) + 1
+        chunksize = int(x.shape[0] / mp.cpu_count()) + 1
         if chunksize > max_chunksize or not 'Linux' in platform.system():
             chunksize = max_chunksize
                 
