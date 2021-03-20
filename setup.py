@@ -100,7 +100,8 @@ def get_extensions(static=True):
         return []
     if sys.platform.startswith('win'):
         if static:
-            extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
+            #extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
+            extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc", "-Wl", "--default-image-base-low"]
         else:
             extra_link_args = []
         return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
@@ -127,8 +128,7 @@ setup(
               'smuthi.linearsystem.particlecoupling',
               'smuthi.postprocessing',
               'smuthi.utility'],
-    #ext_modules=get_extensions(True),
-    ext_modules=get_extensions(False),
+    ext_modules=get_extensions(True),
     cmdclass={'prepare': PrepareCommand,
               'compile': build_ext,
               'install': CustomInstallCommand,
