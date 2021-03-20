@@ -100,8 +100,7 @@ def get_extensions(static=True):
         return []
     if sys.platform.startswith('win'):
         if static:
-            #extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]
-            extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc", "-Wl", "--default-image-base-low"]
+            extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]            
         else:
             extra_link_args = []
         return [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
