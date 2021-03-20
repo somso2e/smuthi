@@ -671,85 +671,34 @@ class PlaneWaveExpansion(FieldExpansion):
             ez[self.valid(x, y, z)] = re_e_z_d.get() + 1j * im_e_z_d.get()
             
         else:  # run calculations on cpu
-            # todo: replace chunksize argument by automatic estimate (considering available RAM)
-            chunksize = int(x.shape[0] / mp.cpu_count()) + 1
-            if chunksize > max_chunksize or not 'Linux' in platform.system():
-                chunksize = max_chunksize
+            #pol=0
+            create_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (-np.sin(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
 
-            float_type = np.float32
-            complex_type = np.complex64
-            if cpu_precision == 'double precision':
-                float_type = np.float64
-                complex_type = np.complex128
+            create_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (np.cos(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
 
-            kpgrid = self.k_parallel_grid().astype(complex_type)
-            agrid = self.azimuthal_angle_grid().astype(float_type)
-            kx = kpgrid * np.cos(agrid)
-            ky = kpgrid * np.sin(agrid)
-            kz = self.k_z_grid().astype(complex_type)
+            create_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                0
 
-            xr = xr.astype(float_type)
-            yr = yr.astype(float_type)
-            zr = zr.astype(float_type)
+            #pol=1
+            get_additive_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (np.cos(agrid) * kz / pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
-            e_x_flat = np.zeros(xr.size, dtype=complex_type)
-            e_y_flat = np.zeros(xr.size, dtype=complex_type)
-            e_z_flat = np.zeros(xr.size, dtype=complex_type)
+            get_additive_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (np.sin(agrid) * kz / pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
-            # pol=0
-            integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-            integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-            # pol=1
-            integrand_x += (np.cos(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-            integrand_y += (np.sin(agrid) * kz / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-            integrand_z = (-kpgrid / self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+            get_additive_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (-kpgrid / pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
-            process_field_slice_method_with_context = partial(self.__process_field_slice_and_put_into_result, 
-                        chunksize=chunksize,
-                        xr=xr, yr=yr, zr=zr,
-                        complex_type=complex_type,
-                        integrand_x=integrand_x, integrand_y=integrand_y, integrand_z = integrand_z,
-                        pwe=self,
-                        kx = kx, ky = ky, kz = kz)
-
-            results = []
-
-            if 'Linux' in platform.system(): 
-                # linux os.fork() works fine, so method "__process_field_slice_and_put_into_result" 
-                # can be paralleled from outside.
-                # in Win and MasOS we have to parallel submethods in numba_helpers, 
-                # because otherwise it works incorrect.
-                put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.put(field_slices)
-                results_q = mp.Queue()
-                processes = []
-
-                for i_chunk in range(math.ceil(xr.size / chunksize)):
-                    p = mp.Process(target=process_field_slice_method_with_context, 
-                                args = (i_chunk, results_q, put_into_results, self.OptimizationMethodsForLinux))
-                    processes.append(p)
-
-                for p in processes:
-                    p.start()
-
-                for p in processes:
-                    p.join()
-
-                results = [results_q.get() for p in processes]
-
-            else:
-                put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.append(field_slices)
-                for i_chunk in range(math.ceil(xr.size / chunksize)):
-                    process_field_slice_method_with_context(i_chunk, results, put_into_results, 
-                                                            self.OptimizationMethodsFor_Not_Linux)
-
-            self.__fill_flattened_arrays_by_field_slices(results, e_x_flat, e_y_flat, e_z_flat)
-
-            ex[self.valid(x, y, z)] = e_x_flat.reshape(xr.shape)
-            ey[self.valid(x, y, z)] = e_y_flat.reshape(xr.shape)
-            ez[self.valid(x, y, z)] = e_z_flat.reshape(xr.shape)
+            ex[self.valid(x, y, z)], ey[self.valid(x, y, z)], ez[self.valid(x, y, z)] = \
+                self.__process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, 1,
+                    create_integrand_x, create_integrand_y, create_integrand_z,
+                    get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z)
 
         return ex, ey, ez
     
+
     def magnetic_field(self, x, y, z, vacuum_wavelength, max_chunksize=50, cpu_precision='single precision'):
         """Evaluate magnetic field.
         
@@ -818,84 +767,113 @@ class PlaneWaveExpansion(FieldExpansion):
             hz[self.valid(x, y, z)] = 1 / omega * (re_h_z_d.get() + 1j * im_h_z_d.get())
             
         else:  # run calculations on cpu
-            # todo: replace chunksize argument by automatic estimate (considering available RAM)
-            chunksize = int(x.shape[0] / mp.cpu_count()) + 1
-            if chunksize > max_chunksize or not 'Linux' in platform.system():
-                chunksize = max_chunksize
+            #pol=0
+            create_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (-kz * np.cos(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+
+            create_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (-kz * np.sin(agrid) * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+
+            create_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (kpgrid * pwe.coefficients[0, :, :]).astype(complex_type)[None, :, :]
+
+            #pol=1
+            get_additive_integrand_x = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (- np.sin(agrid) * pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+
+            get_additive_integrand_y = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                (np.cos(agrid) * pwe.k * pwe.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+
+            get_additive_integrand_z = lambda kz, agrid, kpgrid, pwe, complex_type: \
+                0
+
+            hx[self.valid(x, y, z)], hy[self.valid(x, y, z)], hz[self.valid(x, y, z)] = \
+                    self.__process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, omega,
+                    create_integrand_x, create_integrand_y, create_integrand_z,
+                    get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z)
+
+        return hx, hy, hz
+
+
+    @staticmethod
+    def __process_field_by_cpu(pwe, x, xr, yr, zr, max_chunksize, cpu_precision, omega,
+                        create_integrand_x, create_integrand_y, create_integrand_z,
+                        get_additive_integrand_x, get_additive_integrand_y, get_additive_integrand_z):
+         # todo: replace chunksize argument by automatic estimate (considering available RAM)
+        chunksize = int(xr.shape[0] / mp.cpu_count()) + 1
+        if chunksize > max_chunksize or not 'Linux' in platform.system():
+            chunksize = max_chunksize
                 
-            float_type = np.float32
-            complex_type = np.complex64
-            if cpu_precision == 'double precision':
-                float_type = np.float64
-                complex_type = np.complex128
+        float_type = np.float32
+        complex_type = np.complex64
+        if cpu_precision == 'double precision':
+            float_type = np.float64
+            complex_type = np.complex128
 
-            kpgrid = self.k_parallel_grid().astype(complex_type)
-            agrid = self.azimuthal_angle_grid().astype(float_type)
-            kx = kpgrid * np.cos(agrid)
-            ky = kpgrid * np.sin(agrid)
-            kz = self.k_z_grid().astype(complex_type)
+        kpgrid = pwe.k_parallel_grid().astype(complex_type)
+        agrid = pwe.azimuthal_angle_grid().astype(float_type)
+        kx = kpgrid * np.cos(agrid)
+        ky = kpgrid * np.sin(agrid)
+        kz = pwe.k_z_grid().astype(complex_type)
 
-            xr = xr.astype(float_type)
-            yr = yr.astype(float_type)
-            zr = zr.astype(float_type)
+        xr = xr.astype(float_type)
+        yr = yr.astype(float_type)
+        zr = zr.astype(float_type)
 
-            h_x_flat = np.zeros(xr.size, dtype=complex_type)
-            h_y_flat = np.zeros(xr.size, dtype=complex_type)
-            h_z_flat = np.zeros(xr.size, dtype=complex_type)
+        f_x_flat = np.zeros(xr.size, dtype=complex_type)
+        f_y_flat = np.zeros(xr.size, dtype=complex_type)
+        f_z_flat = np.zeros(xr.size, dtype=complex_type)
 
-            # pol=0
-            integrand_x = (-kz * np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-            integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-            integrand_z = (kpgrid * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
-            # pol=1
-            integrand_x += (- np.sin(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
-            integrand_y += (np.cos(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
+        # pol=0
+        integrand_x = create_integrand_x(kz, agrid, kpgrid, pwe, complex_type)
+        integrand_y = create_integrand_y(kz, agrid, kpgrid, pwe, complex_type)
+        integrand_z = create_integrand_z(kz, agrid, kpgrid, pwe, complex_type)
+        # pol=1
+        integrand_x += get_additive_integrand_x(kz, agrid, kpgrid, pwe, complex_type)
+        integrand_y += get_additive_integrand_y(kz, agrid, kpgrid, pwe, complex_type)
+        integrand_z += get_additive_integrand_z(kz, agrid, kpgrid, pwe, complex_type)
 
-            process_field_slice_method_with_context = partial(self.__process_field_slice_and_put_into_result, 
+        process_field_slice_method_with_context = partial(pwe.__process_field_slice_and_put_into_result, 
                         chunksize=chunksize,
                         xr=xr, yr=yr, zr=zr,
                         complex_type=complex_type,
                         integrand_x=integrand_x, integrand_y=integrand_y, integrand_z = integrand_z,
-                        pwe=self,
+                        pwe=pwe,
                         kx = kx, ky = ky, kz = kz, omega = omega)
 
-            results = []
+        results = []
 
-            if 'Linux' in platform.system(): 
-                # linux os.fork() works fine, so method "__process_field_slice_and_put_into_result" 
-                # can be paralleled from outside.
-                # in Win and MasOS we have to parallel submethods in numba_helpers, 
-                # because otherwise it works incorrect.
-                put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.put(field_slices)
-                results_q = mp.Queue()
-                processes = []
+        if 'Linux' in platform.system():
+            # linux os.fork() works fine, so method "__process_field_slice_and_put_into_result"
+            # can be paralleled from outside.
+            # in Win and MasOS we have to parallel submethods in numba_helpers,
+            # because otherwise it works incorrect.
+            put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.put(field_slices)
+            results_q = mp.Queue()
+            processes = []
 
-                for i_chunk in range(math.ceil(xr.size / chunksize)):
-                    p = mp.Process(target=process_field_slice_method_with_context, 
-                                args = (i_chunk, results_q, put_into_results, self.OptimizationMethodsForLinux))
-                    processes.append(p)
+            for i_chunk in range(math.ceil(xr.size / chunksize)):
+                p = mp.Process(target=process_field_slice_method_with_context,
+                            args = (i_chunk, results_q, put_into_results, pwe.OptimizationMethodsForLinux))
+                processes.append(p)
 
-                for p in processes:
-                    p.start()
+            for p in processes:
+                p.start()
 
-                for p in processes:
-                    p.join()
+            for p in processes:
+                p.join()
 
-                results = [results_q.get() for p in processes]
+            results = [results_q.get() for p in processes]
 
-            else:
-                put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.append(field_slices)
-                for i_chunk in range(math.ceil(xr.size / chunksize)):
-                    process_field_slice_method_with_context(i_chunk, results, put_into_results, 
-                                                            self.OptimizationMethodsFor_Not_Linux)
+        else:
+            put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.append(field_slices)
+            for i_chunk in range(math.ceil(xr.size / chunksize)):
+                process_field_slice_method_with_context(i_chunk, results, put_into_results,
+                                                        pwe.OptimizationMethodsFor_Not_Linux)
 
-            self.__fill_flattened_arrays_by_field_slices(results, h_x_flat, h_y_flat, h_z_flat)
+        pwe.__fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
 
-            hx[self.valid(x, y, z)] = h_x_flat.reshape(xr.shape)
-            hy[self.valid(x, y, z)] = h_y_flat.reshape(xr.shape)
-            hz[self.valid(x, y, z)] = h_z_flat.reshape(xr.shape)
-
-        return hx, hy, hz
+        return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
 
 
     @staticmethod
