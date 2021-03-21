@@ -672,7 +672,7 @@ class PlaneWaveExpansion(FieldExpansion):
             
         else:  # run calculations on cpu
             ex[self.valid(x, y, z)], ey[self.valid(x, y, z)], ez[self.valid(x, y, z)] = \
-                self.__process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, 1,
+                self.__process_field_by_cpu(x, xr, yr, zr, max_chunksize, cpu_precision, 1,
                     self.__process_integrands_for_electric_field)
 
         return ex, ey, ez
@@ -747,16 +747,15 @@ class PlaneWaveExpansion(FieldExpansion):
             
         else:  # run calculations on cpu
             hx[self.valid(x, y, z)], hy[self.valid(x, y, z)], hz[self.valid(x, y, z)] = \
-                    self.__process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, omega,
+                    self.__process_field_by_cpu(x, xr, yr, zr, max_chunksize, cpu_precision, omega,
                     self.__process_integrands_for_magnetic_field)
 
         return hx, hy, hz
 
 
-    @staticmethod
-    def __process_field_by_cpu(pwe, x, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
+    def __process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
          # todo: replace chunksize argument by automatic estimate (considering available RAM)
-        chunksize = int(x.shape[0] / mp.cpu_count()) + 1
+        chunksize = int(xr.size / mp.cpu_count()) + 1
         if chunksize > max_chunksize or not 'Linux' in platform.system():
             chunksize = max_chunksize
                 
@@ -766,11 +765,11 @@ class PlaneWaveExpansion(FieldExpansion):
             float_type = np.float64
             complex_type = np.complex128
 
-        kpgrid = pwe.k_parallel_grid().astype(complex_type)
-        agrid = pwe.azimuthal_angle_grid().astype(float_type)
+        kpgrid = self.k_parallel_grid().astype(complex_type)
+        agrid = self.azimuthal_angle_grid().astype(float_type)
         kx = kpgrid * np.cos(agrid)
         ky = kpgrid * np.sin(agrid)
-        kz = pwe.k_z_grid().astype(complex_type)
+        kz = self.k_z_grid().astype(complex_type)
 
         xr = xr.astype(float_type)
         yr = yr.astype(float_type)
@@ -782,12 +781,12 @@ class PlaneWaveExpansion(FieldExpansion):
 
         integrand_x, integrand_y, integrand_z = process_integrands(kz, agrid, kpgrid, complex_type)
 
-        process_field_slice_method_with_context = partial(pwe.__process_field_slice_and_put_into_result, 
+        process_field_slice_method_with_context = partial(self.__process_field_slice_and_put_into_result, 
                         chunksize=chunksize,
                         xr=xr, yr=yr, zr=zr,
                         complex_type=complex_type,
                         integrand_x=integrand_x, integrand_y=integrand_y, integrand_z = integrand_z,
-                        pwe=pwe,
+                        pwe=self,
                         kx = kx, ky = ky, kz = kz, omega = omega)
 
         results = []
@@ -803,7 +802,7 @@ class PlaneWaveExpansion(FieldExpansion):
 
             for i_chunk in range(math.ceil(xr.size / chunksize)):
                 p = mp.Process(target=process_field_slice_method_with_context,
-                            args = (i_chunk, results_q, put_into_results, pwe.OptimizationMethodsForLinux))
+                            args = (i_chunk, results_q, put_into_results, self.OptimizationMethodsForLinux))
                 processes.append(p)
 
             for p in processes:
@@ -818,9 +817,9 @@ class PlaneWaveExpansion(FieldExpansion):
             put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.append(field_slices)
             for i_chunk in range(math.ceil(xr.size / chunksize)):
                 process_field_slice_method_with_context(i_chunk, results, put_into_results,
-                                                        pwe.OptimizationMethodsFor_Not_Linux)
+                                                        self.OptimizationMethodsFor_Not_Linux)
 
-        pwe.__fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
+        self.__fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
 
         return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
 
