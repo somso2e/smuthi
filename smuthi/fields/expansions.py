@@ -631,7 +631,7 @@ class PlaneWaveExpansion(FieldExpansion):
         if cu.use_gpu and xr.size and len(self.k_parallel) > 1:  # run calculations on gpu
 
             re_kp_d = cu.gpuarray.to_gpu(self.k_parallel.real.astype(np.float32))
-            im_kp_d = cu.gp.gpuarray.to_gpu(self.k_parallel.imag.astype(np.float32))
+            im_kp_d = cu.gpuarray.to_gpu(self.k_parallel.imag.astype(np.float32))
 
             re_kz_d = cu.gpuarray.to_gpu(self.k_z().real.astype(np.float32))
             im_kz_d = cu.gpuarray.to_gpu(self.k_z().imag.astype(np.float32))
