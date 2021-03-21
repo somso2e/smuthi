@@ -631,7 +631,7 @@ class PlaneWaveExpansion(FieldExpansion):
         if cu.use_gpu and xr.size and len(self.k_parallel) > 1:  # run calculations on gpu
 
             re_kp_d = cu.gpuarray.to_gpu(self.k_parallel.real.astype(np.float32))
-            im_kp_d = cu.gpuarray.to_gpu(self.k_parallel.imag.astype(np.float32))
+            im_kp_d = cu.gp./uarray.to_gpu(self.k_parallel.imag.astype(np.float32))
 
             re_kz_d = cu.gpuarray.to_gpu(self.k_z().real.astype(np.float32))
             im_kz_d = cu.gpuarray.to_gpu(self.k_z().imag.astype(np.float32))
@@ -672,8 +672,8 @@ class PlaneWaveExpansion(FieldExpansion):
             
         else:  # run calculations on cpu
             ex[self.valid(x, y, z)], ey[self.valid(x, y, z)], ez[self.valid(x, y, z)] = \
-                self.__process_field_by_cpu(x, xr, yr, zr, max_chunksize, cpu_precision, 1,
-                    self.__process_integrands_for_electric_field)
+                    self.__process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, 1,
+                        self.__process_integrands_for_electric_field)
 
         return ex, ey, ez
     
@@ -747,13 +747,13 @@ class PlaneWaveExpansion(FieldExpansion):
             
         else:  # run calculations on cpu
             hx[self.valid(x, y, z)], hy[self.valid(x, y, z)], hz[self.valid(x, y, z)] = \
-                    self.__process_field_by_cpu(x, xr, yr, zr, max_chunksize, cpu_precision, omega,
-                    self.__process_integrands_for_magnetic_field)
+                    self.__process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, omega,
+                        self.__process_integrands_for_magnetic_field)
 
         return hx, hy, hz
 
 
-    def __process_field_by_cpu(self, x, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
+    def __process_field_by_cpu(self, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
          # todo: replace chunksize argument by automatic estimate (considering available RAM)
         chunksize = int(xr.size / mp.cpu_count()) + 1
         if chunksize > max_chunksize or not 'Linux' in platform.system():
@@ -824,7 +824,7 @@ class PlaneWaveExpansion(FieldExpansion):
         return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
 
 
-    def __process_integrands_for_electric_field(self, kz, agrid, kpgrid, complex_type):
+    def _get_electric_field_integrands(self, kz, agrid, kpgrid, complex_type):
         #pol=0
         integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
@@ -837,7 +837,7 @@ class PlaneWaveExpansion(FieldExpansion):
         return integrand_x, integrand_y, integrand_z
 
 
-    def __process_integrands_for_magnetic_field(self, kz, agrid, kpgrid, complex_type):
+    def _get_magnetic_field_integrands(self, kz, agrid, kpgrid, complex_type):
         #pol=0
         integrand_x = (-kz * np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
