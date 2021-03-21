@@ -673,7 +673,7 @@ class PlaneWaveExpansion(FieldExpansion):
         else:  # run calculations on cpu
             ex[self.valid(x, y, z)], ey[self.valid(x, y, z)], ez[self.valid(x, y, z)] = \
                     self.__process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, 1,
-                        self.__process_integrands_for_electric_field)
+                        self.__get_electric_field_integrands)
 
         return ex, ey, ez
     
@@ -748,7 +748,7 @@ class PlaneWaveExpansion(FieldExpansion):
         else:  # run calculations on cpu
             hx[self.valid(x, y, z)], hy[self.valid(x, y, z)], hz[self.valid(x, y, z)] = \
                     self.__process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, omega,
-                        self.__process_integrands_for_magnetic_field)
+                        self.__get_magnetic_field_integrands)
 
         return hx, hy, hz
 
@@ -824,7 +824,7 @@ class PlaneWaveExpansion(FieldExpansion):
         return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
 
 
-    def _get_electric_field_integrands(self, kz, agrid, kpgrid, complex_type):
+    def __get_electric_field_integrands(self, kz, agrid, kpgrid, complex_type):
         #pol=0
         integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
@@ -837,7 +837,7 @@ class PlaneWaveExpansion(FieldExpansion):
         return integrand_x, integrand_y, integrand_z
 
 
-    def _get_magnetic_field_integrands(self, kz, agrid, kpgrid, complex_type):
+    def __get_magnetic_field_integrands(self, kz, agrid, kpgrid, complex_type):
         #pol=0
         integrand_x = (-kz * np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
