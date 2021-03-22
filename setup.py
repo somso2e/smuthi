@@ -82,7 +82,8 @@ def get_requirements():
                     'sympy',
                     'tqdm',
                     'h5py',
-                    'pycparser']
+                    'pycparser',
+                    'psutil']
     if sys.platform.startswith('win'):
         # this package offers windows binaries:
         requirements.append('pywigxjpf-win')
