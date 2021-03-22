@@ -9,8 +9,10 @@ import smuthi.fields.expansions_cuda as cu_src
 import smuthi.utility.cuda as cu
 import smuthi.utility.numba_helpers as nh
 import multiprocessing as mp
+import smuthi.utility.multiprocessing_helpers as mp_helpers
 from functools import partial
 from enum import Enum
+from psutil import virtual_memory
 import platform
 import copy
 import math
@@ -754,10 +756,7 @@ class PlaneWaveExpansion(FieldExpansion):
 
 
     def __process_field_by_cpu(self, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
-         # todo: replace chunksize argument by automatic estimate (considering available RAM)
-        chunksize = int(xr.size / mp.cpu_count()) + 1
-        if chunksize > max_chunksize or not 'Linux' in platform.system():
-            chunksize = max_chunksize
+        chunksize = self.__get_chunksize(max_chunksize, cpu_precision, xr.size)
                 
         float_type = np.float32
         complex_type = np.complex64
@@ -791,7 +790,7 @@ class PlaneWaveExpansion(FieldExpansion):
 
         results = []
 
-        if 'Linux' in platform.system():
+        if self.__is_os_linux():
             # linux os.fork() works fine, so method "__process_field_slice_and_put_into_result"
             # can be paralleled from outside.
             # in Win and MasOS we have to parallel submethods in numba_helpers,
@@ -805,13 +804,12 @@ class PlaneWaveExpansion(FieldExpansion):
                             args = (i_chunk, results_q, put_into_results, self.OptimizationMethodsForLinux))
                 processes.append(p)
 
-            for p in processes:
-                p.start()
+            processes_clusters = mp_helpers.distribute_processes_into_clusters(processes, mp.cpu_count())
 
-            for p in processes:
-                p.join()
+            for cluster in processes_clusters:
+                cluster.execute()
 
-            results = [results_q.get() for p in processes]
+                results = results + [results_q.get() for c in cluster.processes]
 
         else:
             put_into_results = lambda results_to_be_filled, field_slices: results_to_be_filled.append(field_slices)
@@ -822,6 +820,39 @@ class PlaneWaveExpansion(FieldExpansion):
         self.__fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
 
         return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
+
+
+    def __get_chunksize(self, max_chunksize, cpu_precision, max_sensble_chunksize):
+        reserved_ram_coefficient = 0.6
+        ram_for_chunksize = virtual_memory().free * reserved_ram_coefficient
+
+        memory_per_complex_value = 8
+        if cpu_precision == 'double precision':
+            memory_per_complex_value = 16
+
+        available_parallel_processes = 1
+        if self.__is_os_linux():
+            available_parallel_processes = mp.cpu_count()
+
+        kpgrid = self.k_parallel_grid()
+        available_chunksize = int(ram_for_chunksize /
+                        (4 * kpgrid.size * memory_per_complex_value * available_parallel_processes))
+        # 4 because integrand_x_eikr, integrand_y_eikr, integrand_z_eikr and kr are the main memory consumers.       
+
+        sensible_chunksize_per_process = int(max_sensble_chunksize / available_parallel_processes) + 1
+
+        do_we_have_enough_memory = available_chunksize > max_chunksize
+        do_we_have_much_stuff_to_process = sensible_chunksize_per_process > max_chunksize
+        should_max_chunk_size_limit_everything = do_we_have_enough_memory and do_we_have_much_stuff_to_process
+
+        if should_max_chunk_size_limit_everything:
+            return max_chunksize
+
+        should_we_break_processing_on_very_small_pieces = available_chunksize > sensible_chunksize_per_process
+        if should_we_break_processing_on_very_small_pieces:
+            return sensible_chunksize_per_process
+
+        return available_chunksize
 
 
     def __get_electric_field_integrands(self, kz, agrid, kpgrid, complex_type):
@@ -843,7 +874,7 @@ class PlaneWaveExpansion(FieldExpansion):
         integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_z = (kpgrid * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
 
-        
+        #pol=1
         integrand_x += (- np.sin(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
         integrand_y += (np.cos(agrid) * self.k * self.coefficients[1, :, :]).astype(complex_type)[None, :, :]
 
@@ -921,6 +952,10 @@ class PlaneWaveExpansion(FieldExpansion):
             f_y_flat[result.chunks] = result.values
         for result in results_z:
             f_z_flat[result.chunks] = result.values
+
+
+    def __is_os_linux(self):
+        return 'Linux' in platform.system()
 
 
     class OptimizationMethodsForLinux(Enum):
