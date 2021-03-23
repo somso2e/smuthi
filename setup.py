@@ -75,7 +75,7 @@ def get_requirements():
                     'imageio',
                     'matplotlib',
                     'mpmath',
-                    'numpy',
+                    'numpy>=1.20',
                     'numba',
                     'pyyaml',
                     'scipy',
