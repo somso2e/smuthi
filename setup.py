@@ -94,9 +94,9 @@ def get_requirements():
     #                with numpy version 1.12 and that 
     #                user machines have at least 1.12
     if os.environ.get('CI'):
-        requirements.append('numpy==1.12')
+        requirements.append('numpy==1.15')
     else: 
-        requirements.append('numpy>=1.12')
+        requirements.append('numpy>=1.15')
         
     return requirements
 
