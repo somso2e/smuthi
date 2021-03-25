@@ -7,6 +7,7 @@ from setuptools.command.build_ext import build_ext
 
 import sys
 import subprocess
+import os
 
 def pip_install(package):
     proc_id = subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -21,7 +22,6 @@ from numpy.distutils.core import setup
 from numpy.distutils.core import Extension
 
 import pkg_resources
-import os
 
 
 version = {}
