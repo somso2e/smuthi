@@ -9,17 +9,6 @@ import sys
 import subprocess
 import os
 
-def pip_install(package):
-    proc_id = subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-pip_install('wheel')
-
-np_version = '1.19'
-# we want that the binary wheels are created exactly with that numpy version
-if os.environ.get('CI'):
-    pip_install('numpy==' + np_version)
-else:
-    pip_install('numpy>=' + np_version)
-
 from wheel.bdist_wheel import bdist_wheel
 from numpy.distutils.core import setup
 from numpy.distutils.core import Extension
@@ -77,7 +66,7 @@ def read(fname):
 
 def get_requirements():
     """Return a list of requirements, depending on the operating system."""
-    requirements = ['numpy>=' + np_version,
+    requirements = ['numpy>=1.15',
                     'argparse',
                     'imageio',
                     'matplotlib',
@@ -147,7 +136,6 @@ setup(
                   },
     include_package_data=True,                  
     install_requires=get_requirements(),
-    setup_requires=['numpy', 'wheel'],
     extras_require={'cuda':  ['PyCuda']},
     license='MIT',
 )
