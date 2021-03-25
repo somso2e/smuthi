@@ -13,7 +13,7 @@ def pip_install(package):
     proc_id = subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 pip_install('wheel')
 
-np_version = '1.17'
+np_version = '1.19'
 if os.environ.get('CI'):
     pip_install('numpy==' + np_version)
 else:
