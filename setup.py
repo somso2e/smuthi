@@ -12,10 +12,12 @@ import os
 def pip_install(package):
     proc_id = subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 pip_install('wheel')
+
+np_version = '1.17'
 if os.environ.get('CI'):
-    pip_install('numpy==1.15')
+    pip_install('numpy==' + np_version)
 else:
-    pip_install('numpy>=1.15')
+    pip_install('numpy>=' + np_version)
 
 from wheel.bdist_wheel import bdist_wheel
 from numpy.distutils.core import setup
@@ -97,9 +99,9 @@ def get_requirements():
     #                with numpy version 1.12 and that 
     #                user machines have at least 1.12
     if os.environ.get('CI'):
-        requirements.append('numpy==1.15')
+        requirements.append('numpy==' + np_version)
     else: 
-        requirements.append('numpy>=1.15')
+        requirements.append('numpy>=' + np_version)
         
     return requirements
 
