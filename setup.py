@@ -75,7 +75,6 @@ def get_requirements():
                     'imageio',
                     'matplotlib',
                     'mpmath',
-                    'numpy>=1.20',
                     'numba',
                     'pyyaml',
                     'scipy',
@@ -84,11 +83,21 @@ def get_requirements():
                     'h5py',
                     'pycparser',
                     'psutil']
+    
     if sys.platform.startswith('win'):
         # this package offers windows binaries:
         requirements.append('pywigxjpf-win')
     else:
         requirements.append('pywigxjpf')
+    
+    # numpy version: make sure that binaries are built
+    #                with numpy version 1.12 and that 
+    #                user machines have at least 1.12
+    if os.environ.get('CI'):
+        requirements.append('numpy==1.12')
+    else 
+        requirements.append('numpy>=1.12')
+        
     return requirements
 
 
