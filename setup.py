@@ -14,6 +14,7 @@ def pip_install(package):
 pip_install('wheel')
 
 np_version = '1.19'
+# we want that the binary wheels are created exactly with that numpy version
 if os.environ.get('CI'):
     pip_install('numpy==' + np_version)
 else:
@@ -76,7 +77,8 @@ def read(fname):
 
 def get_requirements():
     """Return a list of requirements, depending on the operating system."""
-    requirements = ['argparse',
+    requirements = ['numpy>=' + np_version,
+                    'argparse',
                     'imageio',
                     'matplotlib',
                     'mpmath',
@@ -94,14 +96,6 @@ def get_requirements():
         requirements.append('pywigxjpf-win')
     else:
         requirements.append('pywigxjpf')
-    
-    # numpy version: make sure that binaries are built
-    #                with numpy version 1.12 and that 
-    #                user machines have at least 1.12
-    if os.environ.get('CI'):
-        requirements.append('numpy==' + np_version)
-    else: 
-        requirements.append('numpy>=' + np_version)
         
     return requirements
 
