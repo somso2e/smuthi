@@ -95,7 +95,7 @@ def get_requirements():
     #                user machines have at least 1.12
     if os.environ.get('CI'):
         requirements.append('numpy==1.12')
-    else 
+    else: 
         requirements.append('numpy>=1.12')
         
     return requirements
