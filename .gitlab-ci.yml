@@ -13,7 +13,7 @@ test:
     - echo "Testing"
     - apt-get update
     - apt-get install -y gfortran
-    - pip3 install numpy==1.19.0
+    - pip3 install numpy==1.19.3
     - pip3 install -e .
     - pip3 install nose2
     - nose2 -v
