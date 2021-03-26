@@ -12,8 +12,9 @@ for PYBIN in /opt/python/*/bin/; do
     continue 
   fi
   echo "Compiling using Python version ${PYBIN}...."
+  ${PYBIN}/python -m pip install numpy==1.12.0
   ${PYBIN}/python setup.py sdist
-	${PYBIN}/python setup.py bdist_wheel
+  ${PYBIN}/python setup.py bdist_wheel
 done
 
 mkdir dist_unrepaired

@@ -66,7 +66,7 @@ def read(fname):
 
 def get_requirements():
     """Return a list of requirements, depending on the operating system."""
-    requirements = ['numpy>=1.19.3',
+    requirements = ['numpy>=1.12.0',
                     'argparse',
                     'imageio',
                     'matplotlib',
