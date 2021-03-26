@@ -50,8 +50,6 @@ class CustomBdistWheelCommand(bdist_wheel):
 
 
 def prepare_nfmds():
-    #import numpy as np
-    #raise Exception("numpy version:" + np.__version__)
     """If Windows: Call encoding converter to get Fortran sources with valid encoding"""
     if sys.platform.startswith('win'):
         currdir = os.getcwd()
@@ -68,7 +66,7 @@ def read(fname):
 
 def get_requirements():
     """Return a list of requirements, depending on the operating system."""
-    requirements = ['numpy>=1.19',
+    requirements = ['numpy>=1.19.3',
                     'argparse',
                     'imageio',
                     'matplotlib',
