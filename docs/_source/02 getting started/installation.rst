@@ -31,6 +31,8 @@ Alternatively, you can install it locally from source (see below section :ref:`l
 Installing Smuthi under Windows
 -------------------------------
 
+.. warning:: Please take note of the extra instructions for :ref:`conda_install`.
+
 Prerequisites
 ~~~~~~~~~~~~~
 
@@ -51,6 +53,22 @@ Open a command window and type::
 Depending on where pip will install the package, you might need administrator rights for that.
 
 Alternatively, install locally from source (see below section :ref:`local_install`).
+
+.. _conda_install:
+
+Anaconda users
+--------------
+
+Currently, Smuthi is not distributed as a conda package. 
+In principle, Pip can be used to install into an Anaconda environment, just like described in the above.
+But `care has to be taken <https://www.anaconda.com/blog/using-pip-in-a-conda-environment>`_.
+
+In particular, due to dependencies on certain other packages, Smuthi requires a relatively recent numpy version.
+Naively running :code:`python -m pip install smuthi` from an Anaconda environment might trigger Pip to install
+a recent numpy version in parallel to the already existing numpy version from Anaconda, which can result
+in problems. We therefore recommend to first update your Anaconda environment to the latest numpy version from `conda-forge <https://conda-forge.org/>`_, and then do :code:`python -m pip install smuthi`.
+
+It is also recommended to create a dedicated `conda environment <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_ for the Smuthi installation. In case the environment gets messed up by destructive interference between Pip and conda, the main Anaconda installation is then still unaffected.
 
 
 .. _local_install:
