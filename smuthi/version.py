@@ -1,6 +1,6 @@
 major = 1
 minor = 2
-micro = 3
+micro = 4
 
 pre_release = None
 post_release = None
