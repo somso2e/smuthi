@@ -26,7 +26,7 @@ init:
 build: off
 
 after_test:
-  - "%PYTHON%\\python.exe -m pip install numpy==1.12.0"
+#  - "%PYTHON%\\python.exe -m pip install numpy==1.12.0"
   - "%PYTHON%\\python.exe setup.py prepare"
   - "%PYTHON%\\python.exe setup.py build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f"
   - "%PYTHON%\\python.exe setup.py bdist_wheel"

@@ -21,6 +21,10 @@ with open("smuthi/version.py") as fp:
     exec(fp.read(), version)
 __version__ = version['__version__']
 
+def get_numpy_version()
+    import numpy as np
+    return np.__version__
+
 
 class PrepareCommand(develop):
     def run(self):
@@ -29,18 +33,39 @@ class PrepareCommand(develop):
 
 class CustomDevelopCommand(develop):
     def run(self):
+        print("**********"
+              +"\nrunning develop with python " + sys.version 
+              + "and numpy " + get_numpy_version() 
+              + "\n**********")
         prepare_nfmds()
         develop.run(self)
 
 
 class CustomInstallCommand(install):
     def run(self):
+        print("**********"
+              +"\nrunning install with python " + sys.version 
+              + "and numpy " + get_numpy_version() 
+              + "\n**********")        
         prepare_nfmds()
         install.run(self)
 
 
+class CustomBuildExtCommand(build_ext):
+    def run(self):
+        print("**********"
+              +"\nrunning build_ext with python " + sys.version 
+              + "and numpy " + get_numpy_version() 
+              + "\n**********")    
+        build_ext.run(self)
+
+
 class CustomBdistWheelCommand(bdist_wheel):
     def run(self):
+        print("**********"
+              +"\nrunning bdist_wheel with python " + sys.version 
+              + "and numpy " + get_numpy_version() 
+              + "\n**********")    
         if sys.platform.startswith('win'):
             # Skip F2Py. Before "python setup.py bdist_wheel", you need to call in advance:
             # python setup.py prepare
@@ -66,7 +91,10 @@ def read(fname):
 
 def get_requirements():
     """Return a list of requirements, depending on the operating system."""
-    requirements = ['numpy>=1.12.0',
+    requirements = ["numpy>=1.12; python_version=='3.6'",
+                    "numpy>=1.14.5; python_version=='3.7'"
+                    "numpy>=1.17.5; python_version=='3.8'"
+                    "numpy>=1.19.3; python_version>='3.9'"
                     'argparse',
                     'imageio',
                     'matplotlib',
