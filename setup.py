@@ -92,10 +92,10 @@ def read(fname):
 
 def get_requirements():
     """Return a list of requirements, depending on the operating system."""
-    requirements = ["numpy>=1.12; python_version=='3.6'",
-                    "numpy>=1.14.5; python_version=='3.7'"
-                    "numpy>=1.17.5; python_version=='3.8'"
-                    "numpy>=1.19.3; python_version>='3.9'"
+    requirements = ["numpy>='1.12'; python_version=='3.6'",
+                    "numpy>='1.14.5'; python_version=='3.7'"
+                    "numpy>='1.17.5'; python_version=='3.8'"
+                    "numpy>='1.19.3'; python_version>='3.9'"
                     'argparse',
                     'imageio',
                     'matplotlib',
