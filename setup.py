@@ -21,7 +21,8 @@ with open("smuthi/version.py") as fp:
     exec(fp.read(), version)
 __version__ = version['__version__']
 
-def get_numpy_version()
+
+def get_numpy_version():
     import numpy as np
     return np.__version__
 
