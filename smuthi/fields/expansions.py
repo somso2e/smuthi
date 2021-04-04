@@ -674,8 +674,8 @@ class PlaneWaveExpansion(FieldExpansion):
             
         else:  # run calculations on cpu
             ex[self.valid(x, y, z)], ey[self.valid(x, y, z)], ez[self.valid(x, y, z)] = \
-                    self.__process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, 1,
-                        self.__get_electric_field_integrands)
+                    self._process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, 1,
+                        self._get_electric_field_integrands)
 
         return ex, ey, ez    
 
@@ -748,13 +748,13 @@ class PlaneWaveExpansion(FieldExpansion):
             
         else:  # run calculations on cpu
             hx[self.valid(x, y, z)], hy[self.valid(x, y, z)], hz[self.valid(x, y, z)] = \
-                    self.__process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, omega,
-                        self.__get_magnetic_field_integrands)
+                    self._process_field_by_cpu(xr, yr, zr, max_chunksize, cpu_precision, omega,
+                        self._get_magnetic_field_integrands)
 
         return hx, hy, hz
 
-    def __process_field_by_cpu(self, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
-        chunksize = self.__get_chunksize(max_chunksize, cpu_precision, xr.size)
+    def _process_field_by_cpu(self, xr, yr, zr, max_chunksize, cpu_precision, omega, process_integrands):
+        chunksize = self._get_chunksize(max_chunksize, cpu_precision, xr.size)
                 
         float_type = np.float32
         complex_type = np.complex64
@@ -778,7 +778,7 @@ class PlaneWaveExpansion(FieldExpansion):
 
         integrand_x, integrand_y, integrand_z = process_integrands(kz, agrid, kpgrid, complex_type)
 
-        process_field_slice_method_with_context = partial(self.__process_field_slice_and_put_into_result, 
+        process_field_slice_method_with_context = partial(self._process_field_slice_and_put_into_result, 
                         chunksize=chunksize,
                         xr=xr, yr=yr, zr=zr,
                         complex_type=complex_type,
@@ -788,8 +788,8 @@ class PlaneWaveExpansion(FieldExpansion):
 
         results = []
 
-        if self.__is_os_linux():
-            # linux os.fork() works fine, so method "__process_field_slice_and_put_into_result"
+        if self._is_os_linux():
+            # linux os.fork() works fine, so method "_process_field_slice_and_put_into_result"
             # can be paralleled from outside.
             # in Win and MasOS we have to parallel submethods in numba_helpers,
             # because otherwise it works incorrect.
@@ -815,11 +815,11 @@ class PlaneWaveExpansion(FieldExpansion):
                 process_field_slice_method_with_context(i_chunk, results, put_into_results,
                                                         self.OptimizationMethodsFor_Not_Linux)
 
-        self.__fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
+        self._fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat)
 
         return f_x_flat.reshape(xr.shape), f_y_flat.reshape(xr.shape), f_z_flat.reshape(xr.shape)
 
-    def __get_chunksize(self, max_chunksize, cpu_precision, max_sensble_chunksize):
+    def _get_chunksize(self, max_chunksize, cpu_precision, max_sensble_chunksize):
         reserved_ram_coefficient = 0.6
         ram_for_chunksize = virtual_memory().free * reserved_ram_coefficient
 
@@ -828,7 +828,7 @@ class PlaneWaveExpansion(FieldExpansion):
             memory_per_complex_value = 16
 
         available_parallel_processes = 1
-        if self.__is_os_linux():
+        if self._is_os_linux():
             available_parallel_processes = mp.cpu_count()
 
         kpgrid = self.k_parallel_grid()
@@ -851,7 +851,7 @@ class PlaneWaveExpansion(FieldExpansion):
 
         return available_chunksize
 
-    def __get_electric_field_integrands(self, kz, agrid, kpgrid, complex_type):
+    def _get_electric_field_integrands(self, kz, agrid, kpgrid, complex_type):
         #pol=0
         integrand_x = (-np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_y = (np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
@@ -863,7 +863,7 @@ class PlaneWaveExpansion(FieldExpansion):
 
         return integrand_x, integrand_y, integrand_z
 
-    def __get_magnetic_field_integrands(self, kz, agrid, kpgrid, complex_type):
+    def _get_magnetic_field_integrands(self, kz, agrid, kpgrid, complex_type):
         #pol=0
         integrand_x = (-kz * np.cos(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
         integrand_y = (-kz * np.sin(agrid) * self.coefficients[0, :, :]).astype(complex_type)[None, :, :]
@@ -876,7 +876,7 @@ class PlaneWaveExpansion(FieldExpansion):
         return integrand_x, integrand_y, integrand_z
 
     @staticmethod
-    def __process_field_slice_and_put_into_result(i_chunk, results, put_into_results, optimization_methods,
+    def _process_field_slice_and_put_into_result(i_chunk, results, put_into_results, optimization_methods,
                         chunksize, xr, yr, zr, complex_type,
                         integrand_x, integrand_y, integrand_z, pwe,
                         kx, ky, kz, omega = 1):
@@ -926,7 +926,7 @@ class PlaneWaveExpansion(FieldExpansion):
             self.values = values
 
     @staticmethod
-    def __fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat):
+    def _fill_flattened_arrays_by_field_slices(results, f_x_flat, f_y_flat, f_z_flat):
         extracted_results = []
 
         for single_tuple in results:
@@ -945,12 +945,12 @@ class PlaneWaveExpansion(FieldExpansion):
         for result in results_z:
             f_z_flat[result.chunks] = result.values
 
-    def __is_os_linux(self):
+    def _is_os_linux(self):
         return 'Linux' in platform.system()
 
     class OptimizationMethodsForLinux(Enum):
         @staticmethod
-        def __evaluate_r_times_eikr(integrand_x, integrand_y, integrand_z, kr):
+        def _evaluate_r_times_eikr(integrand_x, integrand_y, integrand_z, kr):
             eikr = np.exp(1j * kr)
 
             integrand_x_eikr = integrand_x * eikr
@@ -960,7 +960,7 @@ class PlaneWaveExpansion(FieldExpansion):
             return integrand_x_eikr, integrand_y_eikr, integrand_z_eikr
 
         numba_3tensordots_1dim_times_2dim = nh.numba_3tensordots_1dim_times_2dim
-        evaluate_r_times_eikr = __evaluate_r_times_eikr
+        evaluate_r_times_eikr = _evaluate_r_times_eikr
         numba_trapz_3dim_array = nh.numba_trapz_3dim_array
 
     class OptimizationMethodsFor_Not_Linux(Enum):

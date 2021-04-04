@@ -3,14 +3,11 @@ class ProcessesCluster:
         self.processes = []
         self.max_processes = max_processes
 
-
     def can_add_new_process(self):
         return len(self.processes) < self.max_processes
 
-
     def add_process(self, process):
         self.processes.append(process)
-
 
     def execute(self):
         for p in self.processes:
