@@ -19,6 +19,7 @@ No. Tutorial                             level           script
 6   |ex6link|                             |intermed|      TBD       
 7   |ex7link|                             |advanced|    |ex7script| 
 8   |ex8link|                             |advanced|    |ex8script| 
+9   |ex9link|                             |intermed|    |ex9script|
 === ==================================  ============== ============ 
 
 .. |ex1script| replace:: :download:`download <../../../examples/tutorials/01_setting_up_a_simulation/dielectric_sphere_on_substrate.py>`
@@ -55,6 +56,11 @@ No. Tutorial                             level           script
 .. |ex8script| replace:: :download:`download <../../../examples/tutorials/08_many_particle_simulations/many_dielectric_spheres_on_substrate.py>`
 
 .. |ex8link| replace:: :doc:`Many particle simulations <08_many_particles/discussion>`
+
+
+.. |ex9script| replace:: :download:`download <../../../examples/tutorials/09_decomposited_extinction/decompose_extinction_for_one_sphere.py>`
+
+.. |ex9link| replace:: :doc:`Decomposited extinction <09_decomposited_extinction/discussion>`
 
 
 
