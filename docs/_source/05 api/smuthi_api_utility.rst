@@ -52,11 +52,3 @@ utility.optical_constants
     :members:
     :undoc-members:
 
-utility.read_input
-------------------
-
-.. automodule:: smuthi.utility.read_input
-    :members:
-    :undoc-members:
-
-

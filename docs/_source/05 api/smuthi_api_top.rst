@@ -1,13 +1,6 @@
 Top level modules
 =================
 
-smuthi.__main__
----------------
-
-.. automodule:: smuthi.__main__
-    :members:
-    :undoc-members:
-
 smuthi.simulation
 -----------------
 

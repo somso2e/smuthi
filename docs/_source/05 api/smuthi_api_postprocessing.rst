@@ -29,17 +29,17 @@ postprocessing.internal_field
 .. automodule:: smuthi.postprocessing.internal_field
     :members:
     :undoc-members:		
-
-postprocessing.post_processing
-------------------------------
-
-.. automodule:: smuthi.postprocessing.post_processing
-    :members:
-    :undoc-members:
-
+	
 postprocessing.scattered_field
 ------------------------------
 
 .. automodule:: smuthi.postprocessing.scattered_field
     :members:
     :undoc-members:
+		
+postprocessing.power_flux
+------------------------------
+
+.. automodule:: smuthi.postprocessing.power_flux
+    :members:
+    :undoc-members:		
