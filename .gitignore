@@ -42,4 +42,4 @@ examples/*
 !examples/benchmarks/*
 smuthi/.libs/*
 *.pyd
-
+!examples/published_in_JQSRT_2021

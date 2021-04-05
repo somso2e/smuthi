@@ -33,12 +33,9 @@ cylinder = smuthi.particles.FiniteCylinder(position=[0, 0, 100],
                                            cylinder_radius=100,
                                            l_max=5)
 
-# prepare FEM file for cube
-smuthi.linearsystem.tmatrix.nfmds.stlmanager.convert_stl_to_fem("cube.stl", "cube.fem")
-
 cube = smuthi.particles.CustomParticle(position=[500, 0, 100],
                                        refractive_index=1.7,
-                                       geometry_filename="cube.fem",
+                                       geometry_filename="cube.stl",
                                        scale=100,
                                        l_max=5)
 
