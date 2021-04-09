@@ -26,8 +26,6 @@ No. Tutorial                             level           script     Google colab
 
 .. |ex1link| replace:: :doc:`Setting up a simulation <01_setting_up_a_simulation/discussion>`
 
-.. |ex1colablink| replace:: `link <https://drive.google.com/file/d/1XIG84y3GtD000THZQyhzCCuooKq4Pg8d/view?usp=sharing>`_
-
 
 
 .. |ex2script| replace:: :download:`download <../../../examples/tutorials/02_plotting_the_near_field/three_spheres_in_waveguide.py>`
@@ -61,9 +59,9 @@ No. Tutorial                             level           script     Google colab
 .. |ex8link| replace:: :doc:`Many particle simulations <08_many_particles/discussion>`
 
 
-.. |ex9script| replace:: :download:`download <../../../examples/tutorials/09_decomposited_extinction/decompose_extinction_for_one_sphere.py>`
+.. |ex9script| replace:: :download:`download <../../../examples/tutorials/09_multipole_decomposition/decompose_extinction_for_one_sphere.py>`
 
-.. |ex9link| replace:: :doc:`Decomposited extinction <09_decomposited_extinction/discussion>`
+.. |ex9link| replace:: :doc:`Multipole decomposition <09_multipole_decomposition/discussion>`
 
 
 
