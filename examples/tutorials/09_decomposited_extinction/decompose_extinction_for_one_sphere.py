@@ -46,8 +46,8 @@ def get_extinctions(wavelength, sphere_refractive_index,
                                             coupling_matrix_interpolator_kind='cubic')
     simulation.run()
 
-    # Since this moment we count extinction
-    # Count total extinction of dipole (another multipoles are cut by only_l=1)
+    # Since this moment we calculate extinction
+    # Calculate total extinction of dipole (another multipoles are cut by only_l=1)
     general_ecs = ff.extinction_cross_section(initial_field=plane_wave,
                                         particle_list=spheres_list,
                                         layer_system=layers, only_l=1, only_pol=polarization)
@@ -58,11 +58,11 @@ def get_extinctions(wavelength, sphere_refractive_index,
     # extinctions[2] -- total extinction
     for tau in [0, 1]:
         for m in [-1, 0, 1]:
-            counted_extinction = ff.extinction_cross_section(initial_field=plane_wave,
+            calculated_extinction = ff.extinction_cross_section(initial_field=plane_wave,
                                         particle_list=spheres_list,
                                         layer_system=layers, only_l=1, only_pol=polarization, 
                                         only_tau=tau, only_m=m)
-            extinctions[tau].append(counted_extinction)
+            extinctions[tau].append(calculated_extinction)
     extinctions[2].append(general_ecs)
 
     return extinctions
@@ -143,7 +143,7 @@ for i in range(len(wavelengths)):
     extinctions_te_gold.append(decomposed_te_gold_extinction)
     extinctions_tm_gold.append(decomposed_tm_gold_extinction)
 
-# Since this moment we just output the counted extinction decompositions.
+# Since this moment we just output the calculated extinction decompositions.
 f, axarr = plt.subplots(2, 2, sharex=True)
 plt.annotate(text="TE", xy=(0.25, 0.9), xycoords='figure fraction')
 plt.annotate(text="TM", xy=(0.75, 0.9), xycoords='figure fraction')
