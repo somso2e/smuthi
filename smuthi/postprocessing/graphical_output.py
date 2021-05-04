@@ -114,11 +114,14 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                                             facecolor='w', edgecolor='k'))
 
 
-def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', chunksize=4096,
+def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', chunksize=None,
                        k_parallel='default', azimuthal_angles='default', angular_resolution=None):
     """Compute a certain component of the electric near field"""
     X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T
     e_x, e_y, e_z = (np.zeros_like(X, dtype=np.complex128) for i in range(3))
+
+    if chunksize is None: # pick chunksize dynamically between 4096, 8192 or 16384
+        chunksize = min(2**16, 2**np.floor(np.log2(X.size / 10))).astype(int) if X.size > 2**12 else 2**12
 
     if 'sca' in type:
         min_laynum = simulation.layer_system.layer_number(Z.min())
