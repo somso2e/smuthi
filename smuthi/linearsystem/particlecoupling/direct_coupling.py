@@ -269,7 +269,7 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     
     n_medium = layer_system.refractive_indices[layer_system.layer_number(receiving_particle.position[2])]
     
-    if not alpha or not beta:
+    if type(alpha).__name__ == 'NoneType' or type(beta).__name__ == 'NoneType':
         if type(receiving_particle).__name__ != 'Spheroid' or type(emitting_particle).__name__ != 'Spheroid':
             raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids! Please provide alpha and beta.')
         

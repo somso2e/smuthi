@@ -461,3 +461,159 @@ def size_format(b):
     elif 1000000000000 <= b:
         return '%.1f' % float(b/1000000000000) + 'TB'
 
+
+
+def radial_coupling_lookup_table_pwe_correction(vacuum_wavelength, rho_max, l_max, k_is, k_parallel='default', resolution=None):
+    """Prepare Sommerfeld integral lookup table to allow for a fast calculation of the coupling matrix by interpolation.
+    This function is called when all particles are on the same z-position.
+    
+    This function uses PVWF representation of the coupling operator and is only
+    for the direct particle-particle lookup table for particles in close vicinity. 
+    
+    
+    Args:
+        vacuum_wavelength (float):  Vacuum wavelength in length units
+        rho_max (float):            Maximal horizontal particle displacement for which 
+                                    direct coupling is evaluated via PVWFs
+        l_max (int):                Maximal multipole degree
+        k_is (complex):             Wavenumber of the scattering layer
+        k_parallel (numpy.ndarray or str):           In-plane wavenumber for Sommerfeld integrals.
+                                                     If 'default', smuthi.fields.default_Sommerfeld_k_parallel_array
+        resolution (float): Spatial resolution of lookup table in length units. (default: vacuum_wavelength / 100)       
+                            Smaller means more accurate but higher memory footprint 
+                            
+    Returns:
+        (tuple) tuple containing:
+        
+            lookup_table (ndarray):  Coupling lookup, indices are [rho, n1, n2].
+            rho_array (ndarray):     Values for the radial distance considered for the lookup (starting from negative 
+                                     numbers to allow for simpler cubic interpolation without distinction of cases 
+                                     at rho=0)
+    """
+
+    sys.stdout.write('Prepare radial particle coupling lookup:\n')
+    sys.stdout.flush()
+
+    if resolution is None:
+        resolution = vacuum_wavelength / 100
+        sys.stdout.write('Setting lookup resolution to %f\n'%resolution)
+        sys.stdout.flush()
+    
+    m_max = l_max # necessary for pwe coupling
+    blocksize = smuthi.fields.blocksize(l_max, m_max)
+    
+    radial_distance_array = np.arange(- 3 * resolution, rho_max + 3 * resolution, resolution)   
+    len_rho = len(radial_distance_array)
+    
+    # pwe-coupling, similar to layer mediated coupling -------------------------------------------------------------------------------------
+    sys.stdout.write('PWE-coupling correction for direct coupling: ...')
+    sys.stdout.flush()
+    
+    if type(k_parallel) == str and k_parallel == 'default':
+        k_parallel = smuthi.fields.default_Sommerfeld_k_parallel_array
+
+    kz_is = smuthi.fields.k_z(k_parallel=k_parallel, k=k_is)
+    len_kp = len(k_parallel)
+
+       
+    # transformation coefficients
+    B_dag = np.zeros((2, blocksize, len_kp), dtype=complex)  # pol, n, kp (pl only)
+    B = np.zeros((2, blocksize, len_kp), dtype=complex)  # pol, n, kp (pl only)
+    ct = kz_is / k_is
+    st = k_parallel / k_is
+    _, pilm_pl, taulm_pl = sf.legendre_normalized(ct, st, l_max)
+    _, pilm_mn, taulm_mn = sf.legendre_normalized(-ct, st, l_max)
+
+    m_list = [None for n in range(blocksize)]
+    for tau in range(2):
+        for m in range(-m_max, m_max + 1):
+            for l in range(max(1, abs(m)), l_max + 1):
+                n = smuthi.fields.multi_to_single_index(tau, l, m, l_max, m_max)
+                m_list[n] = m
+                for pol in range(2):
+                    B_dag[pol,n,:] = trf.transformation_coefficients_vwf(tau, l, m, pol, pilm_list=pilm_pl,
+                                                                           taulm_list=taulm_pl, dagger=True)
+                    B[pol,n,:] = trf.transformation_coefficients_vwf(tau, l, m, pol, pilm_list=pilm_pl,
+                                                                       taulm_list=taulm_pl, dagger=False)
+
+    
+    # pairs of (n1, n2), listed by abs(m1-m2)
+    n1n2_combinations = [[] for dm in range(2*m_max+1)]
+    for n1 in range(blocksize):
+        m1 = m_list[n1]
+        for n2 in range(blocksize):
+            m2 = m_list[n2]
+            n1n2_combinations[abs(m1-m2)].append((n1,n2))
+    
+    # in the rotated coordinate system, the radial distance rho is represented 
+    # as a vertical distance dz
+    dz_array = radial_distance_array 
+    epljkdz = np.exp(1j * kz_is[None, :] * dz_array[:, None])               
+    w = np.zeros((len_rho, blocksize, blocksize), dtype=complex)
+    
+    dkp = np.diff(k_parallel)
+    if cu.use_gpu:
+        re_dkp_d = cu.gpuarray.to_gpu(np.float32(dkp.real))
+        im_dkp_d = cu.gpuarray.to_gpu(np.float32(dkp.imag))
+        kernel_source_code = cusrc.radial_lookup_assembly_code_PVWF %(blocksize, len_rho, len_kp)
+        helper_function = cu.SourceModule(kernel_source_code).get_function("helper")
+        cuda_blocksize = 128
+        cuda_gridsize = (len_rho + cuda_blocksize - 1) // cuda_blocksize
+
+        re_dw_d = cu.gpuarray.to_gpu(np.zeros(len_rho, dtype=np.float32))
+        im_dw_d = cu.gpuarray.to_gpu(np.zeros(len_rho, dtype=np.float32))
+    n1n2_combinations = [[] for dm in range(2*m_max+1)]
+    for n1 in range(blocksize):
+        m1 = m_list[n1]
+        for n2 in range(blocksize):
+            m2 = m_list[n2]
+            n1n2_combinations[abs(m1-m2)].append((n1,n2))
+    
+    pbar = tqdm(total=blocksize**2, 
+                desc='PWE direct coupling   ', 
+                file=sys.stdout,
+                bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}')
+            
+    for dm in range(2*m_max+1):
+        # in the rotated coordinate system, rho is always zero
+        bessel = scipy.special.jv(dm, (k_parallel[None,:]*np.zeros(len_rho)[:,None]))
+        besjac = bessel * (k_parallel / (kz_is * k_is))[None,:]
+        for n1n2 in n1n2_combinations[dm]:
+            n1 = n1n2[0]
+            m1 = m_list[n1]
+            n2 = n1n2[1]
+            m2 = m_list[n2]
+            
+            bebe = np.zeros((len_rho, len_kp), dtype=complex) # n1, n2, rho, kp
+            for pol in range(2):
+                # always use B+ (all kz > 0)
+                bebe += ((B_dag[pol, n1, :] * B[pol, n2, :])[None, :] * epljkdz) 
+                
+            if cu.use_gpu:
+                re_bebe_d = cu.gpuarray.to_gpu(np.float32(bebe.real)) 
+                im_bebe_d = cu.gpuarray.to_gpu(np.float32(bebe.imag)) 
+
+                re_besjac_d = cu.gpuarray.to_gpu(np.float32(besjac.real))
+                im_besjac_d = cu.gpuarray.to_gpu(np.float32(besjac.imag))
+                helper_function(re_besjac_d.gpudata, im_besjac_d.gpudata, 
+                                re_bebe_d.gpudata, im_bebe_d.gpudata, 
+                                re_dkp_d.gpudata, im_dkp_d.gpudata, 
+                                re_dw_d.gpudata, im_dw_d.gpudata, 
+                                block=(cuda_blocksize, 1, 1), grid=(cuda_gridsize, 1))
+                
+                w[:,n1,n2] = 4 * (1j)**abs(m2-m1) * (re_dw_d.get() + 1j*im_dw_d.get()) 
+
+            else:
+                integrand = besjac * bebe  # rho, kp 
+                w[:,n1,n2] = 2 * (1j)**abs(m2-m1) * ((integrand[:,:-1] + integrand[:,1:]) 
+                                                            * dkp[None,:]).sum(axis=-1)  # trapezoidal rule
+            pbar.update()
+    pbar.close()
+    
+    alpha = 0
+    beta = -np.pi / 2
+    rot_mat_1 = np.transpose(trf.block_rotation_matrix_D_svwf(l_max, m_max, 0, beta, alpha))
+    rot_mat_2 = np.transpose(trf.block_rotation_matrix_D_svwf(l_max, m_max, -alpha, -beta, 0))
+    w = np.dot(np.einsum('ij,ljk->lik', rot_mat_1, w), rot_mat_2)
+    
+    return w, radial_distance_array
