@@ -26,7 +26,7 @@ k_parallel = flds.create_k_parallel_array(wl, neff_waypoints, neff_resolution)
 
 ''' compare CPU and GPU lookup '''
 cu.enable_gpu(enable=False)
-w_CPU, rho_array = look.radial_coupling_lookup_table_pwe_correction(vacuum_wavelength=wl,
+w_CPU, rho_array = look.radial_direct_pwe_mediated_coupling_lookup_table(vacuum_wavelength=wl,
                                                                 rho_max=rho_max,
                                                                 l_max=lmax,
                                                                 k_is=k_is,
@@ -35,7 +35,7 @@ w_CPU, rho_array = look.radial_coupling_lookup_table_pwe_correction(vacuum_wavel
 
 
 cu.enable_gpu(enable=True)
-w_CUDA, rho_array_CUDA = look.radial_coupling_lookup_table_pwe_correction(vacuum_wavelength=wl,
+w_CUDA, rho_array_CUDA = look.radial_direct_pwe_mediated_coupling_lookup_table(vacuum_wavelength=wl,
                                                                 rho_max=rho_max,
                                                                 l_max=lmax,
                                                                 k_is=k_is,

@@ -463,7 +463,7 @@ def size_format(b):
 
 
 
-def radial_coupling_lookup_table_pwe_correction(vacuum_wavelength, rho_max, l_max, k_is, k_parallel='default', resolution=None):
+def radial_direct_pwe_mediated_coupling_lookup_table(vacuum_wavelength, rho_max, l_max, k_is, k_parallel='default', resolution=None):
     """Prepare Sommerfeld integral lookup table to allow for a fast calculation of the coupling matrix by interpolation.
     This function is called when all particles are on the same z-position.
     
