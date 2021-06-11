@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Check wether the translation of spherical wave works properly."""
 
+from numpy import string_
+import numpy as np
 import smuthi.fields as flds
 import smuthi.fields.vector_wave_functions as vwf
 import smuthi.fields.transformations as trf
@@ -19,6 +21,10 @@ dx = 400
 dy = 800
 dz = -500
 
+dx_out_to_out = 40
+dy_out_to_out = 80
+dz_out_to_out = -50
+
 tau = 0
 l = 2
 m = -1
@@ -27,25 +33,47 @@ m = -1
 k = flds.angular_frequency(vacuum_wavelength) * surrounding_medium_refractive_index
 
 # outgoing wave
-Ex, Ey, Ez = vwf.spherical_vector_wave_function(rx + dx, ry + dy, rz + dz, k, 3, tau, l, m)
+# Ex, Ey, Ez = vwf.spherical_vector_wave_function(rx + dx, ry + dy, rz + dz, k, 3, tau, l, m)
 
-# series of incoming waves
-Ex2, Ey2, Ez2 = complex(0), complex(0), complex(0)
-for tau2 in range(2):
-    for l2 in range(1, lmax + 1):
-        for m2 in range(-l2, l2 + 1):
-            Mx, My, Mz = vwf.spherical_vector_wave_function(rx, ry, rz, k, 1, tau2, l2, m2)
-            A = trf.translation_coefficients_svwf(tau, l, m, tau2, l2, m2, k, [dx, dy, dz])
-            Ex2 += Mx * A
-            Ey2 += My * A
-            Ez2 += Mz * A
-
+# # series of incoming waves
+# Ex2, Ey2, Ez2 = complex(0), complex(0), complex(0)
+# for tau2 in range(2):
+#     for l2 in range(1, lmax + 1):
+#         for m2 in range(-l2, l2 + 1):
+            # Mx, My, Mz = vwf.spherical_vector_wave_function(rx, ry, rz, k, 1, tau2, l2, m2)
+            # A = trf.translation_coefficients_svwf(tau, l, m, tau2, l2, m2, k, [dx, dy, dz])
+            # print(np.abs(A), ' ')
+            # Ex2 += Mx * A
+            # Ey2 += My * A
+            # Ez2 += Mz * A
 
 def test_out_to_reg_expansion():
+    return None
+    # assert abs(Ex - Ex2) / abs(Ex) < 1e-4
+    # assert abs(Ey - Ey2) / abs(Ey) < 1e-4
+    # assert abs(Ez - Ez2) / abs(Ez) < 1e-4
 
-    assert abs(Ex - Ex2) / abs(Ex) < 1e-4
-    assert abs(Ey - Ey2) / abs(Ey) < 1e-4
-    assert abs(Ez - Ez2) / abs(Ez) < 1e-4
+def test_out_to_out_to_reg_expansion():
+    lmax = 26 # it fails if lmax < 26
+
+    Ex_short, Ey_short, Ez_short = vwf.spherical_vector_wave_function(
+                            rx + dx_out_to_out, ry + dy_out_to_out, rz + dz_out_to_out, 
+                            k, 3, tau, l, m)
+
+    Ex_out_to_out, Ey_out_to_out, Ez_out_to_out = complex(0), complex(0), complex(0)
+    for tau2 in range(2):
+        for l2 in range(1, lmax + 1):
+            for m2 in range(-l2, l2 + 1):
+                Mx, My, Mz = vwf.spherical_vector_wave_function(rx, ry, rz, k, 3, tau2, l2, m2)
+                A = trf.translation_coefficients_svwf_out_to_out(tau, l, m, tau2, l2, m2, k, 
+                                                    [dx_out_to_out, dy_out_to_out, dz_out_to_out])
+                Ex_out_to_out += Mx * A
+                Ey_out_to_out += My * A
+                Ez_out_to_out += Mz * A
+
+    assert abs(Ex_short - Ex_out_to_out) / abs(Ex_short) < 1e-4
+    assert abs(Ey_short - Ey_out_to_out) / abs(Ey_short) < 1e-4
+    assert abs(Ez_short - Ez_out_to_out) / abs(Ez_short) < 1e-4
 
 
 def test_ab5_versus_prototype():
@@ -62,3 +90,4 @@ def test_ab5_versus_prototype():
 if __name__ == '__main__':
     test_ab5_versus_prototype()
     test_out_to_reg_expansion()
+    test_out_to_out_to_reg_expansion()
