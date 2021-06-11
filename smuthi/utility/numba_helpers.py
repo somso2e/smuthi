@@ -151,7 +151,7 @@ def evaluate_r_times_eikr(foo_x, foo_y, foo_z, exp_feed):
     return result_x, result_y, result_z
 
 
-@jit(['float64(float64)'], nopython=True)
+@jit(['float64(float64)'], nopython=True, cache=True, nogil=True)
 def float_factorial(n):
     """Return factorial. Max meaningful n = 170.
 
@@ -167,7 +167,7 @@ def float_factorial(n):
         return n * float_factorial(n-1)
 
 
-@jit(['float64(float64)'], nopython=True)
+@jit(['float64(float64)'], nopython=True, cache=True, nogil=True)
 def float_double_factorial(n):
     """Return double factorial. Max meaningful n = 300.
 

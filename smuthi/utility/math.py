@@ -48,7 +48,7 @@ def legendre_normalized(ct, st, lmax):
 
     return legendre_normalized_numbed(ct, st, lmax)
 
-@jit(nopython=True)
+@jit(nopython=True, cache=True, nogil=True)
 def legendre_normalized_numbed(ct, st, lmax):
     r"""Return the normalized associated Legendre function :math:`P_l^m(\cos\theta)` and the angular functions
     :math:`\pi_l^m(\cos \theta)` and :math:`\tau_l^m(\cos \theta)`, as defined in

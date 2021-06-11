@@ -54,7 +54,7 @@ def test_out_to_reg_expansion():
     # assert abs(Ez - Ez2) / abs(Ez) < 1e-4
 
 def test_out_to_out_to_reg_expansion():
-    lmax = 26 # it fails if lmax < 26
+    lmax = 50 # it fails if lmax < 26
 
     prof = cProfile.Profile()
     prof.enable()
