@@ -48,9 +48,9 @@ def transformation_coefficients_vwf(tau, l, m, pol, kp=None, kz=None, pilm_list=
         plm_list, pilm_list, taulm_list = mathfunc.legendre_normalized(ct, st, l)
 
     if tau == pol:
-        sphfun = taulm_list[l][abs(m)]
+        sphfun = taulm_list[l, abs(m)]
     else:
-        sphfun = m * pilm_list[l][abs(m)]
+        sphfun = m * pilm_list[l, abs(m)]
 
     if dagger:
         if pol == 0:
@@ -279,9 +279,9 @@ def translation_coefficients_svwf(tau1, l1, m1, tau2, l2, m2, k, d, sph_hankel=N
     for ld in range(abs(l1 - l2), l1 + l2 + 1):
         a5, b5 = ab5_coefficients(l1, m1, l2, m2, ld)
         if tau1 == tau2:
-            A += a5 * sph_hankel[ld] * legendre[ld][abs(m1 - m2)]
+            A += a5 * sph_hankel[ld] * legendre[ld, abs(m1 - m2)]
         else:
-            A += b5 * sph_hankel[ld] * legendre[ld][abs(m1 - m2)]
+            A += b5 * sph_hankel[ld] * legendre[ld, abs(m1 - m2)]
     A = eimph * A
     return A
 
@@ -336,9 +336,9 @@ def translation_coefficients_svwf_out_to_out(tau1, l1, m1, tau2, l2, m2, k, d, s
     for ld in range(abs(l1 - l2), l1 + l2 + 1):
         a5, b5 = ab5_coefficients(l1, m1, l2, m2, ld)
         if tau1==tau2:
-            A += a5 * sph_bessel[ld] * legendre[ld][abs(m1 - m2)]
+            A += a5 * sph_bessel[ld] * legendre[ld, abs(m1 - m2)]
         else:
-            A += b5 * sph_bessel[ld] * legendre[ld][abs(m1 - m2)]
+            A += b5 * sph_bessel[ld] * legendre[ld, abs(m1 - m2)]
     A = eimph * A
     return A
 

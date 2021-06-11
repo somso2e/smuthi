@@ -149,3 +149,35 @@ def evaluate_r_times_eikr(foo_x, foo_y, foo_z, exp_feed):
                 result_z[i, j, k] = foo_z_slice * exp_j
                             
     return result_x, result_y, result_z
+
+
+@jit(['float64(float64)'], nopython=True)
+def float_factorial(n):
+    """Return factorial. Max meaningful n = 170.
+
+    Args:
+        n (float64): Argument (non-negative)
+
+    Returns:
+        Factorial of n
+    """
+    if n == 0:
+        return 1
+    else:
+        return n * float_factorial(n-1)
+
+
+@jit(['float64(float64)'], nopython=True)
+def float_double_factorial(n):
+    """Return double factorial. Max meaningful n = 300.
+
+    Args:
+        n (float64): Argument (non-negative)
+
+    Returns:
+        Double factorial of n
+    """
+    if n in (0, 1):
+        return 1
+    else:
+        return n * float_double_factorial(n - 2)
