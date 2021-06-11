@@ -6,7 +6,7 @@ import numpy as np
 import smuthi.fields as flds
 import smuthi.fields.vector_wave_functions as vwf
 import smuthi.fields.transformations as trf
-
+import cProfile, pstats
 
 # Parameter input ----------------------------
 vacuum_wavelength = 550
@@ -56,6 +56,9 @@ def test_out_to_reg_expansion():
 def test_out_to_out_to_reg_expansion():
     lmax = 26 # it fails if lmax < 26
 
+    prof = cProfile.Profile()
+    prof.enable()
+
     Ex_short, Ey_short, Ez_short = vwf.spherical_vector_wave_function(
                             rx + dx_out_to_out, ry + dy_out_to_out, rz + dz_out_to_out, 
                             k, 3, tau, l, m)
@@ -67,9 +70,14 @@ def test_out_to_out_to_reg_expansion():
                 Mx, My, Mz = vwf.spherical_vector_wave_function(rx, ry, rz, k, 3, tau2, l2, m2)
                 A = trf.translation_coefficients_svwf_out_to_out(tau, l, m, tau2, l2, m2, k, 
                                                     [dx_out_to_out, dy_out_to_out, dz_out_to_out])
+                #print(np.abs(A), ' ')
                 Ex_out_to_out += Mx * A
                 Ey_out_to_out += My * A
                 Ez_out_to_out += Mz * A
+
+    prof.disable()
+    stats = pstats.Stats(prof).sort_stats('tottime')
+    stats.print_stats(20)
 
     assert abs(Ex_short - Ex_out_to_out) / abs(Ex_short) < 1e-4
     assert abs(Ey_short - Ey_out_to_out) / abs(Ey_short) < 1e-4
@@ -87,7 +95,9 @@ def test_ab5_versus_prototype():
     assert abs(b5 - b5matl) / abs(b5) < 1e-7
 
 
-if __name__ == '__main__':
-    test_ab5_versus_prototype()
-    test_out_to_reg_expansion()
-    test_out_to_out_to_reg_expansion()
+test_out_to_out_to_reg_expansion()
+
+# if __name__ == '__main__':
+#     test_ab5_versus_prototype()
+#     test_out_to_reg_expansion()
+#     test_out_to_out_to_reg_expansion()
