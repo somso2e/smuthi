@@ -32,6 +32,7 @@ E_prime = vwf.spherical_vector_wave_function(r_prime[0], r_prime[1], r_prime[2],
 
 # transformation into the laboratory coordinate system
 E = sf.inverse_vector_rotation(E_prime, euler_angles=[alpha, beta, gamma])
+E = np.squeeze(E)
 
 # 
 Ex2, Ey2, Ez2 = complex(0), complex(0), complex(0)
