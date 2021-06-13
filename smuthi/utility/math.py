@@ -90,8 +90,9 @@ def legendre_normalized_numbed(ct, st, lmax):
         taulm[l + 1, 0] = -st * pprimel0[l + 1]
 
     for m in range(1, lmax + 1):
-        plm[m, m] = np.sqrt((2 * m + 1) / (2 * nh.float_factorial(2 * m))) * nh.float_double_factorial(2 * m - 1) * st**m
-        pilm[m, m] = np.sqrt((2 * m + 1) / (2 * nh.float_factorial(2 * m))) * nh.float_double_factorial(2 * m - 1) * st**(m - 1)
+        prefactor = nh.prefactor_expansion(m)
+        plm[m, m] = prefactor * st**m
+        pilm[m, m] = prefactor * st**(m - 1)
         taulm[m, m] = m * ct * pilm[m, m]
         for l in range(m, lmax):
             plm[l + 1, m] = (np.sqrt((2 * l + 1) * (2 * l + 3) / ((l + 1 - m) * (l + 1 + m))) * ct * plm[l, m] -
@@ -208,25 +209,27 @@ def factorial(n):
 
 
 @memo.Memoize
-def double_factorial(n):
-    """Return double factorial.
+def legendre_prefactor(m):
+    """Returns the prefactor :math:`\sqrt(\frac{(2*m+1)}{2(2m)!} (2m-1)!!`
+    taking advantage of python's bignumbers.
+    A jitted version of this function is available as jitted_prefactor() under
+    numba_helpers
 
     Args:
-        n (int): Argument (non-negative)
+        m (int64): Argument (non-negative)
 
     Returns:
-        Double factorial of n
+        :math:`\sqrt(\frac{(2*m+1)!!}{2(2m)!!}`
     """
-    assert type(n) == int and n >= 0
-    if n in (0, 1):
-        return 1
-    else:
-        return n * double_factorial(n - 2)
+    res = 1.
+    for t in range(2,2*m+2,2):
+        res += res/t # equivalent to res *= (t+1)/t, but retains more significant digits
+    return (res/2)**0.5
 
 
 def wigner_d(l, m, m_prime, beta, wdsympy=False):
     """Computation of Wigner-d-functions for the rotation of a T-matrix
-    
+
     Args:
         l (int):          Degree :math:`l` (1, ..., lmax)
         m (int):          Order :math:`m` (-min(l,mmax),...,min(l,mmax))
