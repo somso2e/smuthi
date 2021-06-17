@@ -863,7 +863,7 @@ class DipoleCollection(InitialField):
         sys.stdout.write('Dipole array dissipated power evaluation:\n')
         sys.stdout.flush()
 
-        if k_parallel == 'default':
+        if type(k_parallel) == str and k_parallel == 'default':
             k_parallel = flds.default_initial_field_k_parallel_array
 
         if angular_resolution is not None:
