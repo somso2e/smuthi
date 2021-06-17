@@ -5,6 +5,7 @@ import smuthi.particles as part
 import smuthi.layers as lay
 import smuthi.initial_field as init
 import smuthi.simulation as simul
+import smuthi.fields as flds
 from smuthi.linearsystem.particlecoupling.direct_coupling import direct_coupling_block
 from smuthi.linearsystem.particlecoupling.layer_mediated_coupling import layer_mediated_coupling_block
 import smuthi.utility.cuda as cu
@@ -15,12 +16,15 @@ polar_angle = np.pi * 7/8
 azimuthal_angle = np.pi * 1/3
 polarization = 0
 amplitude = 1
-#neff_waypoints = [0, 0.5, 0.8-0.01j, 2-0.01j, 2.5, 5]
-#neff_discr = 1e-2
+neff_waypoints = [0, 0.5, 0.8-0.01j, 2-0.01j, 2.5, 5]
+neff_discr = 1e-2
 lookup_resol = 7
 # --------------------------------------------
 
-#coord.set_default_k_parallel(vacuum_wavelength, neff_waypoints, neff_discr)
+flds.default_Sommerfeld_k_parallel_array = flds.reasonable_Sommerfeld_kpar_contour(
+    vacuum_wavelength=vacuum_wavelength,
+    neff_waypoints=neff_waypoints,
+    neff_resolution=neff_discr)
 
 # initialize particle object
 sphere1 = part.Sphere(position=[0, 0, 100], refractive_index=2.4 + 0.0j, radius=100, l_max=3, m_max=3)
