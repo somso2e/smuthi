@@ -206,7 +206,7 @@ class Simulation:
         thresh = 2 / (maxrho * k)
 
         # check neff_resol
-        if self.neff_resolution is not None and self.k_parallel == "default":
+        if self.neff_resolution is not None and type(self.k_parallel) is str and self.k_parallel == "default":
             if self.neff_resolution > thresh:
                 sys.stdout.write("Warning: Sanity check for neff_resolution failed!\n")
                 sys.stdout.write("         neff_resolution = %.3e, max_rho = %.3e. k = %.3e.\n"%(self.neff_resolution,maxrho,k))
@@ -214,7 +214,7 @@ class Simulation:
                 sys.stdout.flush()
 
         # check neff_imag
-        if self.neff_imag is not None and self.k_parallel == "default" and self.neff_waypoints is None:
+        if self.neff_imag is not None and type(self.k_parallel) is str and self.k_parallel == "default" and self.neff_waypoints is None:
             if self.neff_imag > thresh:
                 sys.stdout.write("Warning: Sanity check for neff_imag failed!\n")
                 sys.stdout.write("         neff_imag = %.3e, max_rho = %.3e. k = %.3e.\n"%(self.neff_imag,maxrho,k))
