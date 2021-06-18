@@ -116,9 +116,9 @@ def spherical_vector_wave_function(x, y, z, k, nu, tau, l, m):
     cos_thet = np.cos(theta)
     sin_thet = np.sin(theta)
     plm_list, pilm_list, taulm_list = sf.legendre_normalized(cos_thet, sin_thet, l)
-    plm = plm_list[l][abs(m)]
-    pilm = pilm_list[l][abs(m)]
-    taulm = taulm_list[l][abs(m)]
+    plm = plm_list[l, abs(m)]
+    pilm = pilm_list[l, abs(m)]
+    taulm = taulm_list[l, abs(m)]
 
     kr = k * r
     if nu == 1:

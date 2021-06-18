@@ -8,6 +8,8 @@ import smuthi.utility.memoizing as memo
 import sys
 import sympy
 import math
+import smuthi.utility.numba_helpers as nh
+from numba import jit
 from sympy.physics.quantum.spin import Rotation
 try:
     try:
@@ -47,43 +49,61 @@ def legendre_normalized(ct, st, lmax):
         lmax (int): maximal multipole order
 
     Returns:
-        - list plm[l][m] contains :math:`P_l^m(\cos \theta)`. The entries of the list have same dimension as ct (and st)
-        - list pilm[l][m] contains :math:`\pi_l^m(\cos \theta)`.
-        - list taulm[l][m] contains :math:`\tau_l^m(\cos \theta)`.
+        - ndarray plm[l, m, *ct.shape] contains :math:`P_l^m(\cos \theta)`. The entries of the list have same dimension as ct (and st)
+        - ndarray pilm[l, m, *ct.shape] contains :math:`\pi_l^m(\cos \theta)`.
+        - ndarray taulm[l, m, *ct.shape] contains :math:`\tau_l^m(\cos \theta)`.
     """
-    zr = np.zeros_like(ct)
-    plm = [[zr for m in range(lmax + 1)] for l in range(lmax + 1)]
-    pilm = [[zr for m in range(lmax + 1)] for l in range(lmax + 1)]
-    taulm = [[zr for m in range(lmax + 1)] for l in range(lmax + 1)]
-    pprimel0 = [zr for l in range(lmax + 1)]
+    if hasattr(ct, '__len__'):
+        ct = np.array(ct, dtype=np.complex128)
+    else:
+        ct = np.array([ct], dtype=np.complex128)
 
-    plm[0][0] += np.sqrt(2)/2
-    plm[1][0] = np.sqrt(3/2) * ct
-    pprimel0[1] = np.sqrt(3) * plm[0][0]
-    taulm[0][0] = -st * pprimel0[0]
-    taulm[1][0] = -st * pprimel0[1]
+    if hasattr(st, '__len__'):
+        st = np.array(st, dtype=np.complex128)
+    else:
+        st = np.array([st], dtype=np.complex128)
+
+    return legendre_normalized_numbed(ct, st, lmax)
+
+@jit(nopython=True, cache=True, nogil=True)
+def legendre_normalized_numbed(ct, st, lmax):
+    plm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
+    pilm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
+    taulm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
+    pprimel0 = np.zeros((lmax+1, *ct.shape), dtype=np.complex128)
+
+    plm = plm + np.sqrt(2)/2
+    pilm = pilm + np.sqrt(2)/2
+    taulm = taulm + np.sqrt(2)/2
+    pprimel0 = pprimel0 + np.sqrt(2)/2
+
+    plm[1, 0] = np.sqrt(3/2) * ct
+    pprimel0[1] = np.sqrt(3) * plm[0, 0]
+    taulm[0, 0] = -st * pprimel0[0]
+    taulm[1, 0] = -st * pprimel0[1]
 
     for l in range(1, lmax):
-        plm[l + 1][0] = (1 / (l + 1) * np.sqrt((2 * l + 1) * (2 * l + 3)) * ct * plm[l][0] -
-                         l / (l + 1) * np.sqrt((2 * l + 3) / (2 * l - 1)) * plm[l-1][0])
-        pprimel0[l + 1] = ((l + 1) * np.sqrt((2 * (l + 1) + 1) / (2 * (l + 1) - 1)) * plm[l][0] +
+        plm[l + 1, 0] = (1 / (l + 1) * np.sqrt((2 * l + 1) * (2 * l + 3)) * ct * plm[l, 0] -
+                         l / (l + 1) * np.sqrt((2 * l + 3) / (2 * l - 1)) * plm[l-1, 0])
+        pprimel0[l + 1] = ((l + 1) * np.sqrt((2 * (l + 1) + 1) / (2 * (l + 1) - 1)) * plm[l, 0] +
                            np.sqrt((2 * (l + 1) + 1) / (2 * (l + 1) - 1)) * ct * pprimel0[l])
-        taulm[l + 1][0] = -st * pprimel0[l + 1]
+        taulm[l + 1, 0] = -st * pprimel0[l + 1]
 
     for m in range(1, lmax + 1):
-        plm[m][m] = np.sqrt((2 * m + 1) / (2 * factorial(2 * m))) * double_factorial(2 * m - 1) * st**m
-        pilm[m][m] = np.sqrt((2 * m + 1) / (2 * factorial(2 * m))) * double_factorial(2 * m - 1) * st**(m - 1)
-        taulm[m][m] = m * ct * pilm[m][m]
+        prefactor = nh.prefactor_expansion(m)
+        plm[m, m] = prefactor * st**m
+        pilm[m, m] = prefactor * st**(m - 1)
+        taulm[m, m] = m * ct * pilm[m, m]
         for l in range(m, lmax):
-            plm[l + 1][m] = (np.sqrt((2 * l + 1) * (2 * l + 3) / ((l + 1 - m) * (l + 1 + m))) * ct * plm[l][m] -
+            plm[l + 1, m] = (np.sqrt((2 * l + 1) * (2 * l + 3) / ((l + 1 - m) * (l + 1 + m))) * ct * plm[l, m] -
                              np.sqrt((2 * l + 3) * (l - m) * (l + m) / ((2 * l - 1) * (l + 1 - m) * (l + 1 + m))) *
-                             plm[l - 1][m])
-            pilm[l + 1][m] = (np.sqrt((2 * l + 1) * (2 * l + 3) / (l + 1 - m) / (l + 1 + m)) * ct * pilm[l][m] -
+                             plm[l - 1, m])
+            pilm[l + 1, m] = (np.sqrt((2 * l + 1) * (2 * l + 3) / (l + 1 - m) / (l + 1 + m)) * ct * pilm[l, m] -
                               np.sqrt((2 * l + 3) * (l - m) * (l + m) / (2 * l - 1) / (l + 1 - m) / (l + 1 + m)) *
-                              pilm[l - 1][m])
-            taulm[l + 1][m] = ((l + 1) * ct * pilm[l + 1][m] -
+                              pilm[l - 1, m])
+            taulm[l + 1, m] = ((l + 1) * ct * pilm[l + 1, m] -
                                (l + 1 + m) * np.sqrt((2 * (l + 1) + 1) * (l + 1 - m) / (2 * (l + 1) - 1) / (l + 1 + m))
-                               * pilm[l][m])
+                               * pilm[l, m])
 
     return plm, pilm, taulm
 
@@ -189,25 +209,27 @@ def factorial(n):
 
 
 @memo.Memoize
-def double_factorial(n):
-    """Return double factorial.
+def legendre_prefactor(m):
+    """Returns the prefactor :math:`\sqrt(\frac{(2*m+1)}{2(2m)!} (2m-1)!!`
+    taking advantage of python's bignumbers.
+    A jitted version of this function is available as jitted_prefactor() under
+    numba_helpers
 
     Args:
-        n (int): Argument (non-negative)
+        m (int64): Argument (non-negative)
 
     Returns:
-        Double factorial of n
+        :math:`\sqrt(\frac{(2*m+1)!!}{2(2m)!!}`
     """
-    assert type(n) == int and n >= 0
-    if n in (0, 1):
-        return 1
-    else:
-        return n * double_factorial(n - 2)
+    res = 1.
+    for t in range(2,2*m+2,2):
+        res += res/t # equivalent to res *= (t+1)/t, but retains more significant digits
+    return (res/2)**0.5
 
 
 def wigner_d(l, m, m_prime, beta, wdsympy=False):
     """Computation of Wigner-d-functions for the rotation of a T-matrix
-    
+
     Args:
         l (int):          Degree :math:`l` (1, ..., lmax)
         m (int):          Order :math:`m` (-min(l,mmax),...,min(l,mmax))

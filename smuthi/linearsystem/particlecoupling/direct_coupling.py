@@ -63,8 +63,8 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
                         A, B = complex(0), complex(0)
                         for ld in range(max(abs(l1 - l2), abs(m1 - m2)), l1 + l2 + 1):  # if ld<abs(m1-m2) then P=0
                             a5, b5 = trf.ab5_coefficients(l2, m2, l1, m1, ld)
-                            A += a5 * bessel_h[ld] * legendre[ld][abs(m1 - m2)]
-                            B += b5 * bessel_h[ld] * legendre[ld][abs(m1 - m2)]
+                            A += a5 * bessel_h[ld] * legendre[ld, abs(m1 - m2)]
+                            B += b5 * bessel_h[ld] * legendre[ld, abs(m1 - m2)]
                         A, B = eimph * A, eimph * B
                         for tau1 in range(2):
                             n1 = flds.multi_to_single_index(tau1, l1, m1, lmax1, mmax1)

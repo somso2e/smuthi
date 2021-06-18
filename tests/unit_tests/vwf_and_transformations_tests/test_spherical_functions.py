@@ -28,36 +28,36 @@ def test_Plm_against_prototype():
     plm, pilm, taulm = smuthi.utility.math.legendre_normalized(ct, st, lmax)
 
     # P_3^0
-    np.testing.assert_almost_equal(plm[3][0][0], 1.870267465826245)
-    np.testing.assert_almost_equal(plm[3][0][1], 1.649727250184103)
-    np.testing.assert_almost_equal(plm[3][0][2], -0.300608757357466)
-    np.testing.assert_almost_equal(plm[3][0][3], -0.382739631607606)
-    np.testing.assert_almost_equal(plm[3][0][4], - 3.226515147957620j)
-    np.testing.assert_almost_equal(plm[3][0][5], -25.338383323084539 - 22.141864985871653j)
+    np.testing.assert_almost_equal(plm[3, 0, 0], 1.870267465826245)
+    np.testing.assert_almost_equal(plm[3, 0, 1], 1.649727250184103)
+    np.testing.assert_almost_equal(plm[3, 0, 2], -0.300608757357466)
+    np.testing.assert_almost_equal(plm[3, 0, 3], -0.382739631607606)
+    np.testing.assert_almost_equal(plm[3, 0, 4], - 3.226515147957620j)
+    np.testing.assert_almost_equal(plm[3, 0, 5], -25.338383323084539 - 22.141864985871653j)
 
     # P_2^1
-    np.testing.assert_almost_equal(plm[2][1][0], 0.019363948460993)
-    np.testing.assert_almost_equal(plm[2][1][1], 0.379473319220206)
-    np.testing.assert_almost_equal(plm[2][1][2], 0.968052168015753)
-    np.testing.assert_almost_equal(plm[2][1][3], 0.270444009917026)
-    np.testing.assert_almost_equal(plm[2][1][4], 1.541427909439815j)
-    np.testing.assert_almost_equal(plm[2][1][5], 3.906499971729346 + 6.239600710712296j)
+    np.testing.assert_almost_equal(plm[2, 1, 0], 0.019363948460993)
+    np.testing.assert_almost_equal(plm[2, 1, 1], 0.379473319220206)
+    np.testing.assert_almost_equal(plm[2, 1, 2], 0.968052168015753)
+    np.testing.assert_almost_equal(plm[2, 1, 3], 0.270444009917026)
+    np.testing.assert_almost_equal(plm[2, 1, 4], 1.541427909439815j)
+    np.testing.assert_almost_equal(plm[2, 1, 5], 3.906499971729346 + 6.239600710712296j)
 
     # pi_2^1
-    np.testing.assert_almost_equal(pilm[2][1][0], 1.936394846099318)
-    np.testing.assert_almost_equal(pilm[2][1][1], 1.897366596101028)
-    np.testing.assert_almost_equal(pilm[2][1][2], 1.382931668593933)
-    np.testing.assert_almost_equal(pilm[2][1][3], 0.273175767592955)
-    np.testing.assert_almost_equal(pilm[2][1][4], 1.284523257866512j)
-    np.testing.assert_almost_equal(pilm[2][1][5], 1.104282256024128 + 3.395870919362181j)
+    np.testing.assert_almost_equal(pilm[2, 1, 0], 1.936394846099318)
+    np.testing.assert_almost_equal(pilm[2, 1, 1], 1.897366596101028)
+    np.testing.assert_almost_equal(pilm[2, 1, 2], 1.382931668593933)
+    np.testing.assert_almost_equal(pilm[2, 1, 3], 0.273175767592955)
+    np.testing.assert_almost_equal(pilm[2, 1, 4], 1.284523257866512j)
+    np.testing.assert_almost_equal(pilm[2, 1, 5], 1.104282256024128 + 3.395870919362181j)
 
     # tau_3^2
-    np.testing.assert_almost_equal(taulm[3][2][0], 0.051227068616724)
-    np.testing.assert_almost_equal(taulm[3][2][1], 0.963213372000203)
-    np.testing.assert_almost_equal(taulm[3][2][2], 0.950404683542753)
-    np.testing.assert_almost_equal(taulm[3][2][3], -2.384713931794872)
-    np.testing.assert_almost_equal(taulm[3][2][4], -7.131877733107878)
-    np.testing.assert_almost_equal(taulm[3][2][5], -39.706934218093430 + 42.588889121019569j)
+    np.testing.assert_almost_equal(taulm[3, 2, 0], 0.051227068616724)
+    np.testing.assert_almost_equal(taulm[3, 2, 1], 0.963213372000203)
+    np.testing.assert_almost_equal(taulm[3, 2, 2], 0.950404683542753)
+    np.testing.assert_almost_equal(taulm[3, 2, 3], -2.384713931794872)
+    np.testing.assert_almost_equal(taulm[3, 2, 4], -7.131877733107878)
+    np.testing.assert_almost_equal(taulm[3, 2, 5], -39.706934218093430 + 42.588889121019569j)
 
 
 def test_jn_against_prototype():
