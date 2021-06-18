@@ -9,7 +9,7 @@ import sys
 import sympy
 import math
 import smuthi.utility.numba_helpers as nh
-from numba import complex128, float64, jit, int32
+from numba import jit
 from sympy.physics.quantum.spin import Rotation
 try:
     try:
