@@ -36,6 +36,23 @@ except Exception as e:
 
 
 def legendre_normalized(ct, st, lmax):
+    r"""Return the normalized associated Legendre function :math:`P_l^m(\cos\theta)` and the angular functions
+    :math:`\pi_l^m(\cos \theta)` and :math:`\tau_l^m(\cos \theta)`, as defined in
+    `A. Doicu, T. Wriedt, and Y. A. Eremin: "Light Scattering by Systems of Particles", Springer-Verlag, 2006
+    <https://doi.org/10.1007/978-3-540-33697-6>`_.
+    Two arguments (ct and st) are passed such that the function is valid for general complex arguments, while the branch
+    cuts are defined by the user already in the definition of st.
+
+    Args:
+        ct (ndarray): cosine of theta (or kz/k)
+        st (ndarray): sine of theta (or kp/k), need to have same dimension as ct, and st**2+ct**2=1 is assumed
+        lmax (int): maximal multipole order
+
+    Returns:
+        - ndarray plm[l, m, *ct.shape] contains :math:`P_l^m(\cos \theta)`. The entries of the list have same dimension as ct (and st)
+        - ndarray pilm[l, m, *ct.shape] contains :math:`\pi_l^m(\cos \theta)`.
+        - ndarray taulm[l, m, *ct.shape] contains :math:`\tau_l^m(\cos \theta)`.
+    """
     if hasattr(ct, '__len__'):
         ct = np.array(ct, dtype=np.complex128)
     else:
@@ -50,27 +67,10 @@ def legendre_normalized(ct, st, lmax):
 
 @jit(nopython=True, cache=True, nogil=True)
 def legendre_normalized_numbed(ct, st, lmax):
-    r"""Return the normalized associated Legendre function :math:`P_l^m(\cos\theta)` and the angular functions
-    :math:`\pi_l^m(\cos \theta)` and :math:`\tau_l^m(\cos \theta)`, as defined in
-    `A. Doicu, T. Wriedt, and Y. A. Eremin: "Light Scattering by Systems of Particles", Springer-Verlag, 2006
-    <https://doi.org/10.1007/978-3-540-33697-6>`_.
-    Two arguments (ct and st) are passed such that the function is valid for general complex arguments, while the branch
-    cuts are defined by the user already in the definition of st.
-
-    Args:
-        ct (ndarray): cosine of theta (or kz/k)
-        st (ndarray): sine of theta (or kp/k), need to have same dimension as ct, and st**2+ct**2=1 is assumed
-        lmax (int): maximal multipole order
-
-    Returns:
-        - list plm[l][m] contains :math:`P_l^m(\cos \theta)`. The entries of the list have same dimension as ct (and st)
-        - list pilm[l][m] contains :math:`\pi_l^m(\cos \theta)`.
-        - list taulm[l][m] contains :math:`\tau_l^m(\cos \theta)`.
-    """
-    plm = np.zeros((lmax+1, lmax+1, len(ct)), dtype=np.complex128)
-    pilm = np.zeros((lmax+1, lmax+1, len(ct)), dtype=np.complex128)
-    taulm = np.zeros((lmax+1, lmax+1, len(ct)), dtype=np.complex128)
-    pprimel0 = np.zeros((lmax+1, len(ct)), dtype=np.complex128)
+    plm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
+    pilm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
+    taulm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
+    pprimel0 = np.zeros((lmax+1, *ct.shape), dtype=np.complex128)
 
     plm = plm + np.sqrt(2)/2
     pilm = pilm + np.sqrt(2)/2
