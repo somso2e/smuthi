@@ -139,7 +139,7 @@ class LayerSystem:
             else:
                 raise ValueError('pwe argument must be either PlaneWaveExpansion or tuple of length two')
         else:
-            assert pwe.reference_point == [0, 0, self.reference_z(from_layer)]
+            assert np.array_equal(pwe.reference_point, [0, 0, self.reference_z(from_layer)])
             omega = pwe.k / self.refractive_indices[from_layer]
             k_to_layer = omega * self.refractive_indices[to_layer]
             reference_point = [0, 0, self.reference_z(to_layer)]

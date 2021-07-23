@@ -437,7 +437,7 @@ class SphericalWaveExpansion(FieldExpansion):
                 and self.l_max == other.l_max
                 and self.m_max == other.m_max 
                 and self.kind == other.kind
-                and self.reference_point == other.reference_point)
+                and np.array_equal(self.reference_point, other.reference_point))
 
     def __add__(self, other):
         """Addition of expansion objects (by coefficients).
@@ -592,7 +592,7 @@ class PlaneWaveExpansion(FieldExpansion):
         return (type(other).__name__=="PlaneWaveExpansion" and np.isclose(self.k, other.k)
                 and all(np.isclose(self.k_parallel, other.k_parallel))
                 and all(np.isclose(self.azimuthal_angles, other.azimuthal_angles)) and self.kind == other.kind
-                and self.reference_point == other.reference_point)
+                and np.array_equal(self.reference_point, other.reference_point))
 
     def __add__(self, other):
         if not self.compatible(other):
