@@ -31,7 +31,7 @@ def read_refractive_index_from_yaml(filename, vacuum_wavelength, units="mkm", ki
                                   +" was not implemented.")
 
     with open(filename) as f:
-        the_file = yaml.load(f)['DATA'][0]
+        the_file = yaml.load(f, yaml.SafeLoader)['DATA'][0]
     data_type = the_file['type']
     if data_type != 'tabulated nk':
         raise NotImplementedError("Input data type '"+data_type
