@@ -110,7 +110,7 @@ def simulate_N_spheres(number_of_spheres=100,
         go.plot_particles(-1e5, 1e5, -1e5, 1e5, 100, 100, spheres_list, True, False)
         plt.savefig("vogel_spiral_%i.png" % number_of_spheres)
 
-    return [(ecs["top"] + ecs["bottom"]).real, preparation_time, solution_time]
+    return [ecs.real, preparation_time, solution_time]
 
 # -----------------------------------------------------------------------------
 # launch a series of simulations:
