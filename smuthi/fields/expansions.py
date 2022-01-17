@@ -949,23 +949,13 @@ class PlaneWaveExpansion(FieldExpansion):
         return 'Linux' in platform.system()
 
     class OptimizationMethodsForLinux(Enum):
-        @staticmethod
-        def _evaluate_r_times_eikr(integrand_x, integrand_y, integrand_z, kr):
-            eikr = np.exp(1j * kr)
-
-            integrand_x_eikr = integrand_x * eikr
-            integrand_y_eikr = integrand_y * eikr
-            integrand_z_eikr = integrand_z * eikr
-
-            return integrand_x_eikr, integrand_y_eikr, integrand_z_eikr
-
         numba_3tensordots_1dim_times_2dim = nh.numba_3tensordots_1dim_times_2dim
-        evaluate_r_times_eikr = _evaluate_r_times_eikr
+        evaluate_r_times_eikr = nh.evaluate_r_times_eikr
         numba_trapz_3dim_array = nh.numba_trapz_3dim_array
 
     class OptimizationMethodsFor_Not_Linux(Enum):
         numba_3tensordots_1dim_times_2dim = nh.numba_3tensordots_1dim_times_2dim_parallel
-        evaluate_r_times_eikr = nh.evaluate_r_times_eikr
+        evaluate_r_times_eikr = nh.evaluate_r_times_eikr_parallel
         numba_trapz_3dim_array = nh.numba_trapz_3dim_array_parallel
 
     def _electric_field_cpu_legacy(self, x, y, z, chunksize=50):
