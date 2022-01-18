@@ -93,3 +93,48 @@ radial_lookup_assembly_code = """
         im_result[i] = im_res;
         
     }"""
+	
+	
+# This cuda kernel is used for the calculation of the direct radial lookup table
+# based on the Plane Vector Wave Function coupling.
+radial_lookup_assembly_code_PVWF = """
+    #define BLOCKSIZE %i
+    #define RHO_ARRAY_LENGTH %i
+    #define K_ARRAY_LENGTH %i
+    
+    __global__ void helper(const float *re_bes_jac, const float *im_bes_jac, const float *re_bebe, 
+                            const float *im_bebe, const float *re_d_kappa, const float *im_d_kappa, 
+                            float *re_result, float  *im_result)
+    {
+        unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+        if(i >= RHO_ARRAY_LENGTH) return;
+        
+        float re_res = 0.0;
+        float im_res = 0.0;
+        
+        int i_kr = i * K_ARRAY_LENGTH;
+
+        float re_integrand_kp1 = re_bes_jac[i_kr] * re_bebe[i_kr] - im_bes_jac[i_kr] * im_bebe[i_kr];
+        float im_integrand_kp1 = re_bes_jac[i_kr] * im_bebe[i_kr] + im_bes_jac[i_kr] * re_bebe[i_kr];
+
+        for (int i_k=0; i_k<(K_ARRAY_LENGTH-1); i_k++)
+        {
+            i_kr = i * K_ARRAY_LENGTH + i_k;
+            
+            float re_integrand = re_integrand_kp1;
+            float im_integrand = im_integrand_kp1;
+
+            re_integrand_kp1 = re_bes_jac[i_kr+1] * re_bebe[i_kr+1] - im_bes_jac[i_kr+1] * im_bebe[i_kr+1];
+            im_integrand_kp1 = re_bes_jac[i_kr+1] * im_bebe[i_kr+1] + im_bes_jac[i_kr+1] * re_bebe[i_kr+1];
+            
+            float re_sint = re_integrand + re_integrand_kp1;
+            float im_sint = im_integrand + im_integrand_kp1;
+            
+            re_res += 0.5 * (re_sint * re_d_kappa[i_k] - im_sint * im_d_kappa[i_k]);
+            im_res += 0.5 * (re_sint * im_d_kappa[i_k] + im_sint * re_d_kappa[i_k]);
+        }
+        
+        re_result[i] = re_res;
+        im_result[i] = im_res;
+        
+    }"""
