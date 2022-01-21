@@ -99,6 +99,11 @@ License
 
 The software is licensed under the `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_.
 
+How to cite this software
+-------------------------
+
+If you use SMUTHI for a publication, please consider to cite :doc:`[Egel et al. 2021] <../literature>`.
+
 .. _ContactAnchor:
 
 Contact

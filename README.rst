@@ -14,9 +14,9 @@
 
    
 
-SMUTHI stands for 'scattering by multiple particles in thin-film systems'. The software allows to simulate light
-scattering by multiple particles near (or between) planar interfaces. It is based on the T-matrix method for the single
-particle scattering, and on the scattering-matrix method for the propagation through the layered medium.
+SMUTHI stands for 'scattering by multiple particles in thin-film systems'. 
+The software allows to simulate light scattering by multiple particles near (or between) planar interfaces. 
+It is based on the T-matrix method for the single particle scattering, and on the scattering-matrix method for the propagation through the layered medium.
 
 Target group: Scientists and engineers in the field of optics and optoelectronics.
 
@@ -27,10 +27,9 @@ Author: Amos Egel (amos.egel@gmail.com).
 The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Alexey Kuznetsov, Lorenzo Pattelli.
 
 We thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for allowing us to use their NFM-DS Fortran code, 
-Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions 
-and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
+Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
 
-For a guide how to install and use the software, see the `documentation <http://smuthi.readthedocs.io>`_.
+For a guide how to install and use the software, see the `documentation <http://smuthi.readthedocs.io>`_ or read `our paper <https://arxiv.org/abs/2105.04259>`_ describing the software.
 
 If you are using Smuthi, please `subscribe to the Smuthi mailing list <https://groups.google.com/forum/#!forum/smuthi/join>`_.
 The list is also a good place to ask for support from the developers or from experienced users.
@@ -38,6 +37,9 @@ The list is also a good place to ask for support from the developers or from exp
 To report a bug, you can also open an issue in Gitlab.
 
 Contributions are highly welcome! Please refer to the `contribution guidelines <https://gitlab.com/AmosEgel/smuthi/blob/master/CONTRIBUTING.rst>`_.
+
+If you have used Smuthi for a publication, please cite us as: 
+Amos Egel, Krzysztof M. Czajkowski, Dominik Theobald, Konstantin Ladutenko, Alexey S. Kuznetsov, Lorenzo Pattelli, "SMUTHI: A python package for the simulation of light scattering by multiple particles near or between planar interfaces", Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 273, 2021, 107846, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107846. 
 
 What's new in version 1.2
 -------------------------
