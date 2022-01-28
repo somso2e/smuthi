@@ -1,4 +1,4 @@
-"""This module contains functions compute Ewald lattice sums."""
+"""This module contains functions to compute Ewald lattice sums."""
 
 import smuthi.periodicboundaries.ewald_helper_functions as ehf
 import smuthi.utility.math as sf

@@ -222,6 +222,7 @@ def delta_n(n_max, gamma, cz, eta):
     
     for idx in range(2, n_max + 1):
         I[:, idx] = 4 / zsqr * ((1.5 - idx) * I[:, idx-1] - I[:, idx-2] + rootx * x ** (1 - idx) * exp_term) 
+    return I
         
         
 @njit()
