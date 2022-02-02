@@ -2,13 +2,13 @@
 
 import smuthi.periodicboundaries.ewald_helper_functions as ehf
 import smuthi.utility.math as sf
-from numba import njit, prange
+from numba import njit
 import numpy as np
 
 
 
 @njit()
-def D_LM(L, M, k, k0t, a1, a2, magM, c=np.zeros(3, np.float64)):
+def D_LM(L, M, k, k0t, a1, a2, eta, c=np.zeros(3, np.float64)):
     """ Compuation of Ewald sum for the coupling between one particle and periodic particle arrangement.
     Args:
         L (int):                multipole degree
@@ -17,13 +17,12 @@ def D_LM(L, M, k, k0t, a1, a2, magM, c=np.zeros(3, np.float64)):
         k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
         a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
         a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates      
-        magM (float):           maximum tolerated magnitude with regard to target accuracy
+        eta (float):            Ewald sum separation parameter
         c (numpy.ndarray):      displacment vector between emitting and receiving particle
     Returns:
         D_LM (complex):         solution D_LM of Ewald sum
     """        
     A = np.linalg.norm(np.cross(a1, a2))
-    eta = separation_parameter_eta(k, k0t, a1, a2, magM)
     
     if np.linalg.norm(c) == 0:
         D1_LM_val = D1_LM(L, M, k, k0t, a1, a2, eta, A)
@@ -37,27 +36,7 @@ def D_LM(L, M, k, k0t, a1, a2, magM, c=np.zeros(3, np.float64)):
         # distance from receiving to emitting particle (opposing to the common distance vector)
         D1_LM_val = D1_LM_ij(L, M, -c, k, k0t, a1, a2, eta, A)
         D2_LM_val = D2_LM_ij(L, M, -c, k, k0t, a1, a2, eta)
-        return D1_LM_val + D2_LM_val
-    
-    
-    
-@njit()
-def separation_parameter_eta(k, k0t, a1, a2, magM=1):
-    """ Select separation parameter eta that splits the Ewald sum into real and reciprocal space.
-    Args:
-        k (complex):            wavenumber
-        k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates 
-        magM (float):           maximum tolerated magnitude with regard to target accuracy
-    Returns:
-        Separation parameter eta
-    """
-    if magM == 1:
-        return np.sqrt(np.pi / np.linalg.norm(np.cross(a1, a2)))
-    else:
-        return (np.sqrt(k ** 2 - np.linalg.norm(k0t) ** 2) / (2 * np.log(magM))).real
-    
+        return D1_LM_val + D2_LM_val  
     
     
 @njit()

@@ -1,6 +1,6 @@
 """This module contains helper functions for the evaluation of Ewald lattice sums."""
 
-from numba import njit, prange
+from numba import njit
 import numpy as np
 
 

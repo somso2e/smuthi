@@ -6,7 +6,7 @@ from numba import njit
 import numpy as np
 
 
-def ab5_lookup(lmax1, lmax2, mmax1, mmax2):
+def a5b5_lookup(lmax1, lmax2, mmax1, mmax2):
     """ Prepare lookup table of smuthi.vector_wave_functions.ab5_coefficients() for Numba supported evaluation of the 
         coupling matrix of periodic particle arrangements.
     Args:

@@ -101,7 +101,7 @@ def discrete_scattering_angles(k, k0t, azimuthal_angle_init, a1, a2):
 
 @njit(parallel=True)
 def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thicknesses, layer_refractive_indices,
-                            i_sca, positions, radii, lmax_array, mmax_array, a1, a2, magM, a5b5_mat, mmax_global):
+                            i_sca, positions, radii, lmax_array, mmax_array, a1, a2, eta, a5b5_mat, mmax_global):
     """ Coupling matrix between one particle and a periodic particle arrangement.
         "prange()" enables the multithreading of the Numba code. 
     Args:
@@ -117,7 +117,7 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
         mmax_array (numpy.ndarray):         mmax of each particle
         a1 (numpy.ndarray):                 lattice vector 1 in carthesian coordinates
         a2 (numpy.ndarray):                 lattice vector 2 in carthesian coordinates
-        magM (int):                         maximum tolerated magnitude with regard to target accuracy
+        eta (float):                        Ewald sum separation parameter
         a5b5_mat (numpy.ndarray):           a5, b5 coefficient lookup table
         mmax_global (int):                  global maximal multipole order of all particles 
     Returns:
@@ -139,7 +139,7 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
             coup_mat[idx1[0]:idx1[1], idx2[0]:idx2[1]] = (
                                     periodic_direct_coupling_block(vacuum_wavelength, layer_refractive_indices[i_sca],
                                             k0t, azimuthal_angle, positions[s1], lmax_array[s1], mmax_array[s1], radii[s1],
-                                            positions[s2], lmax_array[s2], mmax_array[s2], radii[s2], a1, a2, magM, a5b5_mat, mmax_global)
+                                            positions[s2], lmax_array[s2], mmax_array[s2], radii[s2], a1, a2, eta, a5b5_mat, mmax_global)
                                     + periodic_layer_mediated_coupling_block(vacuum_wavelength, layer_thicknesses,
                                               layer_refractive_indices, i_sca, k0t, azimuthal_angle, positions[s1], lmax_array[s1],
                                               mmax_array[s1], radii[s1], positions[s2], lmax_array[s2], mmax_array[s2],
@@ -156,7 +156,7 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
 @njit()
 def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azimuthal_angle, 
                                    rs1, l_max1, m_max1, radius1, rs2, l_max2, m_max2, radius2,
-                                   a1, a2, magM, a5b5_lookup, mmax_global):
+                                   a1, a2, eta, a5b5_lookup, mmax_global):
     """  Direct particle coupling matrix :math:`W^R` for one particle with a periodic particle arrangement.
     Based on a intermediate plane wave expansion or an Ewald lattice sum. 
     Args:
@@ -174,7 +174,7 @@ def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azi
         radius2 (float):                    radius of the circumscribing sphere of the emitting particle
         a1 (numpy.ndarray):                 lattice vector 1 in carthesian coordinates
         a2 (numpy.ndarray):                 lattice vector 2 in carthesian coordinates
-        magM (float):                       maximum tolerated magnitude with regard to target accuracy
+        eta (float):                        Ewald sum separation parameter
         a5b5_lookup (numpy.ndarray):        lookup table for a5, b5 coefficients
         mmax_global (int):                  global maximal multipole order of all particles 
     
@@ -277,7 +277,7 @@ def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azi
                         prefac = ehf.normalization_spherical_harmonics(M)
                         A, B = complex(0), complex(0) 
                         for L in range(max(abs(l1 - l2), abs(M)), l1 + l2 + 1): # if L < abs(M) then P=0 
-                            Dlm = els.D_LM(L, M, k, k0t, a1, a2, magM, c)
+                            Dlm = els.D_LM(L, M, k, k0t, a1, a2, eta, c)
                             A += a5b5_lookup[0, l1 - 1, l2 - 1, m1 + mmax_global, m2 + mmax_global, L] * Dlm
                             B += a5b5_lookup[1, l1 - 1, l2 - 1, m1 + mmax_global, m2 + mmax_global, L] * Dlm
                         for tau1 in range(2):
