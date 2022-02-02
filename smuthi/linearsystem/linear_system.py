@@ -31,6 +31,10 @@ import smuthi.linearsystem.particlecoupling.direct_coupling as dircoup
 import smuthi.linearsystem.particlecoupling.layer_mediated_coupling as laycoup
 import smuthi.linearsystem.particlecoupling.prepare_lookup as look
 import smuthi.linearsystem.linear_system_cuda as cusrc
+from numba import config, set_num_threads
+import smuthi.periodicboundaries as pb
+import smuthi.periodicboundaries.periodic_coupling_helper as chf
+import smuthi.periodicboundaries.periodic_particle_coupling as ppc
 
 iter_num = 0
 
@@ -72,7 +76,10 @@ class LinearSystem:
                  coupling_matrix_lookup_resolution=None,
                  interpolator_kind='cubic',
                  cuda_blocksize=None,
-                 identical_particles=False):
+                 identical_particles=False,
+                 periodicity=None,
+                 ewald_sum_separation_parameter='default',
+                 number_of_threads='default'):
 
         if cuda_blocksize is None:
             cuda_blocksize = cu.default_blocksize
@@ -88,6 +95,9 @@ class LinearSystem:
         self.interpolator_kind = interpolator_kind
         self.cuda_blocksize = cuda_blocksize
         self.identical_particles = identical_particles
+        self.periodicity = periodicity
+        self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
+        self.number_of_threads = number_of_threads
 
         dummy_matrix = SystemMatrix(self.particle_list)
         sys.stdout.write('Number of unknowns: %i\n' % dummy_matrix.shape[0])
@@ -215,13 +225,26 @@ class LinearSystem:
             if not self.store_coupling_matrix:
                 warnings.warn("With lookup disabled, coupling matrix needs to be stored.")
                 self.store_coupling_matrix = True
-            sys.stdout.write('Explicit coupling matrix computation on CPU.\n')
-            sys.stdout.flush()
-            self.coupling_matrix = CouplingMatrixExplicit(
-                vacuum_wavelength=self.initial_field.vacuum_wavelength,
-                particle_list=self.particle_list,
-                layer_system=self.layer_system,
-                k_parallel=self.k_parallel)
+                
+            if self.periodicity:
+                sys.stdout.write('Explicit, periodic coupling matrix computation on CPU.\n')
+                sys.stdout.flush()
+                self.coupling_matrix = CouplingMatrixPeriodicGridNumba(
+                    particle_list=self.particle_list,
+                    layer_system=self.layer_system,
+                    initial_field=self.initial_field,
+                    periodicity=self.periodicity,
+                    ewald_sum_separation_parameter=self.ewald_sum_separation_parameter,
+                    num_threads=self.number_of_threads)
+            
+            else:
+                sys.stdout.write('Explicit coupling matrix computation on CPU.\n')
+                sys.stdout.flush()
+                self.coupling_matrix = CouplingMatrixExplicit(
+                    vacuum_wavelength=self.initial_field.vacuum_wavelength,
+                    particle_list=self.particle_list,
+                    layer_system=self.layer_system,
+                    k_parallel=self.k_parallel)
 
     def solve(self):
         """Compute scattered field coefficients and store them
@@ -436,6 +459,79 @@ class CouplingMatrixExplicit(SystemMatrix):
                                                                               layer_system, k_parallel)
                                         + dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,
                                                                         layer_system))
+        self.linear_operator = scipy.sparse.linalg.aslinearoperator(coup_mat)
+
+
+class CouplingMatrixPeriodicGridNumba(SystemMatrix):
+    """ Class for an explicit representation of the coupling matrix of periodic particle arrangements.
+        Computation supports Numba.
+    Args:
+        particle_list (list):                               list of smuthi.particles.Particle objects
+        layer_system (smuthi.layers.LayerSystem):           stratified medium
+        initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
+        periodicity (tuple):                                (a1, a2) lattice vector 1 and 2 in carthesian coordinates
+        ewald_sum_separation_parameter (float):             Ewald sum separation parameter
+        num_threads (int or str):                           if 'default' all available CPU cores are used
+                                                            if negative, all but number_of_threads are used
+    """
+    
+    def __init__(self, particle_list, layer_system, initial_field, periodicity,
+                 ewald_sum_separation_parameter, num_threads='default'):
+        
+        max_num_threads = config.NUMBA_DEFAULT_NUM_THREADS
+        if type(num_threads).__name__ == 'int':
+            if 0 < num_threads <= max_num_threads:
+                set_num_threads(num_threads)
+                sys.stdout.write('Parallel Numba execution limited to %d of %d available CPU cores.' % (num_threads, max_num_threads))
+            elif num_threads <= 0:
+                set_num_threads(max_num_threads + num_threads)
+                sys.stdout.write('Parallel Numba execution limited to %d of %d available CPU cores.' % (max_num_threads + num_threads, max_num_threads))
+            else:
+                sys.stdout.write('Parallel Numba execution uses all %d available CPU cores.' % (max_num_threads))
+        else:
+            sys.stdout.write('Parallel Numba execution uses all %d available CPU cores.' % (max_num_threads))
+        sys.stdout.flush()
+        
+        a1, a2 = periodicity
+        
+        if ewald_sum_separation_parameter == 'default':
+            eta = pb.default_Ewald_sum_separation
+        else:
+            eta = ewald_sum_separation_parameter
+        # prepare a5b5 lookup table
+        lmax_global = np.max([particle.l_max for particle in particle_list])
+        mmax_global = np.max([particle.m_max for particle in particle_list])
+        a5b5_mat = chf.a5b5_lookup(lmax_global, lmax_global, mmax_global, mmax_global)
+        
+        i_sca = layer_system.layer_number(particle_list[0].position[2]) # all particles are within one layer
+        if initial_field.polar_angle < np.pi:
+            pfe = initial_field.piecewise_field_expansion(layer_system).expansion_list[2 * i_sca]
+        else:
+            pfe = initial_field.piecewise_field_expansion(layer_system).expansion_list[2 * i_sca + 1]
+        k0t = np.array([pfe.k_parallel[0] * np.cos(pfe.azimuthal_angles)[0],
+                        pfe.k_parallel[0] * np.sin(pfe.azimuthal_angles)[0]]) 
+        
+        num_particles = len(particle_list)
+        positions = np.zeros([num_particles, 3], np.float64)
+        radii = np.zeros([num_particles], np.float64)
+        lmax_array = np.zeros([num_particles], np.int32)
+        mmax_array = np.zeros([num_particles], np.int32)
+        for idx, particle in enumerate(particle_list):
+            positions[idx] = particle.position
+            lmax_array[idx] = particle.l_max
+            mmax_array[idx] = particle.m_max
+            if type(particle).__name__ == 'Sphere':
+                radii[idx] = particle.radius
+            elif type(particle).__name__ == 'FiniteCylinder':
+                radii[idx] = np.sqrt(particle.cylinder_radius ** 2 + (particle.cylinder_height / 2) ** 2)
+            
+        coup_mat = ppc.periodic_coupling_matrix(initial_field.vacuum_wavelength, k0t,
+                            pfe.azimuthal_angles[0], np.array(layer_system.thicknesses, np.float64),
+                            np.array(layer_system.refractive_indices, np.complex128),
+                            i_sca, positions, radii, lmax_array, mmax_array, a1, a2, eta, a5b5_mat, mmax_global)
+        sys.stdout.write('Coupling matrix computation finished. \n')
+        sys.stdout.flush()
+        
         self.linear_operator = scipy.sparse.linalg.aslinearoperator(coup_mat)
 
 
