@@ -15,8 +15,8 @@ def D_LM(L, M, k, k0t, a1, a2, eta, c=np.zeros(3, np.float64)):
         M (int):                multipole order
         k (complex):            wavenumber
         k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates      
+        a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates      
         eta (float):            Ewald sum separation parameter
         c (numpy.ndarray):      displacment vector between emitting and receiving particle
     Returns:
@@ -48,11 +48,11 @@ def D1_LM(L, M, k, k0t, a1, a2, eta, A, c=np.zeros(3)):
         M (int):                multipole order
         k (complex):            wavenumber
         k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
         eta (float):            separation parameter between Ewald sum's real and reciprocal space summand  
         A (float):              area of the unit cell
-        c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in carthesian coordinates
+        c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in Carthesian coordinates
     Returns:
         D1_LM (complex):        reciprocal space summand of Ewald sum D_LM
     """
@@ -119,8 +119,8 @@ def D2_LM(L, M, k, k0t, a1, a2, eta):
         M (int):                multipole order
         k (complex):            wavenumber
         k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
         eta (float):            separation parameter between Ewald sum's real and reciprocal space summand        
     Returns:
         D2_LM (complex):        real space summand of Ewald sum D_LM
@@ -191,11 +191,11 @@ def D1_LM_ij(L, M, c, k, k0t, a1, a2, eta, A):
     Args:        
         L (int):                multipole degree
         M (int):                multipole order
-        c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in carthesian coordinates
+        c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in Carthesian coordinates
         k (complex):            wavenumber
         k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
         eta (float):            separation parameter between Ewald sum's real and reciprocal space summand   
         A (float):              area of the unit cell
     Returns:
@@ -275,11 +275,11 @@ def D2_LM_ij(L, M, c, k, k0t, a1, a2, eta):
     Args:
         L (int):                multipole degree
         M (int):                multipole order
-        c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in carthesian coordinates
+        c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in Carthesian coordinates
         k (complex):            wavenumber
         k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
         eta (float):            separation parameter between Ewald sum's real and reciprocal space summand   
     Returns:
         D2_LM (complex):        real space summand of Ewald sum D_LM

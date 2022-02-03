@@ -8,8 +8,8 @@ import numpy as np
 def reciprocal_lattice_vec(a1, a2):
     """ 
     Args:
-        a1 (numpy.ndarray):     lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):     lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
     Returns:
         2D lattice vectors in reciprocal space, https://en.wikipedia.org/wiki/Reciprocal_lattice
     """ 

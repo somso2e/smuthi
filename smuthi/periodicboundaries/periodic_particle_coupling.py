@@ -19,8 +19,8 @@ def discrete_scattering_angles(k, k0t, azimuthal_angle_init, a1, a2):
         k (float):                      initial field's wavenumber
         k0t (numpy.ndarray):            two-dimensional in-plane wave vector of the initial field in cathesian coordinates 
         azimuthal_angle_init (float):   azimuthal angle of the initial field
-        a1 (numpy.ndarray):             lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):             lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):             lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):             lattice vector 2 in Carthesian coordinates
     Returns:
         k_parallel (numpy.ndarray):         in-plane wavenumbers
         azimuthal_angles (numpy.ndarray):   azimuthal angles
@@ -106,7 +106,7 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
         "prange()" enables the multithreading of the Numba code. 
     Args:
         vacuum_wavelength (float):          vacuum wavelength in length unit   
-        k0t (numpy.ndarray):                complex in-plane wave vector in carthesian coordinates  
+        k0t (numpy.ndarray):                complex in-plane wave vector in Carthesian coordinates  
         azimuthal_angle (numpy.ndarray):    azimuthal angle of excitation 
         layer_thicknesses (numpy.ndarray):  layer thicknesses of stratified medium
         layer_refractive_indices (numpy.ndarray): layer refractive indices of stratified medium
@@ -115,8 +115,8 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
         radii (numpy.ndarray):              particle radii
         lmax_array (numpy.ndarray):         lmax of each particle 
         mmax_array (numpy.ndarray):         mmax of each particle
-        a1 (numpy.ndarray):                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                 lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                 lattice vector 2 in Carthesian coordinates
         eta (float):                        Ewald sum separation parameter
         a5b5_mat (numpy.ndarray):           a5, b5 coefficient lookup table
         mmax_global (int):                  global maximal multipole order of all particles 
@@ -162,18 +162,18 @@ def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azi
     Args:
         vacuum_wavelength (float):          vacuum wavelength in length unit   
         refractive_index (complex):         refractive index of the scattering layer 
-        k0t (numpy.ndarray):                complex in-plane wave vector in carthesian coordinates  
+        k0t (numpy.ndarray):                complex in-plane wave vector in Carthesian coordinates  
         azimuthal_angle (numpy.ndarray):    azimuthal angle of excitation 
-        rs1 (numpy.ndarray):                position of the receiving particle in carthesian coordinates 
+        rs1 (numpy.ndarray):                position of the receiving particle in Carthesian coordinates 
         l_max1 (int):                       maximal multipole degree of the receiving particle
         m_max1 (int):                       maximal multipole order of the receiving particle
         radius1 (float):                    radius of the circumscribing sphere of the receiving particle
-        rs2 (numpy.ndarray):                position of the emitting particle in carthesian coordinates 
+        rs2 (numpy.ndarray):                position of the emitting particle in Carthesian coordinates 
         l_max2 (int):                       maximal multipole degree of the emitting particle
         m_max2 (int):                       maximal multipole order of the emitting particle
         radius2 (float):                    radius of the circumscribing sphere of the emitting particle
-        a1 (numpy.ndarray):                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                 lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                 lattice vector 2 in Carthesian coordinates
         eta (float):                        Ewald sum separation parameter
         a5b5_lookup (numpy.ndarray):        lookup table for a5, b5 coefficients
         mmax_global (int):                  global maximal multipole order of all particles 
@@ -301,18 +301,18 @@ def periodic_layer_mediated_coupling_block(vacuum_wavelength, layer_thicknesses,
         layer_thicknesses (numpy.ndarray):  layer thicknesses of stratified medium
         layer_refractive_indices (numpy.ndarray): layer refractive indices of stratified medium
         i_sca (int):                        layer number that contains all scattering particles
-        k0t (numpy.ndarray):                complex in-plane wave vector in carthesian coordinates  
+        k0t (numpy.ndarray):                complex in-plane wave vector in Carthesian coordinates  
         azimuthal_angle (numpy.ndarray):    azimuthal angle of excitation 
-        rs1 (numpy.ndarray):                position of the receiving particle in carthesian coordinates 
+        rs1 (numpy.ndarray):                position of the receiving particle in Carthesian coordinates 
         l_max1 (int):                       maximal multipole degree of the receiving particle
         m_max1 (int):                       maximal multipole order of the receiving particle
         radius1 (float):                    radius of the circumscribing sphere of the receiving particle
-        rs2 (numpy.ndarray):                position of the emitting particle in carthesian coordinates 
+        rs2 (numpy.ndarray):                position of the emitting particle in Carthesian coordinates 
         l_max2 (int):                       maximal multipole degree of the emitting particle
         m_max2 (int):                       maximal multipole order of the emitting particle
         radius2 (float):                    radius of the circumscribing sphere of the emitting particle
-        a1 (numpy.ndarray):                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                 lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                 lattice vector 2 in Carthesian coordinates
         a5b5_mat (numpy.ndarray):           a5, b5 coefficient lookup table
         mmax_global (int):                  global maximal multipole order of all particles 
     

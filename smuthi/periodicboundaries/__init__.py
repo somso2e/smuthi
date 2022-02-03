@@ -12,13 +12,12 @@ import numpy as np
 default_Ewald_sum_separation = None
 
 
-def set_ewald_sum_separation(a1, a2, initial_field=None, layer_system=None, particle_list=None,
-                             k=None, k0t=None, magM=None):
+def set_ewald_sum_separation(a1, a2, initial_field=None, layer_system=None, particle_list=None, magM=None):
     """ Set the separation parameter eta that splits the evaluation of the Ewald lattice sum
         into real and reciprocal space.
     Args:
-        a1 (numpy.ndarray):                                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                                 lattice vector 2 in carthesian coordinates
+        a1 (numpy.ndarray):                                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates
         layer_system (smuthi.layers.LayerSystem):           stratified medium
         particle_list (list):                               list of smuthi.particles.Particle objects
         initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
