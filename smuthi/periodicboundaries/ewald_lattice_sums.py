@@ -1,6 +1,6 @@
 """This module contains functions to compute Ewald lattice sums."""
 
-import smuthi.periodicboundaries.ewald_helper_functions as ehf
+import smuthi.periodicboundaries.ewald_helper as pbeh
 import smuthi.utility.math as sf
 from numba import njit
 import numpy as np
@@ -59,21 +59,21 @@ def D1_LM(L, M, k, k0t, a1, a2, eta, A, c=np.zeros(3)):
     if (L - abs(M)) % 2:
         return 0
         
-    b1, b2 = ehf.reciprocal_lattice_vec(a1, a2)      
+    b1, b2 = pbeh.reciprocal_lattice_vec(a1, a2)      
     root = (2 * L + 1) ** 0.5  \
-            * ehf.numba_factorial(np.array([L - M], np.int32))[0, 0] ** 0.5 * ehf.numba_factorial(np.array([L - M], np.int32))[0, 1] ** 0.5 \
-            * ehf.numba_factorial(np.array([L + M], np.int32))[0, 0] ** 0.5 * ehf.numba_factorial(np.array([L + M], np.int32))[0, 1] ** 0.5
+            * pbeh.numba_factorial(np.array([L - M], np.int32))[0, 0] ** 0.5 * pbeh.numba_factorial(np.array([L - M], np.int32))[0, 1] ** 0.5 \
+            * pbeh.numba_factorial(np.array([L + M], np.int32))[0, 0] ** 0.5 * pbeh.numba_factorial(np.array([L + M], np.int32))[0, 1] ** 0.5
     prefac =  (1j) ** M * root / (A * k * (2 * k) ** L)
     
     x=0        
-    n1, n2 = ehf.n1n2_indices(x)
+    n1, n2 = pbeh.n1n2_indices(x)
     D1_LM = compute_sum_D1LM(L, M, k, k0t, n1, n2, b1, b2, eta, c)
     
     flag = 0
     while flag == 0:
         D1_LM_prime = D1_LM        
         x += 1
-        n1, n2 = ehf.n1n2_indices(x)
+        n1, n2 = pbeh.n1n2_indices(x)
         D1_LM += compute_sum_D1LM(L, M, k, k0t, n1, n2, b1, b2, eta, c)  
         if not D1_LM_prime == complex(0):
             if np.linalg.norm(np.array([D1_LM - D1_LM_prime])) / np.linalg.norm(np.array([D1_LM_prime])) < 1e-5:
@@ -102,11 +102,11 @@ def compute_sum_D1LM(L, M, k, k0t, n1, n2, b1, b2, eta, c=np.zeros(3)):
     emnikgtc = np.exp(-1j * np.dot(kgt, c[:2])) 
     
     n = np.arange(int((L - abs(M)) / 2) + 1)
-    denom = ehf.numba_factorial(n)[:, 0] * ehf.numba_factorial(n)[:, 1] \
-            * ehf.numba_factorial(int((L + M) / 2) - n)[:, 0] * ehf.numba_factorial(int((L + M) / 2) - n)[:, 1] \
-            * ehf.numba_factorial(int((L - M) / 2) - n)[:, 0] * ehf.numba_factorial(int((L - M) / 2) - n)[:, 1]
+    denom = pbeh.numba_factorial(n)[:, 0] * pbeh.numba_factorial(n)[:, 1] \
+            * pbeh.numba_factorial(int((L + M) / 2) - n)[:, 0] * pbeh.numba_factorial(int((L + M) / 2) - n)[:, 1] \
+            * pbeh.numba_factorial(int((L - M) / 2) - n)[:, 0] * pbeh.numba_factorial(int((L - M) / 2) - n)[:, 1]
     nom = gamma_g.reshape(shape, 1) ** (2 * n - 1).reshape(1, n.shape[0]) * kgt_r.reshape(shape, 1) ** (L - 2 * n).reshape(1, n.shape[0])
-    gamma_fun = ehf.upper_incomplete_gamma_fun(n[-1], -gamma_g ** 2 / (4 * eta ** 2))  
+    gamma_fun = pbeh.upper_incomplete_gamma_fun(n[-1], -gamma_g ** 2 / (4 * eta ** 2))  
     return np.sum(emnikgtc * eiMphi * np.sum(gamma_fun * nom / denom, axis=1))
 
 
@@ -129,22 +129,22 @@ def D2_LM(L, M, k, k0t, a1, a2, eta):
         return 0
     
     frac = -1j * (-1) ** ((L + M) / 2) / (2 ** (L + 1) * np.pi \
-            * ehf.numba_factorial(np.array([(L - M) / 2], np.int32))[0, 0] * ehf.numba_factorial(np.array([(L - M) / 2], np.int32))[0, 1] \
-            * ehf.numba_factorial(np.array([(L + M) / 2], np.int32))[0, 0] * ehf.numba_factorial(np.array([(L + M) / 2], np.int32))[0, 1]) 
+            * pbeh.numba_factorial(np.array([(L - M) / 2], np.int32))[0, 0] * pbeh.numba_factorial(np.array([(L - M) / 2], np.int32))[0, 1] \
+            * pbeh.numba_factorial(np.array([(L + M) / 2], np.int32))[0, 0] * pbeh.numba_factorial(np.array([(L + M) / 2], np.int32))[0, 1]) 
     root = (2 * L + 1) ** 0.5  \
-            * ehf.numba_factorial(np.array([L - M], np.int32))[0, 0] ** 0.5 * ehf.numba_factorial(np.array([L - M], np.int32))[0, 1] ** 0.5 \
-            * ehf.numba_factorial(np.array([L + M], np.int32))[0, 0] ** 0.5 * ehf.numba_factorial(np.array([L + M], np.int32))[0, 1] ** 0.5
+            * pbeh.numba_factorial(np.array([L - M], np.int32))[0, 0] ** 0.5 * pbeh.numba_factorial(np.array([L - M], np.int32))[0, 1] ** 0.5 \
+            * pbeh.numba_factorial(np.array([L + M], np.int32))[0, 0] ** 0.5 * pbeh.numba_factorial(np.array([L + M], np.int32))[0, 1] ** 0.5
     prefac = frac * root
       
     x=1
-    n1, n2 = ehf.n1n2_indices(x)
+    n1, n2 = pbeh.n1n2_indices(x)
     D2_LM = compute_sum_D2LM(L, M, k, k0t, n1, n2, a1, a2, eta)
     
     flag = 0
     while flag == 0:
         D2_LM_prime = D2_LM       
         x += 1
-        n1, n2 = ehf.n1n2_indices(x)
+        n1, n2 = pbeh.n1n2_indices(x)
         D2_LM += compute_sum_D2LM(L, M, k, k0t, n1, n2, a1, a2, eta) 
         if not D2_LM_prime == complex(0):
             if np.linalg.norm(np.array([D2_LM - D2_LM_prime])) / np.linalg.norm(np.array([D2_LM_prime])) < 1e-5:
@@ -166,7 +166,7 @@ def compute_sum_D2LM(L, M, k, k0t, n1, n2, a1, a2, eta):
         Rn_phi[idx] = np.arctan2(Rn[idx, 1], Rn[idx, 0])       
     k0tRn = np.dot(k0t, np.transpose(Rn))
 
-    int_val = (k ** 2 / 4) ** (L + 0.5) * ehf.int_recursion(L, eta, k, Rn_r) 
+    int_val = (k ** 2 / 4) ** (L + 0.5) * pbeh.int_recursion(L, eta, k, Rn_r) 
     return  np.sum(np.exp(1j * (k0tRn + M * (Rn_phi + np.pi))) / k * (2 * Rn_r / k) ** L * int_val)
 
 
@@ -181,7 +181,7 @@ def D3_00(k, eta):
         D3_LM (complex):    central lattice point correction of Ewald sum D_LM
     """
     x = np.array([-k ** 2 / (4 * eta ** 2)])
-    return 1 / (4 * np.pi) * ehf.upper_incomplete_gamma_fun(1, x)[0, -1]
+    return 1 / (4 * np.pi) * pbeh.upper_incomplete_gamma_fun(1, x)[0, -1]
 
 
 @njit()
@@ -204,21 +204,21 @@ def D1_LM_ij(L, M, c, k, k0t, a1, a2, eta, A):
     if c[2] == 0:
         return D1_LM(L, M, k, k0t, a1, a2, eta, A, c)
     else:  
-        b1, b2 = ehf.reciprocal_lattice_vec(a1, a2)
+        b1, b2 = pbeh.reciprocal_lattice_vec(a1, a2)
         root = (2 * L + 1) ** 0.5  \
-            * ehf.numba_factorial(np.array([L - M], np.int32))[0, 0] ** 0.5 * ehf.numba_factorial(np.array([L - M], np.int32))[0, 1] ** 0.5 \
-            * ehf.numba_factorial(np.array([L + M], np.int32))[0, 0] ** 0.5 * ehf.numba_factorial(np.array([L + M], np.int32))[0, 1] ** 0.5
+            * pbeh.numba_factorial(np.array([L - M], np.int32))[0, 0] ** 0.5 * pbeh.numba_factorial(np.array([L - M], np.int32))[0, 1] ** 0.5 \
+            * pbeh.numba_factorial(np.array([L + M], np.int32))[0, 0] ** 0.5 * pbeh.numba_factorial(np.array([L + M], np.int32))[0, 1] ** 0.5
         prefac = (-1j) ** M * root / ((-2) ** L * A * k ** 2)
         
         x=0        
-        n1, n2 = ehf.n1n2_indices(x)
+        n1, n2 = pbeh.n1n2_indices(x)
         D1LM = compute_sum_D1LM_ij(L, M, k, k0t, n1, n2, b1, b2, eta, A, c)
                 
         flag = 0
         while flag == 0:
             D1_LM_prime = D1LM        
             x += 1
-            n1, n2 = ehf.n1n2_indices(x)
+            n1, n2 = pbeh.n1n2_indices(x)
             D1LM += compute_sum_D1LM_ij(L, M, k, k0t, n1, n2, b1, b2, eta, A, c)  
             if not D1_LM_prime == complex(0):
                 if np.linalg.norm(np.array([D1LM - D1_LM_prime])) / np.linalg.norm(np.array([D1_LM_prime])) < 1e-5:
@@ -255,16 +255,16 @@ def compute_sum_D1LM_ij(L, M, k, k0t, n1, n2, b1, b2, eta, A, c):
             s = s[np.argwhere(s % 2).flatten()]
             
         if not s.shape[0] == 0:    
-            denom = ehf.numba_factorial(2 * nn - s)[:, 0] * ehf.numba_factorial(2 * nn - s)[:, 1] \
-                    * ehf.numba_factorial(s - nn)[:, 0] * ehf.numba_factorial(s - nn)[:, 1] \
-                    * ehf.numba_factorial(np.asarray((L + abs(M) - s) / 2, np.int32))[:, 0] \
-                    * ehf.numba_factorial(np.asarray((L + abs(M) - s) / 2, np.int32))[:, 1] \
-                    * ehf.numba_factorial(np.asarray((L - abs(M) - s) / 2, np.int32))[:, 0] \
-                    * ehf.numba_factorial(np.asarray((L - abs(M) - s) / 2, np.int32))[:, 1]
+            denom = pbeh.numba_factorial(2 * nn - s)[:, 0] * pbeh.numba_factorial(2 * nn - s)[:, 1] \
+                    * pbeh.numba_factorial(s - nn)[:, 0] * pbeh.numba_factorial(s - nn)[:, 1] \
+                    * pbeh.numba_factorial(np.asarray((L + abs(M) - s) / 2, np.int32))[:, 0] \
+                    * pbeh.numba_factorial(np.asarray((L + abs(M) - s) / 2, np.int32))[:, 1] \
+                    * pbeh.numba_factorial(np.asarray((L - abs(M) - s) / 2, np.int32))[:, 0] \
+                    * pbeh.numba_factorial(np.asarray((L - abs(M) - s) / 2, np.int32))[:, 1]
             nom = (-k * c[2]) ** (2 * nn - s) * (kgt_r / k).reshape(shape, 1) ** (L - s)
             inner_sum[:, nn] = np.sum(nom / denom, axis=1)
             
-    delta = ehf.delta_n(n[-1], gamma_g, c[2], eta)
+    delta = pbeh.delta_n(n[-1], gamma_g, c[2], eta)
     return np.sum(emnikgtc * eiMphi * np.sum((gamma_g / k).reshape(shape, 1) ** (2 * n - 1) * delta * inner_sum, axis=1))    
 
 
@@ -290,14 +290,14 @@ def D2_LM_ij(L, M, c, k, k0t, a1, a2, eta):
     prefac = -1j * np.sqrt(2 / np.pi)
       
     x=0
-    n1, n2 = ehf.n1n2_indices(x)
+    n1, n2 = pbeh.n1n2_indices(x)
     D2_LM = compute_sum_D2LM_ij(L, M, k, k0t, n1, n2, a1, a2, eta, c)
     
     flag = 0
     while flag == 0:
         D2_LM_prime = D2_LM       
         x += 1
-        n1, n2 = ehf.n1n2_indices(x)
+        n1, n2 = pbeh.n1n2_indices(x)
         D2_LM += compute_sum_D2LM_ij(L, M, k, k0t, n1, n2, a1, a2, eta, c)       
         if not D2_LM_prime == complex(0):
             if np.linalg.norm(np.array([D2_LM - D2_LM_prime])) / np.linalg.norm(np.array([D2_LM_prime])) < 1e-5:
@@ -322,7 +322,7 @@ def compute_sum_D2LM_ij(L, M, k, k0t, n1, n2, a1, a2, eta, c):
              
     eik0tRn = np.exp(1j * np.dot(k0t, np.transpose(Rn)))
     Y_LM = sf.legendre_normalized_numbed(np.cos(mnRnc_theta), np.sin(mnRnc_theta),
-                               max(1, L))[0][L, abs(M)] * np.exp(1j * M * mnRnc_phi) / ehf.normalization_spherical_harmonics(M)
+                               max(1, L))[0][L, abs(M)] * np.exp(1j * M * mnRnc_phi) / pbeh.normalization_spherical_harmonics(M)
     
-    int_val = (1 / 2) ** (L + 1.5) * ehf.int_recursion(L, eta, k, mnRnc_r)
+    int_val = (1 / 2) ** (L + 1.5) * pbeh.int_recursion(L, eta, k, mnRnc_r)
     return  np.sum(eik0tRn * (k * mnRnc_r) ** L * Y_LM * int_val)

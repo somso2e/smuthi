@@ -33,8 +33,8 @@ import smuthi.linearsystem.particlecoupling.prepare_lookup as look
 import smuthi.linearsystem.linear_system_cuda as cusrc
 from numba import config, set_num_threads
 import smuthi.periodicboundaries as pb
-import smuthi.periodicboundaries.periodic_coupling_helper as chf
-import smuthi.periodicboundaries.periodic_particle_coupling as ppc
+import smuthi.periodicboundaries.coupling_helper as pbch
+import smuthi.periodicboundaries.particle_coupling as pbcoup
 
 iter_num = 0
 
@@ -501,7 +501,7 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
         # prepare a5b5 lookup table
         lmax_global = np.max([particle.l_max for particle in particle_list])
         mmax_global = np.max([particle.m_max for particle in particle_list])
-        a5b5_mat = chf.a5b5_lookup(lmax_global, lmax_global, mmax_global, mmax_global)
+        a5b5_mat = pbch.a5b5_lookup(lmax_global, lmax_global, mmax_global, mmax_global)
         
         i_sca = layer_system.layer_number(particle_list[0].position[2]) # all particles are within one layer
         if initial_field.polar_angle < np.pi:
@@ -525,7 +525,7 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
             elif type(particle).__name__ == 'FiniteCylinder':
                 radii[idx] = np.sqrt(particle.cylinder_radius ** 2 + (particle.cylinder_height / 2) ** 2)
             
-        coup_mat = ppc.periodic_coupling_matrix(initial_field.vacuum_wavelength, k0t,
+        coup_mat = pbcoup.periodic_coupling_matrix(initial_field.vacuum_wavelength, k0t,
                             pfe.azimuthal_angles[0], np.array(layer_system.thicknesses, np.float64),
                             np.array(layer_system.refractive_indices, np.complex128),
                             i_sca, positions, radii, lmax_array, mmax_array, a1, a2, eta, a5b5_mat, mmax_global)

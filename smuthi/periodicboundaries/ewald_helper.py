@@ -227,7 +227,7 @@ def delta_n(n_max, gamma, cz, eta):
         
 @njit()
 def normalization_spherical_harmonics(M):  
-    """ Normailzation factor between the definition of spherical harmonics in Smuthi
+    """ Normalization factor between the definition of spherical harmonics in Smuthi
         (following Doicu, Light Scattering by Systems of Particles, Berlin, 2006.) and the definitions
         in Kambe and Beutel (following Tsang, Theory of Microwave Remote Sensing, 1985.)
         for details see: https://doi.org/10.5445/IR/1000141626 (Appendix C, p.135).
