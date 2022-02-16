@@ -365,11 +365,6 @@ def periodic_pwe_to_ff_conversion(initial_field, layer_system, plane_wave_expans
         A smuthi.postprocessing.far_field.FarField object.
     """
     omega = flds.angular_frequency(initial_field.vacuum_wavelength)
-    if 0 <= initial_field.polar_angle <= np.pi/2:
-        n0 = layer_system.refractive_indices[0]
-    elif np.pi / 2 <= initial_field.polar_angle < np.pi:
-        n0 = layer_system.refractive_indices[-1]
-    k0 = 2 * np.pi * n0 / initial_field.vacuum_wavelength
     k = plane_wave_expansion.k
     kp = plane_wave_expansion.k_parallel
     if plane_wave_expansion.kind == 'upgoing':
@@ -383,7 +378,7 @@ def periodic_pwe_to_ff_conversion(initial_field, layer_system, plane_wave_expans
     polar_angles = polar_angles[np.logical_not(np.isnan(polar_angles))]
     azimuthal_angles = plane_wave_expansion.azimuthal_angles
     
-    intens = (k0 / (2 * omega) * np.cos(polar_angles)[None, :, None] \
+    intens = (k / (2 * omega) * np.cos(polar_angles)[None, :, None] \
               * abs(plane_wave_expansion.coefficients[:, :len(polar_angles), :]) ** 2)
         
     srt_idcs = np.argsort(polar_angles)  # reversing order in case of downgoing
@@ -419,6 +414,6 @@ def initial_plane_wave_power_per_area(initial_field, layer_system):
         n0 = layer_system.refractive_indices[-1]
     k0 = 2 * np.pi * n0 / initial_field.vacuum_wavelength
     omega = initial_field.angular_frequency()
-    return  k0 / (2 * omega) * np.cos(initial_field.polar_angle) * initial_field.amplitude
+    return  k0 / (2 * omega) * np.cos(initial_field.polar_angle) * initial_field.amplitude ** 2
 
 
