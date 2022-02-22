@@ -13,18 +13,18 @@ import numpy as np
 @njit()
 def discrete_scattering_angles(k, k0t, azimuthal_angle_init, a1, a2):
     """Evaluates the discrete scattering angles of a plane wave exciting a periodic
-    particle arrangement. In particular, combinations of in-plane wavenumber and
-    azimuthal angle. 
+    particle arrangement. 
+    In particular, combinations of in-plane wavenumber and azimuthal angle. 
     Args:
         k (float):                      initial field's wavenumber
-        k0t (numpy.ndarray):            two-dimensional in-plane wave vector of the initial field in cathesian coordinates 
+        k0t (numpy.ndarray):            complex in-plane wave vector in Carthesian coordinates 
         azimuthal_angle_init (float):   azimuthal angle of the initial field
         a1 (numpy.ndarray):             lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):             lattice vector 2 in Carthesian coordinates
     Returns:
         k_parallel (numpy.ndarray):         in-plane wavenumbers
         azimuthal_angles (numpy.ndarray):   azimuthal angles
-        kpar_alpha_comb (list):             list of len(k_parallel) that connects indices 
+        kpar_alpha_comb (list):             list of length len(k_parallel) that connects indices 
                                             of k_parallel with indices of azimuthal_angles 
         gmax (int):                         maximal order of unit cells to which the reciprocal
                                             lattive vector g is evaluated (k = k_inc - g) 
@@ -39,6 +39,7 @@ def discrete_scattering_angles(k, k0t, azimuthal_angle_init, a1, a2):
     flag, num_evan = True, 0
     gmax = 0
     # ensures that all propagating scattering orders + 3 evanescent orders are taken into account
+    # 3 evanescent orders are somewhat arbitrary (could be set from outside)
     while flag == True or num_evan < 3:
         gmax += 1
         n1, n2 = pbeh.n1n2_indices(gmax)
@@ -111,8 +112,8 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
         layer_thicknesses (numpy.ndarray):  layer thicknesses of stratified medium
         layer_refractive_indices (numpy.ndarray): layer refractive indices of stratified medium
         i_sca (int):                        layer number that contains all scattering particles
-        positions (numpy.ndarray):          particle positions
-        radii (numpy.ndarray):              particle radii
+        positions (numpy.ndarray):          position of each particle
+        radii (numpy.ndarray):              radius of each particle
         lmax_array (numpy.ndarray):         lmax of each particle 
         mmax_array (numpy.ndarray):         mmax of each particle
         a1 (numpy.ndarray):                 lattice vector 1 in Carthesian coordinates
@@ -129,7 +130,7 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
     
     # alternative to status bar, to access the progress of the prange-numba-loop
     progress = np.zeros((s_max, s_max), np.int64)
-    sections = np.zeros(10, np.float64)
+    sections = np.zeros(10, np.float64) # in 10% steps
     print('\n')
     print('Coupling matrix computation finished: 0.0 %.')
     
@@ -158,8 +159,9 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
 def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azimuthal_angle, 
                                    rs1, l_max1, m_max1, radius1, rs2, l_max2, m_max2, radius2,
                                    a1, a2, eta, a5b5_lookup, mmax_global):
-    """  Direct particle coupling matrix :math:`W^R` for one particle with a periodic particle arrangement.
-    Based on a intermediate plane wave expansion or an Ewald lattice sum. 
+    """  Direct particle coupling matrix :math:`W^R` between one (receiving) particle and
+        a (emitting) periodic particle arrangement.
+        Based on a intermediate plane wave expansion or an Ewald lattice sum. 
     Args:
         vacuum_wavelength (float):          vacuum wavelength in length unit   
         refractive_index (complex):         refractive index of the scattering layer 
@@ -189,7 +191,7 @@ def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azi
     k = complex(2 * np.pi * refractive_index / vacuum_wavelength)
     
     # intermediate plane wave expansion
-    if np.abs(rs1[2] - rs2[2]) > radius1 + radius2: 
+    if np.abs(rs1[2] - rs2[2]) > radius1 + radius2: # no vertical overlap of particles' circumscribing spheres
         k_parallel, azimuthal_angles, kpar_alpha_comb, gmax = discrete_scattering_angles(k, k0t, azimuthal_angle, a1, a2) 
         
         rs2s1 = rs1 - rs2
@@ -296,7 +298,8 @@ def periodic_direct_coupling_block(vacuum_wavelength, refractive_index, k0t, azi
 def periodic_layer_mediated_coupling_block(vacuum_wavelength, layer_thicknesses, layer_refractive_indices,
                                            i_sca, k0t, azimuthal_angle, rs1, l_max1, m_max1, radius1,
                                            rs2, l_max2, m_max2, radius2, a1, a2):
-    """ Layer-system mediated particle coupling matrix :math:`W^R` for a particle with a periodic arrangement.
+    """ Layer-system mediated particle coupling matrix :math:`W^R` between one (receiving) particle
+        and a (emitting) periodic particle arrangement.
     Args:
         vacuum_wavelength (float):          vacuum wavelength in length unit
         layer_thicknesses (numpy.ndarray):  layer thicknesses of stratified medium
@@ -318,7 +321,7 @@ def periodic_layer_mediated_coupling_block(vacuum_wavelength, layer_thicknesses,
         mmax_global (int):                  global maximal multipole order of all particles 
     
     Returns:
-        wr (numpy.ndarray):                 layer mediated coupling block between two particles
+        wr (numpy.ndarray):                 layer mediated coupling block 
     """
     blocksize1 = flds.blocksize(l_max1, m_max1)
     blocksize2 = flds.blocksize(l_max2, m_max2)

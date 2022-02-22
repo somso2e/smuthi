@@ -9,18 +9,19 @@ import numpy as np
 
 @njit()
 def D_LM(L, M, k, k0t, a1, a2, eta, c=np.zeros(3, np.float64)):
-    """ Compuation of Ewald sum for the coupling between one particle and periodic particle arrangement.
+    """ Computation of the Ewald sum to account for the coupling between one particle
+        and a periodic particle arrangement.
     Args:
         L (int):                multipole degree
         M (int):                multipole order
         k (complex):            wavenumber
-        k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
+        k0t (numpy.ndarray):    complex in-plane wave vector in Carthesian coordinates 
         a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates      
         eta (float):            Ewald sum separation parameter
         c (numpy.ndarray):      displacment vector between emitting and receiving particle
     Returns:
-        D_LM (complex):         solution D_LM of Ewald sum
+        D_LM (complex):         Ewald sum D1_LM + D2_LM + D3_00
     """        
     A = np.linalg.norm(np.cross(a1, a2))
     
@@ -41,16 +42,16 @@ def D_LM(L, M, k, k0t, a1, a2, eta, c=np.zeros(3, np.float64)):
     
 @njit()
 def D1_LM(L, M, k, k0t, a1, a2, eta, A, c=np.zeros(3)):
-    """ Ewald sum reciprocal space summand for one particle with it's own periodic arrangement.
-        Beutel, arXiv:2004.08098,  Appendix D, (D2a).
+    """ Ewald sum's reciprocal space summand to account for the coupling between one particle
+        with it's own periodic arrangement. Beutel, arXiv:2004.08098,  Appendix D, (D2a).
     Args:
         L (int):                multipole degree
         M (int):                multipole order
         k (complex):            wavenumber
-        k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
+        k0t (numpy.ndarray):    complex in-plane wave vector in Carthesian coordinates 
         a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
-        eta (float):            separation parameter between Ewald sum's real and reciprocal space summand  
+        eta (float):            Ewald sum separation parameter 
         A (float):              area of the unit cell
         c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in Carthesian coordinates
     Returns:
@@ -112,16 +113,16 @@ def compute_sum_D1LM(L, M, k, k0t, n1, n2, b1, b2, eta, c=np.zeros(3)):
 
 @njit()
 def D2_LM(L, M, k, k0t, a1, a2, eta):
-    """ Ewald sum real space summand for one particle with it's own periodic arrangement.
-        Beutel, arXiv:2004.08098,  Appendix D, (D2b).
+    """ Ewald sum's real space summand to account for the coupling between one particle
+        with it's own periodic arrangement. Beutel, arXiv:2004.08098,  Appendix D, (D2b).
     Args:
         L (int):                multipole degree
         M (int):                multipole order
         k (complex):            wavenumber
-        k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
+        k0t (numpy.ndarray):    complex in-plane wave vector in Carthesian coordinates 
         a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
-        eta (float):            separation parameter between Ewald sum's real and reciprocal space summand        
+        eta (float):            Ewald sum separation parameter      
     Returns:
         D2_LM (complex):        real space summand of Ewald sum D_LM
     """
@@ -172,13 +173,13 @@ def compute_sum_D2LM(L, M, k, k0t, n1, n2, a1, a2, eta):
 
 @njit()
 def D3_00(k, eta):
-    """ Central lattice point correction for the Ewald sum of one particle with it's own periodic arranegment  
-        Beutel, arXiv:2004.08098,  Appendix D, (D2c).
+    """ Central lattice point correction for the Ewald sum to account for the coupling between
+        one particle and it's own periodic arrangement. Beutel, arXiv:2004.08098,  Appendix D, (D2c).
     Args:
         k (complex):        wavenumber
-        eta (float):        separation parameter between Ewald sum's real and reciprocal space summand       
+        eta (float):        Ewald sum separation parameter      
     Returns:
-        D3_LM (complex):    central lattice point correction of Ewald sum D_LM
+        D3_00 (complex):    central lattice point correction of Ewald sum D_LM
     """
     x = np.array([-k ** 2 / (4 * eta ** 2)])
     return 1 / (4 * np.pi) * pbeh.upper_incomplete_gamma_fun(1, x)[0, -1]
@@ -186,18 +187,18 @@ def D3_00(k, eta):
 
 @njit()
 def D1_LM_ij(L, M, c, k, k0t, a1, a2, eta, A):
-    """ Ewald sum reciprocal space summand for one particle (S_0i) with a different particle's (S_0j) periodic arrangement.
-        Kambe, Z. Naturforschung 23a, (3.17).
+    """ Ewald sum's reciprocal space summand to account for the coupling between one particle (S_0i)
+        and a different particle's (S_0j) periodic arrangement. Kambe, Z. Naturforschung 23a, (3.17).
     Args:        
         L (int):                multipole degree
         M (int):                multipole order
         c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in Carthesian coordinates
         k (complex):            wavenumber
-        k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
+        k0t (numpy.ndarray):    complex in-plane wave vector in Carthesian coordinates 
         a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
-        eta (float):            separation parameter between Ewald sum's real and reciprocal space summand   
-        A (float):              area of the unit cell
+        eta (float):            Ewald sum separation parameter  
+        A (float):              area of one unit cell
     Returns:
         D1LM (complex):        reciprocal space summand of Ewald sum D_LM
     """   
@@ -270,17 +271,17 @@ def compute_sum_D1LM_ij(L, M, k, k0t, n1, n2, b1, b2, eta, A, c):
 
 @njit()
 def D2_LM_ij(L, M, c, k, k0t, a1, a2, eta):
-    """ Ewald sum real space summand for one particle (S_0i) with a different particle's (S_0j) periodic arrangement.
-        Kambe, Z. Naturforschung 22a, (46b).
+    """ Ewald sum's real space summand to account for the coupling between one particle (S_0i)
+        and a different particle's (S_0j) periodic arrangement. Kambe, Z. Naturforschung 22a, (46b).
     Args:
         L (int):                multipole degree
         M (int):                multipole order
         c (numpy.ndarray):      displacement vector betwenn particle S0j and S0j' in Carthesian coordinates
         k (complex):            wavenumber
-        k0t (numpy.ndarray):    complex in-plane wave vector in cathesian coordinates 
+        k0t (numpy.ndarray):    complex in-plane wave vector in Carthesian coordinates 
         a1 (numpy.ndarray):     lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):     lattice vector 2 in Carthesian coordinates
-        eta (float):            separation parameter between Ewald sum's real and reciprocal space summand   
+        eta (float):            Ewald sum separation parameter 
     Returns:
         D2_LM (complex):        real space summand of Ewald sum D_LM
     """

@@ -1,6 +1,7 @@
 """Test Ewald sum with reference values provided by Dominik Beutel."""
 
 import numpy as np
+import smuthi.periodicboundaries as pb
 import smuthi.periodicboundaries.ewald_lattice_sums as pbe
 
 
@@ -42,7 +43,7 @@ def testEwaldSum(case):
     line0 = test_case[str(case)]['line0']
     
     A = np.linalg.norm(np.cross(a1, a2)) 
-    eta = pbe.separation_parameter_eta(k, k0t, a1, a2, magM=1)
+    eta = pb.set_ewald_sum_separation(a1, a2) 
 
     d1LM = np.zeros([15, 2], dtype=complex)
     d2LM = np.zeros([15, 2], dtype=complex)

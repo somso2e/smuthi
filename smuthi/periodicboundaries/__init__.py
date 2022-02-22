@@ -1,7 +1,7 @@
 """This subpackage contains functionality that has to do with light scattering
 in periodic particle arrangements.
 The __init__ module contains some helper functions (e.g. with respect to
-periodic particle arrangemetns) and is the place to store the default separation
+periodic particle arrangements) and is the place to store the default separation
 parameter that splits the Ewald lattice sum into real and reciprocal space."""
 
 import numpy as np
@@ -12,15 +12,15 @@ import numpy as np
 default_Ewald_sum_separation = None
 
 
-def set_ewald_sum_separation(a1, a2, initial_field=None, layer_system=None, particle_list=None, magM=None):
+def set_ewald_sum_separation(a1, a2, initial_field=None, particle_list=None, layer_system=None, magM=None):
     """ Set the separation parameter eta that splits the evaluation of the Ewald lattice sum
         into real and reciprocal space.
     Args:
         a1 (numpy.ndarray):                                 lattice vector 1 in Carthesian coordinates
         a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates
+        initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         layer_system (smuthi.layers.LayerSystem):           stratified medium
         particle_list (list):                               list of smuthi.particles.Particle objects
-        initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         magM (float):                                       maximum tolerated magnitude with regard to
                                                             target accuracy
     Returns:
@@ -36,10 +36,10 @@ def set_ewald_sum_separation(a1, a2, initial_field=None, layer_system=None, part
         k = complex(2 * np.pi * layer_system.refractive_indices[is_list[0]] / initial_field.vacuum_wavelength)
         
         if initial_field.polar_angle < np.pi:
-            pfe = initial_field.piecewise_field_expansion(layer_system).expansion_list[2 * is_list[0]]
+            pwe_exc = initial_field.plane_wave_expansion(layer_system, is_list[0])[0]
         else:
-            pfe = initial_field.piecewise_field_expansion(layer_system).expansion_list[2 * is_list[0] + 1]
-        k0t = np.array([pfe.k_parallel[0] * np.cos(pfe.azimuthal_angles)[0],
-                        pfe.k_parallel[0] * np.sin(pfe.azimuthal_angles)[0]])     
+            pwe_exc = initial_field.plane_wave_expansion(layer_system, is_list[0])[1]
+        k0t = np.array([pwe_exc.k_parallel[0] * np.cos(pwe_exc.azimuthal_angles)[0],
+                        pwe_exc.k_parallel[0] * np.sin(pwe_exc.azimuthal_angles)[0]])     
         
         return (np.sqrt(k ** 2 - np.linalg.norm(k0t) ** 2) / (2 * np.log(magM))).real

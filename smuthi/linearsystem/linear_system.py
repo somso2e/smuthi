@@ -230,9 +230,9 @@ class LinearSystem:
                 sys.stdout.write('Explicit, periodic coupling matrix computation on CPU.\n')
                 sys.stdout.flush()
                 self.coupling_matrix = CouplingMatrixPeriodicGridNumba(
+                    initial_field=self.initial_field,
                     particle_list=self.particle_list,
                     layer_system=self.layer_system,
-                    initial_field=self.initial_field,
                     periodicity=self.periodicity,
                     ewald_sum_separation_parameter=self.ewald_sum_separation_parameter,
                     num_threads=self.number_of_threads)
@@ -466,16 +466,16 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
     """ Class for an explicit representation of the coupling matrix of periodic particle arrangements.
         Computation supports Numba.
     Args:
+        initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         particle_list (list):                               list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem):           stratified medium
-        initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         periodicity (tuple):                                (a1, a2) lattice vector 1 and 2 in carthesian coordinates
         ewald_sum_separation_parameter (float):             Ewald sum separation parameter
         num_threads (int or str):                           if 'default' all available CPU cores are used
                                                             if negative, all but number_of_threads are used
     """
     
-    def __init__(self, particle_list, layer_system, initial_field, periodicity,
+    def __init__(self, initial_field, particle_list, layer_system, periodicity,
                  ewald_sum_separation_parameter, num_threads='default'):
         
         max_num_threads = config.NUMBA_DEFAULT_NUM_THREADS
@@ -505,11 +505,11 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
         
         i_sca = layer_system.layer_number(particle_list[0].position[2]) # all particles are within one layer
         if initial_field.polar_angle < np.pi:
-            pfe = initial_field.piecewise_field_expansion(layer_system).expansion_list[2 * i_sca]
+            pwe_exc = initial_field.plane_wave_expansion(layer_system, i_sca)[0]
         else:
-            pfe = initial_field.piecewise_field_expansion(layer_system).expansion_list[2 * i_sca + 1]
-        k0t = np.array([pfe.k_parallel[0] * np.cos(pfe.azimuthal_angles)[0],
-                        pfe.k_parallel[0] * np.sin(pfe.azimuthal_angles)[0]]) 
+            pwe_exc = initial_field.plane_wave_expansion(layer_system, i_sca)[1]
+        k0t = np.array([pwe_exc.k_parallel[0] * np.cos(pwe_exc.azimuthal_angles)[0],
+                        pwe_exc.k_parallel[0] * np.sin(pwe_exc.azimuthal_angles)[0]]) 
         
         num_particles = len(particle_list)
         positions = np.zeros([num_particles, 3], np.float64)
@@ -526,7 +526,7 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
                 radii[idx] = np.sqrt(particle.cylinder_radius ** 2 + (particle.cylinder_height / 2) ** 2)
             
         coup_mat = pbcoup.periodic_coupling_matrix(initial_field.vacuum_wavelength, k0t,
-                            pfe.azimuthal_angles[0], np.array(layer_system.thicknesses, np.float64),
+                            pwe_exc.azimuthal_angles[0], np.array(layer_system.thicknesses, np.float64),
                             np.array(layer_system.refractive_indices, np.complex128),
                             i_sca, positions, radii, lmax_array, mmax_array, a1, a2, eta, a5b5_mat, mmax_global)
         sys.stdout.write('Coupling matrix computation finished. \n')

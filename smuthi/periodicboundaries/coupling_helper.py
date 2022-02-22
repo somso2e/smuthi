@@ -7,8 +7,8 @@ import numpy as np
 
 
 def a5b5_lookup(lmax1, lmax2, mmax1, mmax2):
-    """ Prepare lookup table of smuthi.vector_wave_functions.ab5_coefficients() for Numba supported evaluation of the 
-        coupling matrix of periodic particle arrangements.
+    """ Prepare lookup table of smuthi.vector_wave_functions.ab5_coefficients().
+        Allows Numba support for the evaluation of the coupling matrix of periodic particle arrangements.
     Args:
         lmax1 (int):        l=1,...lmax: Original wave's SVWF multipole degree
         mmax1 (int):        m=-mmax,...,mmax: Original wave's SVWF multipole order

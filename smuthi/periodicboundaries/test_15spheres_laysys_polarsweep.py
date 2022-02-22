@@ -27,7 +27,7 @@ for idx, line in enumerate(lines[5:]):
 
 
 
-# set up parameter sweeo
+# set up parameter sweep
 wl = 500
 polar_angles = np.arange(0, 90, 1) / 180 * np.pi
 T = np.zeros(len(polar_angles))
@@ -35,7 +35,7 @@ R = np.zeros(len(polar_angles))
 A = np.zeros(len(polar_angles))
 alpha = 3 / 2 * np.pi
 
-# layer systeme
+# layer system
 layer_system = lay.LayerSystem([0, 3000, 0], [1, 1.3, 1.5])
 
 # particle list
@@ -101,7 +101,7 @@ def test_polar_angle_sweep():
                                     number_of_threads=-2)
         simulation.run()
         
-        # total field outer layers
+        # total field plane wave expansion in the outer layers
         pwe_total_T = pbpost.transmitted_plane_wave_expansion(initial_field,
                                                               particle_list,
                                                               layer_system,

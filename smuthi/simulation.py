@@ -80,6 +80,12 @@ class Simulation:
          do_sanity_check (bool):             if true (default), check numerical input for some flaws. Warning: A passing
                                              sanity check does not guarantee correct numerical settings. For many
                                              particles, the sanity check might take some time and/or occupy large memory.
+        periodicity (tuple):        tuple (a1, a2)  containing two 3-dimensional lattice vectors in Carthesian coordinates
+        ewald_sum_separation_parameter (float):     Used to separate the real and reciprocal lattice sums to evaluate
+                                                    particle coupling in periodic lattices.
+        number_of_threads (int or str):     sets the number of threats used in a simulation with periodic particle arrangements
+                                            if 'default', all available CPU cores are used 
+                                            if negative, all but number_of_threads are used 
     """
     def __init__(self,
                  layer_system=None,

@@ -34,9 +34,9 @@ def periodic_swe_to_pwe_conversion(initial_field, layer_system, particle, a1, a2
         a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates 
     Returns:
         pwe_up (smuthi.fields.expansions.PlaneWaveExpansion):       upwards propagating plane wave expansion of the
-                                                                    scattered field of a periodic extend of a single particle 
+                                                                    scattered field of a periodic particle arrangement 
         pwe_down (smuthi.fields.expansions.PlaneWaveExpansion):     downwards propagating plane wave expansion of the
-                                                                    scattered field of a periodic extend of a single particle 
+                                                                    scattered field of a periodic particle arrangement
     """
     
     # prepare kparallel and alpha discretization of the PWE
@@ -120,13 +120,13 @@ def periodic_swe_to_pwe_conversion(initial_field, layer_system, particle, a1, a2
 
 def periodic_scattered_field_piecewise_expansion(initial_field, particle_list, layer_system, a1, a2,
                                                  layer_numbers=None):
-    """Compute a piecewise field expansion of the scattered field of periodic particle arrangements.
+    """Compute a piecewise field expansion of the scattered field of a periodic particle arrangement.
     Args:
         initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         particle_list (list):                               list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem):           stratified medium
-        a1 (numpy.ndarray):                                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                                 lattice vector 2 in carthesian coordinates 
+        a1 (numpy.ndarray):                                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates 
         layer_numbers (list):                               if specified, append only plane wave expansions for these layers
     Returns:
         periodic scattered field as smuthi.field_expansion.PiecewiseFieldExpansion object
@@ -175,13 +175,13 @@ def periodic_scattered_field_piecewise_expansion(initial_field, particle_list, l
 
 def total_periodic_field_piecewise_expansion(initial_field, particle_list, layer_system, a1, a2,
                                              layer_numbers=None):
-    """Compute a piecewise field expansion of the total field of periodic particle arrangements.
+    """Compute a piecewise field expansion of the total field of a periodic particle arrangement.
     Args:
         initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         particle_list (list):                               list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem):           stratified medium
-        a1 (numpy.ndarray):                                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                                 lattice vector 2 in carthesian coordinates 
+        a1 (numpy.ndarray):                                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates 
         layer_numbers (list):                               if specified, append only plane wave expansions for these layers
     Returns:
         periodic total field as smuthi.fields.expansions.PiecewiseFieldExpansion object
@@ -221,8 +221,8 @@ def transmitted_plane_wave_expansion(initial_field, particle_list, layer_system,
         initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         particle_list (list):                               list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem):           stratified medium
-        a1 (numpy.ndarray):                                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                                 lattice vector 2 in carthesian coordinates 
+        a1 (numpy.ndarray):                                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates 
     Returns:
         smuthi.fields.expansions.PlaneWaveExpansion object of the total transmitted field
     """
@@ -243,7 +243,7 @@ def transmitted_plane_wave_expansion(initial_field, particle_list, layer_system,
     # add the initial field contribution
     pwe_T.coefficients[:, idx_kpar, idx_a] += pwe_init_T.coefficients.reshape(2)
     
-    # if particles are located in the outer layer --> add the direct scattered field contributions
+    # if particles are located in the outer layer, add the direct scattered field contributions
     i_sca = layer_system.layer_number(particle_list[0].position[2]) # all particles have to be in the same layer
     if i_sca == i_T:
         for ip in range(len(particle_list)):
@@ -261,8 +261,8 @@ def reflected_plane_wave_expansion(initial_field, particle_list, layer_system, a
         initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         particle_list (list):                               list of smuthi.particles.Particle objects
         layer_system (smuthi.layers.LayerSystem):           stratified medium
-        a1 (numpy.ndarray):                                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                                 lattice vector 2 in carthesian coordinates 
+        a1 (numpy.ndarray):                                 lattice vector 1 in Carthesian coordinates
+        a2 (numpy.ndarray):                                 lattice vector 2 in Carthesian coordinates 
     Returns:
         smuthi.fields.expansions.PlaneWaveExpansion object of the total reflected field
     """
@@ -283,7 +283,7 @@ def reflected_plane_wave_expansion(initial_field, particle_list, layer_system, a
     # add the initial field contribution
     pwe_R.coefficients[:, idx_kpar, idx_a] += pwe_init_R.coefficients.reshape(2)
     
-    # if particles are located in the outer layer --> add the direct scattered field contributions
+    # if particles are located in the outer layer,add the direct scattered field contributions
     i_sca = layer_system.layer_number(particle_list[0].position[2]) # all particles have to be in the same layer
     if i_sca == i_R:
         for ip in range(len(particle_list)):
@@ -293,93 +293,10 @@ def reflected_plane_wave_expansion(initial_field, particle_list, layer_system, a
                 pwe_R = pwe_R + pfe_sca.expansion_list[2 * ip]
  
     return pwe_R
-    
-    
 
 
-def total_field_periodic_plane_wave_expansion(initial_field, particle_list, layer_system, a1, a2):
-    """ Compute plane wave expansion of the total transmitted and the total reflected field.
-    Args:
-        initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
-        particle_list (list):                               list of particles within one unit cell
-        layer_system (smuthi.layer.LayerSystem):            stratified medium
-        a1 (numpy.ndarray):                                 lattice vector 1 in carthesian coordinates
-        a2 (numpy.ndarray):                                 lattice vector 2 in carthesian coordinates 
-    Returns:
-        Tuple of (transmitted, reflected) plane wave propagating through a planarly layered medium containing 
-        periodic particle arrangements
-    """
-
-    # evaluate each periodic particle's scattered plane wave expansions   
-    pfe_up, pfe_down = [], []
-    for particle in particle_list:
-        pwe_up, pwe_down = periodic_swe_to_pwe_conversion(initial_field=initial_field,
-                                                              layer_system=layer_system,
-                                                              particle=particle,
-                                                              a1=a1, a2=a2)
-        pfe_up.append(pwe_up)
-        pfe_down.append(pwe_down)
-
-    # prepare piecewise field expansion of the initial field
-    pfe_init = initial_field.piecewise_field_expansion(layer_system)
-    pfe_init_top = pfe_init.expansion_list[-2:]
-    pfe_init_bottom = pfe_init.expansion_list[:2]
-    
-    # prepare piecewise field expansion of the scattered field 
-    for idx in range(len(pfe_up)):
-        pwe_up, pwe_down = pfe_up[idx], pfe_down[idx]
-        i_sca = layer_system.layer_number(pwe_up.reference_point[2])
-        i_max = layer_system.number_of_layers() - 1
-        if i_sca == 0:
-            pwe_up_top, __ = layer_system.response((pwe_up, pwe_down), i_sca, i_max)
-            pwe_down_bot = pwe_down + layer_system.response((pwe_up, pwe_down), i_sca, 0)[1]
-        elif i_sca == i_max:
-            pwe_up_top = pwe_up + layer_system.response((pwe_up, pwe_down), i_sca, i_max)[0]
-            __, pwe_down_bot = layer_system.response((pwe_up, pwe_down), i_sca, 0)
-        else:
-            pwe_up_top, __ = layer_system.response((pwe_up, pwe_down), i_sca, i_max)
-            __, pwe_down_bot = layer_system.response((pwe_up, pwe_down), i_sca, 0)
-            
-        if idx == 0:
-            pfe_up_top = pwe_up_top
-            pfe_down_bottom = pwe_down_bot
-        else:
-            pfe_up_top += pwe_up_top
-            pfe_down_bottom += pwe_down_bot
-            
-    # assign pfe to Transmittance and Reflectance ############################     
-    if 0 <= initial_field.polar_angle < np.pi / 2:
-        pfe_sca_T, pfe_init_T = pfe_up_top, pfe_init_top[0]
-        pfe_sca_R, pfe_init_R = pfe_down_bottom, pfe_init_bottom[1]
-    else:
-        pfe_sca_T, pfe_init_T = pfe_down_bottom, pfe_init_bottom[1]
-        pfe_sca_R, pfe_init_R = pfe_up_top, pfe_init_top[0]
-    
-    # total fields pfe #######################################################
-    pfe_in_list = [pfe_init_T, pfe_init_R]
-    pfe_sca_list = [pfe_sca_T, pfe_sca_R]
-    pfe_total_list = [copy.deepcopy(pfe_sca_T), copy.deepcopy(pfe_sca_R)]
-    for idx in range(2):
-        if pfe_in_list[idx].reference_point == pfe_sca_list[idx].reference_point:
-            idx_a = np.argwhere(pfe_sca_list[idx].azimuthal_angles == pfe_in_list[idx].azimuthal_angles[0])[0][0]
-            idx_kpar = np.argwhere(pfe_sca_list[idx].k_parallel == pfe_in_list[idx].k_parallel[0])[0][0]
-        else:
-            raise ValueError('Plane wave expansions are not compatible!')
-    
-        pfe_total_list[idx].coefficients[:, idx_kpar, idx_a] += pfe_in_list[idx].coefficients.reshape(2)
-    
-        # prevent rounding error @ kpar == k #################################
-        pfe_total_list[idx].k_parallel[np.isclose(pfe_total_list[idx].k_parallel, pfe_total_list[idx].k)] = pfe_total_list[idx].k
-    
-    pfe_total_T = pfe_total_list[0]
-    pfe_total_R = pfe_total_list[1]
-    return pfe_total_T, pfe_total_R
-
-
-# Field evaluation follows the procedure of Smuthi's "old" electric field
-# and magnetic field routines 
-# basically identical to the field evaluation of any plane wave,
-# but as a sum of discrete propagation angles (instead of an integral)
+# Field evaluation follows the procedure of Smuthi's "old (legacy)" electric field and magnetic field routines 
+# basically identical to the field evaluation of any plane wave, but as a sum of discrete propagation angles (instead of an integral)
 def electromagnetic_nearfield(pwe, x, y, z, chunksize=50, field_type='electric', vacuum_wavelength=None):
     """Evaluate electric or magnetic field.      
     Args:
@@ -392,7 +309,7 @@ def electromagnetic_nearfield(pwe, x, y, z, chunksize=50, field_type='electric',
         field_type (str):     field type to be evaluated; either 'electric' or 'magnetic'
         vacuum_wavelength (float):  vacuum wavelength in length units (only necessary for magnetic fields).    
     Returns:
-        Tuple of (E_x, E_y, E_z) or (M_x, M_y, M_z) numpy.ndarray objects with the Cartesian coordinates of
+        Tuple of (E_x, E_y, E_z) or (H_x, H_y, H_z) numpy.ndarray objects with the Cartesian coordinates of
         complex electric field.
     """    
     emx = np.zeros(x.shape, dtype=complex)
@@ -560,14 +477,13 @@ def conjugated_poynting_vector(E, H):
 # Note: The FarField.signal corresponds to the plane wave's power per interface area (Theobald 2021 dissertation, eq.(6.29))
 # It differs from the smuthi.postprocessing.far_field.FarField object that is constructed from a PlaneWaveExpansion
 # with a continuous angular distribution.
-# Not all methods of FarField objects are applicable! Might be a good idea to open up a new class.
+# Probably not all methods of FarField objects are applicable! Might be a good idea to open up a new class.
 def periodic_pwe_to_ff_conversion(plane_wave_expansion, initial_field, layer_system):
     """Compute the far field of a plane wave expansion object of discrete plane waves.
     Args:
         plane_wave_expansion (smuthi.fields.expansions.PlaneWaveExpansion):     
-                                                            plane wave expansion of the scattered field of a
-                                                            periodic extend of a single particle that is to be
-                                                            convert into a periodic far field object.
+                                    plane wave expansion of the scattered field of a periodic particle
+                                    arrangement that is to be convert into a far field object.
         initial_field (smuthi.initial_field.PlaneWave):     initial plane wave object
         layer_system (smuthi.layer.LayerSystem):            stratified medium
     Returns:
@@ -597,7 +513,7 @@ def periodic_pwe_to_ff_conversion(plane_wave_expansion, initial_field, layer_sys
 
 
 def scattered_periodic_ff_power_per_area(far_field):
-    """ Compute the scattered farfield power per area of a periodic particle arangement.
+    """ Compute the scattered far field power per area of a periodic particle arangement.
     Args:
         far_field (smuthi.postprocessing.far_field.FarField):   Farfield object of a periodic, scattered SWE
     Returns:
@@ -606,8 +522,7 @@ def scattered_periodic_ff_power_per_area(far_field):
     return abs(np.sum(far_field.signal))
 
 
-# not explicitly connected to periodic particle arrangement and therefore could 
-# be a method of the class smuthi.initial_field.PlaneWave
+# not explicitly connected to periodic particle arrangement and therefore could be a method of the class smuthi.initial_field.PlaneWave
 def initial_plane_wave_power_per_area(initial_field, layer_system):
     """Compute the power carried by the initial plane wave into vertical direction per area.
     Args:

@@ -21,13 +21,13 @@ def reciprocal_lattice_vec(a1, a2):
 
 @njit()
 def n1n2_indices(x):
-    """ Indices n1 and n2 of grid elements on a square around the central unit cell. 
-        Vector to a unit cells according to R = n1*a1 + n2*a2.
+    """ Indices n1, n2 that specify lattice point R = n1*a1 + n2*a2 of unit cells in a distance x around
+        the arbitrary central unit cell.   
     Args:
-        x (int):                order of ring around the center unit cell
+        x (int):                distance x from the arbitrary center unit cell
     Returns:
-        n1 (numpy.ndarray):     x-corrdinate indices of a ring of unit cells around the center
-        n2 (numpy.ndarray):     y-corrdinate indices of a ring of unit cells around the center
+        n1 (numpy.ndarray):     index of lattice vector a1
+        n2 (numpy.ndarray):     index of lattice vector a2
     """
     if x == 0:
         return np.array([0], np.float64), np.array([0], np.float64)
@@ -62,15 +62,15 @@ def numba_factorial(x):
     Args:
         x (numpy.ndarray):      argument array of type np.int64
     Returns:
-        res (numpy.ndarray):    2 dimensional array splits factorial into two factors
-                                to allow handling as np.int64
-                                First, for arguments x>20, 21*...*x
-                                Second, for arguments x<=20, 1*2*...*x
+        res (numpy.ndarray):    2 dimensional array that splits the factorial into
+                                two factors x! = x2! * x1! to allow storage as np.int64
+                                First, for arguments 20 < x2 <= 30, 21*...*x2
+                                Second, for arguments x1 <= 20, 1*2*...*x1
     """
     res = np.zeros((x.shape[0], 2), np.int64)
     for idx, xx in enumerate(x):
         if xx > 30:
-            raise ValueError('Highest faculty reached!')
+            raise ValueError('Only factorials of x <= 30 available!')
         elif xx > 20:
             res[idx, 0] = factorial_table_2[xx - 21]
             res[idx, 1] = factorial_table[20]
@@ -93,7 +93,7 @@ double_factorial_table = np.array([1, 1, 2, 3, 8, 15, 48, 105, 384, 945, 3840,
 def numba_double_factorial(x):
     """ Returns double factorials for x <= 30.
     Args:
-        x (numpy.ndarray):      argument of type np.int32
+        x (numpy.ndarray):      argument array of type np.int64
     """
     if x > 30:
         raise ValueError
@@ -113,7 +113,7 @@ wofz_fn = functype(addr)
 
 @njit()
 def numba_wofz_complex(x):
-    """ Numba version of the Faddevva function - replacing scipy.special.wofz().
+    """ Numba compatible version of the Faddevva function - replacing scipy.special.wofz().
         The cwrapper is copied from: https://github.com/numba/numba/issues/3086
     """
     out_real = np.empty(1,dtype=np.float64)
@@ -125,7 +125,7 @@ def numba_wofz_complex(x):
 
 @njit()
 def upper_incomplete_gamma_fun(n, x_vec):
-    """ Recursion for the upper incomplete Gamma function.  
+    """ Recursion formula of the upper incomplete Gamma function.  
         Kambe, Z. Naturforschg. 22a, 322-330, 1967. (42) und Appendix 2 (A8), (A9)
     Args:
         n (int):                    order
@@ -161,7 +161,7 @@ def int_recursion(L, eta, k, R_vec):
         Kambe, Z. Naturforschg. 22a, 322-330, 1967. Appendix 2, (A11) - (A14)
     Args:
         L (int):                multipole degree
-        eta (float):            separation parameter between Ewald sum's real and reciprocal space summand
+        eta (float):            Ewald sum separation parameter 
         k (complex):            initial field's wavenumber
         R_vec (numpy.ndarray):  real space unit cell displacement vector     
     Returns:
@@ -185,14 +185,14 @@ def int_recursion(L, eta, k, R_vec):
 
 @njit()
 def delta_n(n_max, gamma, cz, eta):
-    """ Integral recursion for the Ewald sum's reciprocal space summand for one particle with
-        a different particle's periodic arrangement.
+    """ Integral recursion for the Ewald sum's reciprocal space summand to account for the
+        coupling between one particle (S_0i) and a different particle's (S_0j) periodic arrangement.
         Kambe, Z. Naturforschg. 23a, 1280-1294, 1968. Appendix 3, (A3.1) - (A.3.7)
     Args:
         n_max (int):            maximal order
         gamma (numpy.ndarray):  sqrt(k ** 2 - kgt ** 2)
         cz (float):             particle displacement in along z-axis
-        eta (float):            separation parameter between Ewald sum's real and reciprocal space summand
+        eta (float):            Ewald sum separation parameter 
     Returns:
         Ewald sum's reciprocal space summand intergal
     """
