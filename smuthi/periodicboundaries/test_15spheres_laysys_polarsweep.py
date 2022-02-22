@@ -102,21 +102,25 @@ def test_polar_angle_sweep():
         simulation.run()
         
         # total field outer layers
-        pwe_total_T, pwe_total_R = pbpost.total_field_periodic_plane_wave_expansion(layer_system,
-                                                                                    initial_field,
-                                                                                    particle_list,
-                                                                                    a1=a1, a2=a2)
+        pwe_total_T = pbpost.transmitted_plane_wave_expansion(initial_field,
+                                                              particle_list,
+                                                              layer_system,
+                                                              a1, a2)
+        pwe_total_R = pbpost.reflected_plane_wave_expansion(initial_field,
+                                                            particle_list,
+                                                            layer_system,
+                                                            a1, a2)
         
         
         # farfield objects       
-        ff_T = pbpost.periodic_pwe_to_ff_conversion(simulation.initial_field,
-                                                simulation.layer_system,
-                                                 plane_wave_expansion=pwe_total_T)
-        ff_R = pbpost.periodic_pwe_to_ff_conversion(simulation.initial_field,
-                                                simulation.layer_system,
-                                                plane_wave_expansion=pwe_total_R)
+        ff_T = pbpost.periodic_pwe_to_ff_conversion(pwe_total_T,
+                                                    simulation.initial_field,
+                                                    simulation.layer_system)
+        ff_R = pbpost.periodic_pwe_to_ff_conversion(pwe_total_R,
+                                                    simulation.initial_field,
+                                                    simulation.layer_system)
             
-        # initial power per area
+        # power flow per area
         initial_power = pbpost.initial_plane_wave_power_per_area(initial_field, layer_system)
         transmitted_power = pbpost.scattered_periodic_ff_power_per_area(ff_T)
         reflected_power = pbpost.scattered_periodic_ff_power_per_area(ff_R)
