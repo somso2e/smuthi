@@ -63,6 +63,12 @@ class LinearSystem:
         identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
                                              particles, located in the same background medium). Then, the T-matrix is
                                              computed only once for all particles.
+        periodicity (tuple):        tuple (a1, a2)  containing two 3-dimensional lattice vectors in Carthesian coordinates
+        ewald_sum_separation_parameter (float):     Used to separate the real and reciprocal lattice sums to evaluate
+                                                    particle coupling in periodic lattices.
+        number_of_threads (int or str):     sets the number of threats used in a simulation with periodic particle arrangements
+                                            if 'default', all available CPU cores are used 
+                                            if negative, all but number_of_threads are used 
     """
 
     def __init__(self,
