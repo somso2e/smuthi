@@ -243,9 +243,9 @@ class GaussianBeam(InitialPropagatingWave):
             for backward propagation (bottom hemisphere).
         """
         i_top = layer_system.number_of_layers() - 1
-        top_ff = trf.pwe_to_ff_conversion(vacuum_wavelength=self.vacuum_wavelength,
+        top_ff = farf.pwe_to_ff_conversion(vacuum_wavelength=self.vacuum_wavelength,
                                             plane_wave_expansion=self.plane_wave_expansion(layer_system, i_top)[0])
-        bottom_ff = trf.pwe_to_ff_conversion(vacuum_wavelength=self.vacuum_wavelength,
+        bottom_ff = farf.pwe_to_ff_conversion(vacuum_wavelength=self.vacuum_wavelength,
                                                plane_wave_expansion=self.plane_wave_expansion(layer_system, 0)[1])
 
         return top_ff, bottom_ff
@@ -260,7 +260,7 @@ class GaussianBeam(InitialPropagatingWave):
             A smuthi.field_expansion.FarField object holding the initial intensity information.
         """
         if np.cos(self.polar_angle) > 0:  # bottom illumination
-            ff = trf.pwe_to_ff_conversion(vacuum_wavelength=self.vacuum_wavelength,
+            ff = farf.pwe_to_ff_conversion(vacuum_wavelength=self.vacuum_wavelength,
                                             plane_wave_expansion=self.plane_wave_expansion(layer_system, 0)[0])
         else:  # top illumination
             i_top = layer_system.number_of_layers() - 1
