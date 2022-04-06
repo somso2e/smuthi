@@ -21,15 +21,44 @@ class LayerSystem:
         thicknesses (list):         layer thicknesses, first and last are semi inf and set to 0 (length unit)
         refractive_indices (list):  complex refractive indices in the form n+jk
     """
-    def __init__(self, thicknesses=None, refractive_indices=None):
-        if thicknesses is None:
-            thicknesses = [0, 0]
-        if refractive_indices is None:
-            refractive_indices = [1, 1]
+    def __init__(self, thicknesses = [0, 0], refractive_indices = [1, 1]):
+
+        if len(thicknesses) != len(refractive_indices):
+            raise Exception(f''''
+                            You specified {len(thicknesses)} unique layers and {len(refractive_indices)} refractive indices. 
+                            This is not physical. Each layer must have a corresponding refractive index. 
+                            Simulation is fatally terminating because there is no other way to proceed... 
+                            ''')
+
         self.thicknesses = thicknesses
         self.thicknesses[0] = 0
         self.thicknesses[-1] = 0
         self.refractive_indices = refractive_indices
+        
+
+    def is_degenerate(self):
+        """
+        Returns True if the layer system consists of only two layers of the same material. 
+        This function is useful for detecting if layer mediated coupling can be omitted
+        when calculating the coupling between particles. 
+            
+            
+        Returns: 
+            True if layer system is degenerate. False otherwise.
+        """
+
+        # If there is no layer system then there is no need to calculate values 
+        # associated with a layer system. The best way to define this is to have
+        # a flag telling the simulation if it is relevant to calculate the layer
+        # system of not. This flag is best placed as a function in the layer system object
+        # because it requires the least amount of changes to the code. 
+        # Note: upon further reflection, giving the user the ability to swith
+        # on/off the layer system is likely not a great idea. It is better that 
+        # The user just define the degenerate cases they want to simulate and 
+        # compare. This prevents the user from assuming Smuthi performs in a 
+        # way that it may not. The user explictliy giving the inputs is more safe (I feel)
+        return (self.thicknesses == [0,0] and self.refractive_indices[0] == self.refractive_indices[-1])
+
 
     def number_of_layers(self):
         """Return total number of layers

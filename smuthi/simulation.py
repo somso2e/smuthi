@@ -163,9 +163,9 @@ class Simulation:
 
         if not os.path.exists(self.output_dir) and self.log_to_file:
             os.makedirs(self.output_dir)
-        sys.stdout = log.Logger(log_filename=self.log_filename,
-                            log_to_file=self.log_to_file,
-                            log_to_terminal=self.log_to_terminal)
+        #sys.stdout = log.Logger(log_filename=self.log_filename,
+        #                    log_to_file=self.log_to_file,
+        #                    log_to_terminal=self.log_to_terminal)
 
     def __getstate__(self):
         """Return state values to be pickled."""

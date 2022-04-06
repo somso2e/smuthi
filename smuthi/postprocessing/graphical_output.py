@@ -11,7 +11,7 @@ from matplotlib.colors import Normalize, LogNorm, SymLogNorm
 from itertools import cycle
 import tempfile
 import shutil
-import imageio
+#import imageio
 import os
 import warnings
 import sys

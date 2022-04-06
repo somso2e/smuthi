@@ -32,6 +32,11 @@ import smuthi.linearsystem.particlecoupling.layer_mediated_coupling as laycoup
 import smuthi.linearsystem.particlecoupling.prepare_lookup as look
 import smuthi.linearsystem.linear_system_cuda as cusrc
 
+
+
+
+
+
 iter_num = 0
 
 
@@ -427,12 +432,21 @@ class CouplingMatrixExplicit(SystemMatrix):
         coup_mat = np.zeros(self.shape, dtype=complex)
         sys.stdout.write('Coupling matrix memory footprint: ' + look.size_format(coup_mat.nbytes) + '\n')
         sys.stdout.flush()
+        
+        if layer_system.is_degenerate():
+            sys.stdout.write('Omitting calculations of layer mediated coupling since no difference in layers was detected. \n')
+            sys.stdout.flush()
+        
         for s1, particle1 in enumerate(tqdm(particle_list, desc='Particle coupling matrix  ', file=sys.stdout,
                                             bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}')):
             idx1 = np.array(self.index_block(s1))[:, None]
             for s2, particle2 in enumerate(particle_list):
                 idx2 = self.index_block(s2)
-                coup_mat[idx1, idx2] = (laycoup.layer_mediated_coupling_block(vacuum_wavelength, particle1, particle2,
+                
+                if layer_system.is_degenerate(): # Only calc direct coupling if degenerate case.                
+                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,layer_system)
+                else:
+                    coup_mat[idx1, idx2] = (laycoup.layer_mediated_coupling_block(vacuum_wavelength, particle1, particle2,
                                                                               layer_system, k_parallel)
                                         + dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,
                                                                         layer_system))

@@ -60,6 +60,7 @@ def test_versus_prototype():
     assert abs((particle_list[0].scattered_field.coefficients[10] - b10) / b10) < 1e-4
     b21 = -0.0795316 + 0.0194518j
     assert abs((particle_list[0].scattered_field.coefficients[21] - b21) / b21) < 1e-4
+    print('Tests Passed!')
 
 
 if __name__ == '__main__':
