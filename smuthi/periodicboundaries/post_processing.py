@@ -283,7 +283,7 @@ def reflected_plane_wave_expansion(initial_field, particle_list, layer_system, a
     # add the initial field contribution
     pwe_R.coefficients[:, idx_kpar, idx_a] += pwe_init_R.coefficients.reshape(2)
     
-    # if particles are located in the outer layer,add the direct scattered field contributions
+    # if particles are located in the outer layer, add the direct scattered field contributions
     i_sca = layer_system.layer_number(particle_list[0].position[2]) # all particles have to be in the same layer
     if i_sca == i_R:
         for ip in range(len(particle_list)):
@@ -493,9 +493,9 @@ def periodic_pwe_to_ff_conversion(plane_wave_expansion, initial_field, layer_sys
     k = plane_wave_expansion.k
     kp = plane_wave_expansion.k_parallel
     if plane_wave_expansion.kind == 'upgoing':
-        polar_angles = np.arcsin(kp / k)
+        polar_angles = np.arcsin(kp[kp < k] / k)
     elif plane_wave_expansion.kind == 'downgoing':
-        polar_angles = np.pi - np.arcsin(kp / k)
+        polar_angles = np.pi - np.arcsin((kp / k)[kp / k < 1])
     else:
         raise ValueError('PWE type not specified')
     if any(polar_angles.imag):
@@ -503,12 +503,14 @@ def periodic_pwe_to_ff_conversion(plane_wave_expansion, initial_field, layer_sys
     polar_angles = polar_angles[np.logical_not(np.isnan(polar_angles))]
     azimuthal_angles = plane_wave_expansion.azimuthal_angles
     
-    intens = (k / (2 * omega) * np.cos(polar_angles)[None, :, None] \
+    # power per interface area (Theobald 2021 dissertation, eq.(6.29))
+    normalized_power = (k / (2 * omega) * np.cos(polar_angles)[None, :, None] \
               * abs(plane_wave_expansion.coefficients[:, :len(polar_angles), :]) ** 2)
         
     srt_idcs = np.argsort(polar_angles)  # reversing order in case of downgoing
-    ff = FarField(polar_angles=polar_angles[srt_idcs], azimuthal_angles=azimuthal_angles)
-    ff.signal = intens[:, srt_idcs, :]
+    ff = FarField(polar_angles=polar_angles[srt_idcs], azimuthal_angles=azimuthal_angles,
+                  signal_type='normalized power')
+    ff.signal = normalized_power[:, srt_idcs, :]
     return ff
 
 
@@ -519,6 +521,8 @@ def scattered_periodic_ff_power_per_area(far_field):
     Returns:
         Scattered farfield power per area.
     """
+    if not far_field.signal_type == 'normalized power':
+        raise TypeError('Far field does not consist of discrete plane waves.')
     return abs(np.sum(far_field.signal))
 
 

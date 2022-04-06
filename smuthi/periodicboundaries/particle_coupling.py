@@ -131,7 +131,6 @@ def periodic_coupling_matrix(vacuum_wavelength, k0t, azimuthal_angle, layer_thic
     # alternative to status bar, to access the progress of the prange-numba-loop
     progress = np.zeros((s_max, s_max), np.int64)
     sections = np.zeros(10, np.float64) # in 10% steps
-    print('\n')
     print('Coupling matrix computation finished: 0.0 %.')
     
     for s1 in prange(s_max):

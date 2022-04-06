@@ -63,12 +63,13 @@ class LinearSystem:
         identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
                                              particles, located in the same background medium). Then, the T-matrix is
                                              computed only once for all particles.
-        periodicity (tuple):        tuple (a1, a2)  containing two 3-dimensional lattice vectors in Carthesian coordinates
+        periodicity (tuple):                 tuple (a1, a2) specifying two 3-dimensional lattice vectors in Carthesian coordinates
+                                             with a1, a2 (numpy.ndarrays)
         ewald_sum_separation_parameter (float):     Used to separate the real and reciprocal lattice sums to evaluate
                                                     particle coupling in periodic lattices.
-        number_of_threads (int or str):     sets the number of threats used in a simulation with periodic particle arrangements
-                                            if 'default', all available CPU cores are used 
-                                            if negative, all but number_of_threads are used 
+        number_of_threads_periodic (int or str):    sets the number of threats used in a simulation with periodic particle arrangements
+                                                    if 'default', all available CPU cores are used 
+                                                    if negative, all but number_of_threads_periodic are used 
     """
 
     def __init__(self,
@@ -85,7 +86,7 @@ class LinearSystem:
                  identical_particles=False,
                  periodicity=None,
                  ewald_sum_separation_parameter='default',
-                 number_of_threads='default'):
+                 number_of_threads_periodic='default'):
 
         if cuda_blocksize is None:
             cuda_blocksize = cu.default_blocksize
@@ -103,7 +104,7 @@ class LinearSystem:
         self.identical_particles = identical_particles
         self.periodicity = periodicity
         self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
-        self.number_of_threads = number_of_threads
+        self.number_of_threads_periodic = number_of_threads_periodic
 
         dummy_matrix = SystemMatrix(self.particle_list)
         sys.stdout.write('Number of unknowns: %i\n' % dummy_matrix.shape[0])
@@ -167,8 +168,12 @@ class LinearSystem:
                 warnings.warn("Particles are not all in same layer. "
                               "Fall back to direct coupling matrix computation (no lookup).")
                 self.coupling_matrix_lookup_resolution = None
+            if self.periodicity is not None:
+                warnings.warn("Periodic particle arrangement defined. "
+                              "Disabling lookup.")
+                self.coupling_matrix_lookup_resolution = None
             if self.store_coupling_matrix:
-                warnings.warn("Explicit matrix compuatation using lookup currently not implemented. "
+                warnings.warn("Explicit matrix computation using lookup currently not implemented. "
                               "Disabling lookup.")
                 self.coupling_matrix_lookup_resolution = None
             else:  # use lookup
@@ -241,7 +246,7 @@ class LinearSystem:
                     layer_system=self.layer_system,
                     periodicity=self.periodicity,
                     ewald_sum_separation_parameter=self.ewald_sum_separation_parameter,
-                    num_threads=self.number_of_threads)
+                    num_threads=self.number_of_threads_periodic)
             
             else:
                 sys.stdout.write('Explicit coupling matrix computation on CPU.\n')
@@ -478,7 +483,7 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
         periodicity (tuple):                                (a1, a2) lattice vector 1 and 2 in carthesian coordinates
         ewald_sum_separation_parameter (float):             Ewald sum separation parameter
         num_threads (int or str):                           if 'default' all available CPU cores are used
-                                                            if negative, all but number_of_threads are used
+                                                            if negative, all but num_threads are used
     """
     
     def __init__(self, initial_field, particle_list, layer_system, periodicity,
@@ -488,14 +493,14 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
         if type(num_threads).__name__ == 'int':
             if 0 < num_threads <= max_num_threads:
                 set_num_threads(num_threads)
-                sys.stdout.write('Parallel Numba execution limited to %d of %d available CPU cores.' % (num_threads, max_num_threads))
+                sys.stdout.write('Parallel Numba execution limited to %d of %d available CPU cores. \n' % (num_threads, max_num_threads))
             elif num_threads <= 0:
                 set_num_threads(max_num_threads + num_threads)
-                sys.stdout.write('Parallel Numba execution limited to %d of %d available CPU cores.' % (max_num_threads + num_threads, max_num_threads))
+                sys.stdout.write('Parallel Numba execution limited to %d of %d available CPU cores. \n' % (max_num_threads + num_threads, max_num_threads))
             else:
-                sys.stdout.write('Parallel Numba execution uses all %d available CPU cores.' % (max_num_threads))
+                sys.stdout.write('Parallel Numba execution uses all %d available CPU cores. \n' % (max_num_threads))
         else:
-            sys.stdout.write('Parallel Numba execution uses all %d available CPU cores.' % (max_num_threads))
+            sys.stdout.write('Parallel Numba execution uses all %d available CPU cores. \n' % (max_num_threads))
         sys.stdout.flush()
         
         a1, a2 = periodicity
