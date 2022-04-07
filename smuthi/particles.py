@@ -5,7 +5,6 @@ import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 import smuthi.linearsystem.tmatrix.nfmds.stlmanager as stlc
 import os
 if not os.environ.get('READTHEDOCS'):
-    import smuthi.linearsystem.tmatrix.nfmds.TAXSYM_SMUTHI as nfmds
     import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 import smuthi.utility.logging as log
 import numpy as np
