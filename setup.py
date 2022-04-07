@@ -14,7 +14,7 @@ from numpy.distutils.core import setup
 from numpy.distutils.core import Extension
 
 import pkg_resources
-
+import numpy as np
 
 version = {}
 with open("smuthi/version.py") as fp:
