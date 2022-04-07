@@ -1,7 +1,6 @@
 #!python
 #cython: language_level=3
-#distutils: define_macros = NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: include_dirs = /fastwidxj-1.4
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 """
 Created on Tue Apr  5 10:27:28 2022

@@ -77,7 +77,7 @@ class Simulation:
         identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
                                              particles, located in the same background medium). Then, the T-matrix is
                                              computed only once for all particles.
-         do_sanity_check (bool):             if true (default), check numerical input for some flaws. Warning: A passing
+        do_sanity_check (bool):              if true (default), check numerical input for some flaws. Warning: A passing
                                              sanity check does not guarantee correct numerical settings. For many
                                              particles, the sanity check might take some time and/or occupy large memory.
     """
@@ -333,7 +333,7 @@ class Simulation:
         # check for circumscribing sphere collisions.
         if self.check_circumscribing_spheres and len(self.particle_list) > 1 \
                 and not self.circumscribing_spheres_disjoint():
-            warnings.warn("Particles with circumscribing spheres detected.")
+            print("Particles with circumscribing spheres detected.")
 
         # run sanity check
         if self.do_sanity_check and len(self.particle_list) > 1:

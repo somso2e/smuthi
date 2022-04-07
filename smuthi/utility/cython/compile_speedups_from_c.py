@@ -25,10 +25,14 @@ for users who know what they are doing..
 
 
 from setuptools import Extension, setup
-
+import numpy
 
 setup(
-    ext_modules = [Extension("direct_coupling_block_in_c", ["direct_coupling_block_in_c.c"])]
+    ext_modules = [Extension("cython_speedups",
+			 ["cython_speedups.c"],       
+			 extra_compile_args=['-fopenmp'],
+        		 extra_link_args=['-fopenmp'],
+        		 include_dirs=[numpy.get_include()])]
 )
 
 
