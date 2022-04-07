@@ -1,33 +1,17 @@
 #%%
 import os
-try:
-    #os.chdir('/home/parkerwray/hypnos/Codes/RandomSmuthi/RandomSmuthi')
-    os.chdir('/home/parkerwray/hypnos/Codes/smuthi-cython-and-lookup-for-explicit-direct-coupling-speedups')
-except:
-    print('Directory could not be changed. Likely not working on lab linux machine. ')
-    
-    
 import sys
 import numpy as np
-if np.get_include() not in sys.path:
-    sys.path.append(np.get_include())
-
-
-import copy
 import time
-from datetime import datetime
-import matplotlib.pyplot as plt
 
 from smuthi.particles import Sphere
 from smuthi.simulation import Simulation
 from smuthi.initial_field import PlaneWave, DipoleSource
 from smuthi.layers import LayerSystem
-from smuthi.postprocessing.graphical_output import plot_particles
-import smuthi.postprocessing.far_field as sff
+
 import smuthi.utility.logging as log
 import smuthi.fields as flds
-#import smuthi.utility.c_acceleration as cacc
-#cacc.set_c(acctype = 'lookup')
+
 
 
 def simulation(lda = 416, l_max = 6):
