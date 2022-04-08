@@ -88,9 +88,15 @@ Click on the respective benchmark names to view a brief discussion.
 === ================================ ============== ===================
 No. Benchmark                         other method   script and data    
 === ================================ ============== ===================
-1   |bench1link|                      FEM            |bench1data|                
+1   |bench1link|                      FEM            |bench1data|      
+2	|bench2link|                      FEM          	 |bench2data|
 === ================================ ============== =================== 
 
 .. |bench1link| replace:: :doc:`Four particles in slab waveguide <four_particles_in_slab/discussion>`
 
 .. |bench1data| replace:: :download:`download <../../../examples/benchmarks/four_particles_in_slab/four_particles_in_slab.zip>`
+
+
+.. |bench2link| replace:: :doc:`Fifteen periodic spheres in slab <fifteen_periodic_spheres_in_slab/discussion>`
+
+.. |bench2data| replace:: :download:`download <../../../examples/benchmarks/fifteen_periodic_spheres_in_slab/fifteen_periodic_spheres_in_slab.zip>`
