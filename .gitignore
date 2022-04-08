@@ -36,6 +36,7 @@ examples/Lorenzo/*
 venv/*
 virtualenv/*
 smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/*.f90
+examples/*
 *fort.20
 !examples/tutorials/*
 !examples/benchmarks/*
