@@ -33,3 +33,4 @@ On the other side, the oblique incidence :math:`(|k_{\mathrm{in}\|}| \approx k)`
 evaluation of Ewald lattice sums (utilized in Smuthi) more challenging. 
 
 
+
