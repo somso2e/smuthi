@@ -39,7 +39,6 @@ smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/*.f90
 examples/*
 *fort.20
 !examples/tutorials/*
-!examples/benchmarks/*
 smuthi/.libs/*
 *.pyd
 !examples/published_in_JQSRT_2021
