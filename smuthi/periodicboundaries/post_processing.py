@@ -477,7 +477,7 @@ def conjugated_poynting_vector(E, H):
 # Note: The FarField.signal corresponds to the plane wave's power per interface area (Theobald 2021 dissertation, eq.(6.29))
 # It differs from the smuthi.postprocessing.far_field.FarField object that is constructed from a PlaneWaveExpansion
 # with a continuous angular distribution.
-# Probably not all methods of FarField objects are applicable! Might be a good idea to open up a new class.
+# Introduces the FarField.signal_type "normalized power".
 def periodic_pwe_to_ff_conversion(plane_wave_expansion, initial_field, layer_system):
     """Compute the far field of a plane wave expansion object of discrete plane waves.
     Args:
