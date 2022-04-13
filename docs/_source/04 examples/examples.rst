@@ -8,19 +8,20 @@ This section contains a number of exemplary simulation scripts to illustrate the
 Each tutorial is supposed to illustrate a certain aspect of the software.
 Click on the respective tutorial names to view a brief discussion.
 
-=== ==================================  ============== ============ =====================
-No. Tutorial                             level           script     Google colab
-=== ==================================  ============== ============ =====================
-1   |ex1link|                             |introd|      |ex1script|  `link <https://colab.research.google.com/drive/1sHLhTT-yZbXjjv9MUefQL3FYosSpg4ZJ>`_
-2   |ex2link|                             |introd|      |ex2script|  `link <https://colab.research.google.com/drive/1q6RJQssfNRG3NL3qqkZda1rVtDlp5sIu>`_
-3   |ex3link|                             |introd|      |ex3script|  `link <https://colab.research.google.com/drive/14V5bMFykXWL9xSZwqyVsiC8zYtQkwJ90>`_
-4   |ex4link|                             |intermed|    |ex4script|  n/a
-5   |ex5link|                             |intermed|      TBD        n/a
-6   |ex6link|                             |intermed|      TBD        n/a
-7   |ex7link|                             |advanced|    |ex7script|  n/a
-8   |ex8link|                             |advanced|    |ex8script|  n/a
-9   |ex9link|                             |intermed|    |ex9script|  n/a
-=== ==================================  ============== ============ =====================
+=== ==================================  ============== ============== =====================
+No. Tutorial                             level           script        Google colab
+=== ==================================  ============== ============== =====================
+1   |ex1link|                             |introd|      |ex1script|    `link <https://colab.research.google.com/drive/1sHLhTT-yZbXjjv9MUefQL3FYosSpg4ZJ>`_
+2   |ex2link|                             |introd|      |ex2script|    `link <https://colab.research.google.com/drive/1q6RJQssfNRG3NL3qqkZda1rVtDlp5sIu>`_
+3   |ex3link|                             |introd|      |ex3script|    `link <https://colab.research.google.com/drive/14V5bMFykXWL9xSZwqyVsiC8zYtQkwJ90>`_
+4   |ex4link|                             |intermed|    |ex4script|    n/a
+5   |ex5link|                             |intermed|      TBD          n/a
+6   |ex6link|                             |intermed|      TBD          n/a
+7   |ex7link|                             |advanced|    |ex7script|    n/a
+8   |ex8link|                             |advanced|    |ex8script|    n/a
+9   |ex9link|                             |intermed|    |ex9script|    n/a
+10  |ex10link|                            |intermed|    |ex10script|   n/a
+=== ==================================  ============== ============== =====================
 
 .. |ex1script| replace:: :download:`download <../../../examples/tutorials/01_setting_up_a_simulation/dielectric_sphere_on_substrate.py>`
 
@@ -62,6 +63,11 @@ No. Tutorial                             level           script     Google colab
 .. |ex9script| replace:: :download:`download <../../../examples/tutorials/09_multipole_decomposition/decompose_extinction_for_one_sphere.py>`
 
 .. |ex9link| replace:: :doc:`Multipole decomposition <09_multipole_decomposition/discussion>`
+
+
+.. |ex10script| replace:: :download:`download <../../../examples/tutorials/10_periodic_near_field/perforated_glass_sheet.py>`
+
+.. |ex10link| replace:: :doc:`Periodic near field <10_periodic_near_field/discussion>`
 
 
 
