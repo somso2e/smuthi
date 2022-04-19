@@ -4,8 +4,8 @@ import smuthi.linearsystem.tmatrix.t_matrix as tmt
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 import smuthi.linearsystem.tmatrix.nfmds.stlmanager as stlc
 import os
-#if not os.environ.get('READTHEDOCS'):
-#    import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
+if not os.environ.get('READTHEDOCS'):
+    import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 import smuthi.utility.logging as log
 import numpy as np
 import tempfile
