@@ -6,7 +6,7 @@ This file is to offer the ability to have fast calculations of the direct coupli
 matrix between two particles. The key idea is that many particles share the 
 same order pairs. Therefore, the ab5 (and, in the case of 2d, the legendre) functions
 need not be calculated for every particle pair. Instead we can construct a 
-lookup table of the result of these coefficients using memoization. This is 
+hash table of the result of these coefficients using memoization. This is 
 beneficial because the coupling matrix involves MANY loops. Just memoizing the 
 ab5 or legendre functions isn't as good as making a list and efficiently 
 iterating over that list.
@@ -41,7 +41,7 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
        First, in most cases the number of unique maximum multipole indicies,
        :math:`(\tau, l_{max}, m_{max})`, is much less than the number of unique particles. 
        Therefore, all calculations that depend only on multipole indicies are stored in an 
-       intermediate lookup table. Second, Cython acceleration is used by default to leverage 
+       intermediate hash table. Second, Cython acceleration is used by default to leverage 
        fast looping. If the Cython files are not supported, this routine will 
        fall back on equivalent Python looping.
        
@@ -90,17 +90,17 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
         dy = float(rS1[1] - rS2[1])
         dz = float(rS1[2] - rS2[2])
 
-        #Note: It is allways better to use the lookup tables so just do it. 
+        #Note: It is allways better to use the hash tables so just do it. 
         if dz == 0:
-            a5leg_array, b5leg_array = ab5_coefficient_and_legendre_lookup(lmax1, lmax2, mmax1, mmax2)
-            w = direct_coupling_block_2D_lookup(blocksize1, blocksize2,
+            a5leg_array, b5leg_array = ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
+            w = direct_coupling_block_2D_from_hash_table(blocksize1, blocksize2,
                                                         w, sph, k, dx, dy,dz,
                                                         lmax1, lmax2, mmax1, mmax2,
                                                         a5leg_array, b5leg_array,                              
                                                         threaded = False)
         else:
-            a5_array, b5_array = ab5_coefficient_lookup(lmax1, lmax2, mmax1, mmax2)
-            w = direct_coupling_block_3D_lookup(blocksize1, blocksize2,
+            a5_array, b5_array = ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
+            w = direct_coupling_block_3D_from_hash_table(blocksize1, blocksize2,
                                                         w, sph, k, dx, dy,dz,
                                                         lmax1, lmax2, mmax1, mmax2,
                                                         a5_array, b5_array,                              
@@ -139,20 +139,20 @@ def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
 
 
 ##############################################################################
-#  Make hard lookup table of ab5 and Legendre for a particle order pair 
+#  Make hard hash table of ab5 and Legendre for a particle order pair 
 #  This is for 2D coupling (Cython uses the GIL)
 ##############################################################################
 # """
-#     This lookup table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This lookup 
+#     This hash table is considered "hard" because it is dependent on the order 
+#     of which particle is the emitter and which is the reciever. This hash table 
 #     table is particularly good when all particles have the same order. 
 # """
 
 try: 
-    from smuthi.utility.cython.cython_speedups import hard_ab5_coefficient_and_legendre_lookup
+    from smuthi.utility.cython.cython_speedups import hard_ab5_coefficient_and_legendre_hash_table
     @memo.Memoize
-    def ab5_coefficient_and_legendre_lookup(lmax1, lmax2, mmax1, mmax2):
-        return hard_ab5_coefficient_and_legendre_lookup(int(lmax1), int(lmax2), int(mmax1), int(mmax2))
+    def ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2):
+        return hard_ab5_coefficient_and_legendre_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))
 except:
     sys.stdout.write(
 """
@@ -162,11 +162,11 @@ Falling back on Python equivalents...
         )
     sys.stdout.flush()
     @memo.Memoize
-    def ab5_coefficient_and_legendre_lookup(lmax1, lmax2, mmax1, mmax2):
-        r"""Creates a lookup table of the elements
+    def ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2):
+        r"""Creates a hash table of the elements
         :math:`a5(l_1,m_1,l_2,m_2,l_d)*P_{l_d}^{m_1-m_2}(0)` and :math:`a5(l_1,m_1,l_2,m_2,l_d)*P_{l_d}^{m_1-m_2}(0)`
         found in appendix B of [Egel 2018 diss],where a5 and b5 are the coefficients used in the evaluation of the SVWF translation
-        operator and :math:`P_l^m(\cos\theta)` are the normalized associated Legendre functions. This lookup table is usefull in 
+        operator and :math:`P_l^m(\cos\theta)` are the normalized associated Legendre functions. This hash table is usefull in 
         reducing computation time when calculating the coupling between two particles that exist in the same layer 
         and have the same z coordinate.
 
@@ -179,8 +179,8 @@ Falling back on Python equivalents...
 
     
         Returns:
-            a5leg_array (ndarray):          Lookup table of the elements in :math:`A` not dependent on :math:`/phi` or :math:`kd`
-            b5leg_array (ndarray):          Lookup table of the elements in :math:`B` not dependent on :math:`/phi` or :math:`kd`          
+            a5leg_array (ndarray):          hash table of the elements in :math:`A` not dependent on :math:`/phi` or :math:`kd`
+            b5leg_array (ndarray):          hash table of the elements in :math:`B` not dependent on :math:`/phi` or :math:`kd`          
 
         """
         
@@ -209,27 +209,27 @@ Falling back on Python equivalents...
 
 
 ##############################################################################
-#  Make hard lookup table of ab5  for a particle order pair 
+#  Make hard hash table of ab5  for a particle order pair 
 #  This is for 3D coupling (Cython uses the GIL)
 ##############################################################################
 # """
-#     This lookup table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This lookup 
+#     This hash table is considered "hard" because it is dependent on the order 
+#     of which particle is the emitter and which is the reciever. This hash 
 #     table is particularly good when all particles have the same order. 
 # """
 
 try:
-    from smuthi.utility.cython.cython_speedups  import hard_ab5_coefficient_lookup
+    from smuthi.utility.cython.cython_speedups  import hard_ab5_coefficient_hash_table
     @memo.Memoize
-    def ab5_coefficient_lookup(lmax1, lmax2, mmax1, mmax2):
-        return hard_ab5_coefficient_lookup(int(lmax1), int(lmax2), int(mmax1), int(mmax2))  
+    def ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
+        return hard_ab5_coefficient_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))  
 except:
     @memo.Memoize
-    def ab5_coefficient_lookup(lmax1, lmax2, mmax1, mmax2):
-        r"""Creates a lookup table of the elements
+    def ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
+        r"""Creates a hash table of the elements
         :math:`a5(l_1,m_1,l_2,m_2,l_d)` and :math:`a5(l_1,m_1,l_2,m_2,l_d)`
         found in appendix B of [Egel 2018 diss],where a5 and b5 are the coefficients used in the evaluation of the SVWF translation
-        operator. This lookup table is usefull in reducing computation time when calculating the coupling between two particles
+        operator. This hash table is usefull in reducing computation time when calculating the coupling between two particles
         that exist in the same layer but do not have the same z coordinate.
 
 
@@ -241,8 +241,8 @@ except:
 
     
         Returns:
-            a5_array (ndarray):          Lookup table of the elements in :math:`A` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`
-            b5_array (ndarray):          Lookup table of the elements in :math:`B` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`          
+            a5_array (ndarray):          Hash table of the elements in :math:`A` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`
+            b5_array (ndarray):          Hash table of the elements in :math:`B` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`          
 
         """        
         a5_array = []
@@ -262,16 +262,16 @@ except:
 
 
 ##############################################################################
-#  2D Direct coupling block using hard lookup table (Cython releases the Gil)
+#  2D Direct coupling block using hard hash table (Cython releases the Gil)
 ##############################################################################
 
 try:
-    from smuthi.utility.cython.cython_speedups import direct_coupling_block_2D_lookup 
+    from smuthi.utility.cython.cython_speedups import direct_coupling_block_2D_from_hash_table 
 except:
-    def direct_coupling_block_2D_lookup(blocksize1,blocksize2,
+    def direct_coupling_block_2D_from_hash_table(blocksize1,blocksize2,
                                         w,sph,k,dx, dy, dz,
                                         lmax1, lmax2, mmax1, mmax2,
-                                        a5leg_lookup,b5leg_lookup,
+                                        a5leg_hash_table,b5leg_hash_table,
                                         threaded = False):
 
         r"""Subroutine to calculate the direct coupling between two particles 
@@ -294,8 +294,8 @@ except:
             lmax2  (int):          Largest polar quantum number  of the emitting particle
             mmax1  (int):          Largest azimuthal quantum number of the recieving particle
             mmax2  (int):          Largest azimuthal quantum number of the emitting particle
-            a5leg_array (ndarray):          Lookup table of the elements in :math:`A` not dependent on :math:`/phi` or :math:`kd`
-            b5leg_array (ndarray):          Lookup table of the elements in :math:`B` not dependent on :math:`/phi` or :math:`kd`          
+            a5leg_array (ndarray):          Hash table of the elements in :math:`A` not dependent on :math:`/phi` or :math:`kd`
+            b5leg_array (ndarray):          Hash table of the elements in :math:`B` not dependent on :math:`/phi` or :math:`kd`          
             threaded (bool):          Flag to enable multithreading (valid only for Cython where the Gil can be released). Currently hard coded to False.  
             
         Returns:
@@ -320,8 +320,8 @@ except:
                         A, B = complex(0), complex(0)
                         for ld in range(max(abs(l1 - l2), abs(m1 - m2)), l1 + l2 + 1):  # if ld<abs(m1-m2) then P=0
 
-                            A += a5leg_lookup[idx_ab5leg]*sph[ld] 
-                            B += b5leg_lookup[idx_ab5leg]*sph[ld]
+                            A += a5leg_hash_table[idx_ab5leg]*sph[ld] 
+                            B += b5leg_hash_table[idx_ab5leg]*sph[ld]
                             idx_ab5leg += 1
                             
                         A, B = eimph_val * A, eimph_val * B
@@ -338,16 +338,16 @@ except:
     
     
 ##############################################################################
-#  3D Direct coupling block using hard lookup table (Cython releases the Gil)
+#  3D Direct coupling block using hard hash table (Cython releases the Gil)
 ##############################################################################  
     
 try:
-    from smuthi.utility.cython.cython_speedups import direct_coupling_block_3D_lookup
+    from smuthi.utility.cython.cython_speedups import direct_coupling_block_3D_from_hash_table
 except:  
-    def direct_coupling_block_3D_lookup(blocksize1,blocksize2,
+    def direct_coupling_block_3D_from_hash_table(blocksize1,blocksize2,
                                         w,sph,k,dx, dy, dz,
                                         lmax1, lmax2, mmax1, mmax2,
-                                        a5_lookup, b5_lookup,
+                                        a5_hash_table, b5_hash_table,
                                         threaded = False):
         
         r"""Subroutine to calculate the direct coupling between two particles 
@@ -370,8 +370,8 @@ except:
             lmax2  (int):          Largest polar quantum number  of the emitting particle
             mmax1  (int):          Largest azimuthal quantum number of the recieving particle
             mmax2  (int):          Largest azimuthal quantum number of the emitting particle
-            a5_array (ndarray):          Lookup table of the elements in :math:`A` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`
-            b5_array (ndarray):          Lookup table of the elements in :math:`B` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`          
+            a5_array (ndarray):          Hash table of the elements in :math:`A` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`
+            b5_array (ndarray):          Hash table of the elements in :math:`B` not dependent on :math:`/theta`, :math:`/phi` or :math:`kd`          
             threaded (bool):          Flag to enable multithreading (valid only for Cython where the Gil can be released). Currently hard coded to False.  
             
         Returns:
@@ -398,8 +398,8 @@ except:
                     for l2 in range(max(1, abs(m2)), lmax2 + 1):
                         A, B = complex(0), complex(0)
                         for ld in range(max(abs(l1 - l2), abs(m1 - m2)), l1 + l2 + 1):  # if ld<abs(m1-m2) then P=0
-                            A += a5_lookup[idx_ab5]*sph[ld]*legendre[ld][abs(m1 - m2)] 
-                            B += b5_lookup[idx_ab5]*sph[ld]*legendre[ld][abs(m1 - m2)] 
+                            A += a5_hash_table[idx_ab5]*sph[ld]*legendre[ld][abs(m1 - m2)] 
+                            B += b5_hash_table[idx_ab5]*sph[ld]*legendre[ld][abs(m1 - m2)] 
                             idx_ab5 += 1
                             
                         A, B = eimph_val * A, eimph_val * B

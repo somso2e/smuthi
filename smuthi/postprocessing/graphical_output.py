@@ -50,7 +50,7 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
     ax = plt.gca()
 
     if fill_particle:
-        particle_face_color = 'w'
+        particle_face_color = 'k'
     else:
         particle_face_color = 'none'
 

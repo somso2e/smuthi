@@ -140,7 +140,8 @@ class Simulation:
         self.log_to_terminal = log_to_terminal
         self.log_to_file = log_to_file
         self.log_filename = self.output_dir + '/' + 'smuthi.log'
-        self.set_logging()
+        self.old_log = sys.stdout
+        
 
         if input_file is not None and log_to_file:
             shutil.copyfile(input_file, self.output_dir + '/input.dat')
@@ -327,13 +328,14 @@ class Simulation:
         self.set_default_Sommerfeld_contour()
 
     def run(self):
+        self.set_logging()
         """Start the simulation."""
         self.print_simulation_header()
 
         # check for circumscribing sphere collisions.
         if self.check_circumscribing_spheres and len(self.particle_list) > 1 \
                 and not self.circumscribing_spheres_disjoint():
-            print("Particles with circumscribing spheres detected.")
+            warnings.warn("Particles with circumscribing spheres detected.")
 
         # run sanity check
         if self.do_sanity_check and len(self.particle_list) > 1:
@@ -374,5 +376,6 @@ class Simulation:
 
         sys.stdout.write('\n')
         sys.stdout.flush()
+        #sys.stdout = self.old_log
 
         return preparation_time, solution_time, postprocessing_time

@@ -21,8 +21,14 @@ class LayerSystem:
         thicknesses (list):         layer thicknesses, first and last are semi inf and set to 0 (length unit)
         refractive_indices (list):  complex refractive indices in the form n+jk
     """
-    def __init__(self, thicknesses = [0, 0], refractive_indices = [1, 1]):
-
+    def __init__(self, thicknesses = None, refractive_indices = None):
+        
+        if thicknesses is None:
+            thicknesses = [0, 0]
+        
+        if refractive_indices is None:
+            refractive_indices = [1,1]
+            
         if len(thicknesses) != len(refractive_indices):
             raise Exception(f''''
                             You specified {len(thicknesses)} unique layers and {len(refractive_indices)} refractive indices. 

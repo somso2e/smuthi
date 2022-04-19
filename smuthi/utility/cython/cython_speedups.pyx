@@ -7,7 +7,7 @@ Created on Tue Apr  5 10:27:28 2022
 
 This code uses Cython to speed up multiple functions commonly used in Smuthi.
 The code also has functions for calculating the explicit direct particle-particle
-coupling matrix within a single layer. A lookup table method is used to speed 
+coupling matrix within a single layer. A hash table method is used to speed 
 up the calculation of the explicit direct coupling matrix in both the 2D and 3D 
 case. T
 
@@ -552,13 +552,13 @@ def direct_coupling_block_3D(double complex k, double dx, double dy, double dz,
 ##############################################################################
 #****************************************************************************#
 #****************************************************************************#
-#********** 3D direct coupling block and translation lookup *****************#
+#********** 3D direct coupling block and translation hash   *****************#
 #********************* Includes multithread options *************************#
 #****************************************************************************#
 ##############################################################################
 
 The same AB5 coefficients are often shared between particle pairs. In Python
-these are memoized. In Cython, we memoize a lookup table of particle order 
+these are memoized. In Cython, we memoize a hash table of particle order 
 pairs (e.g., 2->2 , 3->2, 2->3, ...). This table is then used for fast C loops.
 
 This section details the direct coupling block and translation between 2 
@@ -569,16 +569,16 @@ back option is accessable.
 '''
 
 ##############################################################################
-#  Make hard lookup table of ab5 for a particle order pair (WITH GIL)
+#  Make hard hash table of ab5 for a particle order pair (WITH GIL)
 ##############################################################################
 # """
-#     This lookup table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This lookup 
+#     This hash table is considered "hard" because it is dependent on the order 
+#     of which particle is the emitter and which is the reciever. This hash 
 #     table is particularly good when all particles have the same order. 
 # """
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef c_hard_ab5_coefficient_lookup(long lmax1, 
+cdef c_hard_ab5_coefficient_hash_table(long lmax1, 
                                  long lmax2, 
                                  long mmax1, 
                                  long mmax2):   #<-- Note: This function holds the gil!
@@ -612,19 +612,19 @@ cdef c_hard_ab5_coefficient_lookup(long lmax1,
                         
     return a5_array, b5_array
 
-def hard_ab5_coefficient_lookup(long lmax1, long lmax2, long mmax1, long mmax2):
+def hard_ab5_coefficient_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
     cdef double complex[:] a5_array, b5_array
-    a5_array, b5_array = c_hard_ab5_coefficient_lookup(lmax1, lmax2, mmax1, mmax2)
+    a5_array, b5_array = c_hard_ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
     return np.asarray(a5_array, dtype = np.complex128),  np.asarray(b5_array, dtype = np.complex128)
 
 
 
 ##############################################################################
-# Translation 3D with Hard Lookups
+# Translation 3D with Hard Hash
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:]  c_svh_translate_3D_lookup(long blocksize1,long blocksize2,
+cdef double complex [:,:]  c_svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -698,11 +698,11 @@ cdef double complex [:,:]  c_svh_translate_3D_lookup(long blocksize1,long blocks
 
 
 ##############################################################################
-# Translation 3D with Hard Lookups and Multithreading
+# Translation 3D with Hard Hash and Multithreading
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:]  c_svh_translate_3D_lookup_threaded(long blocksize1,long blocksize2,
+cdef double complex [:,:]  c_svh_translate_3D_from_hash_table_threaded(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -776,7 +776,7 @@ cdef double complex [:,:]  c_svh_translate_3D_lookup_threaded(long blocksize1,lo
 
 
 # Have option to thread build into the translate function for easier reuse.
-def svh_translate_3D_lookup(long blocksize1,long blocksize2,
+def svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -789,14 +789,14 @@ def svh_translate_3D_lookup(long blocksize1,long blocksize2,
     cdef double complex [:,:] val
     if threaded == True:
         with nogil:
-            val = c_svh_translate_3D_lookup_threaded(blocksize1,blocksize2,
+            val = c_svh_translate_3D_from_hash_table_threaded(blocksize1,blocksize2,
                                             w,sph,k, dx, dy,  dz,
                                             lmax1,lmax2,mmax1,mmax2,
                                             a5_array, b5_array,
                                             kind)
     else:
         with nogil:
-            val = c_svh_translate_3D_lookup(blocksize1,blocksize2,
+            val = c_svh_translate_3D_from_hash_table(blocksize1,blocksize2,
                                             w,sph,k, dx, dy,  dz,
                                             lmax1,lmax2,mmax1,mmax2,
                                             a5_array, b5_array,
@@ -805,7 +805,7 @@ def svh_translate_3D_lookup(long blocksize1,long blocksize2,
     return np.asarray(val, dtype = np.complex128)
 
 # Special case of translate. Make wrapper for readability in smuthi.
-def direct_coupling_block_3D_lookup(long blocksize1,long blocksize2,
+def direct_coupling_block_2D_from_hash_table(long blocksize1,long blocksize2,
                                 double complex[:,:] w,
                                 double complex[:] sph,
                                 double complex k,
@@ -815,7 +815,7 @@ def direct_coupling_block_3D_lookup(long blocksize1,long blocksize2,
                                 double complex[:] b5_array,                             
                                 threaded = False):
     cdef kind = 0
-    return svh_translate_3D_lookup(blocksize1,blocksize2,
+    return svh_translate_3D_from_hash_table(blocksize1,blocksize2,
                                     w,sph,k, dx, dy,  dz,
                                     lmax1,lmax2,mmax1,mmax2,
                                     a5_array, b5_array,
@@ -1041,13 +1041,13 @@ def direct_coupling_block_2D(double complex k, double dx, double dy, double dz,
 ##############################################################################
 #****************************************************************************#
 #****************************************************************************#
-#********** 2D direct coupling block and translation lookup *****************#
+#********** 2D direct coupling block and translation hash   *****************#
 #********************* Includes multithread options *************************#
 #****************************************************************************#
 ##############################################################################
 
 The same AB5 coefficients are often shared between particle pairs. In Python
-these are memoized. In Cython, we memoize a lookup table of particle order 
+these are memoized. In Cython, we memoize a hash table of particle order 
 pairs (e.g., 2->2 , 3->2, 2->3, ...). This table is then used for fast C loops.
 
 This section details the direct coupling block and translation between 2 
@@ -1060,22 +1060,22 @@ back option is accessable.
 
 
 ##############################################################################
-#  Make hard lookup table of ab5 and legendre for a particle pair
+#  Make hard hash table of ab5 and legendre for a particle pair
 ##############################################################################
 # """
-#     This lookup table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This lookup 
+#     This hash table is considered "hard" because it is dependent on the order 
+#     of which particle is the emitter and which is the reciever. This hash 
 #     table is particularly good when all particles have the same order. 
-#     If orders are different, a lookup of just a5 and b5 as multidimensional 
-#     arrays may be a better option because you dont have to run the lookup for 
+#     If orders are different, a hash of just a5 and b5 as multidimensional 
+#     arrays may be a better option because you dont have to run the hash for 
 #     e.g., 2->3 and 3->2. But, no tests have been run to verify there is truly 
-#     a speed increase... so, unless this version of a lookup becomes the 
+#     a speed increase... so, unless this version of a hash becomes the 
 #     bottleneck I DO NOT recomend writing and debugging a new more "generalized"
-#     lookup..
+#     hash..
 # """
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef c_hard_ab5_coefficient_and_legendre_lookup(long lmax1, 
+cdef c_hard_ab5_coefficient_and_legendre_hash_table(long lmax1, 
                                              long lmax2, 
                                              long mmax1, 
                                              long mmax2):
@@ -1111,17 +1111,17 @@ cdef c_hard_ab5_coefficient_and_legendre_lookup(long lmax1,
                         
     return a5leg_array, b5leg_array
 
-def hard_ab5_coefficient_and_legendre_lookup(long lmax1, long lmax2, long mmax1, long mmax2):
+def hard_ab5_coefficient_and_legendre_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
     cdef double complex[:] a5leg_array, b5leg_array 
-    a5leg_array, b5leg_array = c_hard_ab5_coefficient_and_legendre_lookup(lmax1, lmax2, mmax1, mmax2)
+    a5leg_array, b5leg_array = c_hard_ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
     return np.asarray(a5leg_array, dtype = np.complex128),  np.asarray(b5leg_array, dtype = np.complex128)
 
 ##############################################################################
-#  Direct coupling block using hard lookup table
+#  Direct coupling block using hard hash table
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex[:,:] c_svh_translate_2D_lookup(long blocksize1,
+cdef double complex[:,:] c_svh_translate_2D_from_hash_table(long blocksize1,
                                                             long blocksize2,
                                                             double complex[:,:] w,
                                                             double complex[:] sph,
@@ -1133,8 +1133,8 @@ cdef double complex[:,:] c_svh_translate_2D_lookup(long blocksize1,
                                                             long lmax2,
                                                             long mmax1,
                                                             long mmax2,
-                                                            double complex[:] a5leg_lookup,
-                                                            double complex[:] b5leg_lookup,
+                                                            double complex[:] a5leg_hash_table,
+                                                            double complex[:] b5leg_hash_table,
                                                             long kind) nogil:      
 
     cdef double phi = atan2(dy, dx)
@@ -1174,8 +1174,8 @@ cdef double complex[:,:] c_svh_translate_2D_lookup(long blocksize1,
                     B = 0
                     for ld in range(max(abs(l1 - l2), abs(m1 - m2)), l1 + l2 + 1):  # if ld<abs(m1-m2) then P=0
                        
-                        A += a5leg_lookup[idx_ab5leg]*sph[ld] 
-                        B += b5leg_lookup[idx_ab5leg]*sph[ld] 
+                        A += a5leg_hash_table[idx_ab5leg]*sph[ld] 
+                        B += b5leg_hash_table[idx_ab5leg]*sph[ld] 
                         idx_ab5leg += 1
                                                         
                     A, B = eimph * A, eimph * B
@@ -1191,11 +1191,11 @@ cdef double complex[:,:] c_svh_translate_2D_lookup(long blocksize1,
 
     return w
 ##############################################################################
-#  Direct coupling block using hard lookup table
+#  Direct coupling block using hard hash table
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex[:,:] c_svh_translate_2D_lookup_threaded(long blocksize1,
+cdef double complex[:,:] c_svh_translate_2D_from_hash_table_threaded(long blocksize1,
                                                             long blocksize2,
                                                             double complex[:,:] w,
                                                             double complex[:] sph,
@@ -1207,8 +1207,8 @@ cdef double complex[:,:] c_svh_translate_2D_lookup_threaded(long blocksize1,
                                                             long lmax2,
                                                             long mmax1,
                                                             long mmax2,
-                                                            double complex[:] a5leg_lookup,
-                                                            double complex[:] b5leg_lookup,
+                                                            double complex[:] a5leg_hash_table,
+                                                            double complex[:] b5leg_hash_table,
                                                             long kind) nogil:      
 
                                  
@@ -1251,8 +1251,8 @@ cdef double complex[:,:] c_svh_translate_2D_lookup_threaded(long blocksize1,
                     B = 0
                     for ld in range(max(abs(l1 - l2), abs(m1 - m2)), l1 + l2 + 1):  # if ld<abs(m1-m2) then P=0
                        
-                        A += a5leg_lookup[idx_ab5leg]*sph[ld] 
-                        B += b5leg_lookup[idx_ab5leg]*sph[ld] 
+                        A += a5leg_hash_table[idx_ab5leg]*sph[ld] 
+                        B += b5leg_hash_table[idx_ab5leg]*sph[ld] 
                         idx_ab5leg += 1
                                                         
                     A, B = eimph * A, eimph * B
@@ -1270,7 +1270,7 @@ cdef double complex[:,:] c_svh_translate_2D_lookup_threaded(long blocksize1,
 
 
 # Have option to thread build into the translate function for easier reuse.
-def svh_translate_2D_lookup(long blocksize1,long blocksize2,
+def svh_translate_2D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -1283,14 +1283,14 @@ def svh_translate_2D_lookup(long blocksize1,long blocksize2,
     cdef double complex [:,:] val
     if threaded == True:
         with nogil:
-            val = c_svh_translate_2D_lookup_threaded(blocksize1,blocksize2,
+            val = c_svh_translate_2D_from_hash_table_threaded(blocksize1,blocksize2,
                                                     w,sph,k,dx, dy, dz,
                                                     lmax1, lmax2, mmax1, mmax2,
                                                     a5leg_array,b5leg_array,
                                                     kind)
     else:
         with nogil:
-            val = c_svh_translate_2D_lookup(blocksize1,blocksize2,
+            val = c_svh_translate_2D_from_hash_table(blocksize1,blocksize2,
                                             w,sph,k,dx, dy, dz,
                                             lmax1, lmax2, mmax1, mmax2,
                                             a5leg_array,b5leg_array,
@@ -1299,7 +1299,7 @@ def svh_translate_2D_lookup(long blocksize1,long blocksize2,
     return np.asarray(val, dtype = np.complex128)
 
 # Special case of translate. Make wrapper for readability in smuthi.
-def direct_coupling_block_2D_lookup(long blocksize1,long blocksize2,
+def direct_coupling_block_2D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -1309,7 +1309,7 @@ def direct_coupling_block_2D_lookup(long blocksize1,long blocksize2,
                             double complex[:] b5leg_array,
                             threaded = False):
     cdef long kind = 0
-    return svh_translate_2D_lookup(blocksize1,blocksize2,
+    return svh_translate_2D_from_hash_table(blocksize1,blocksize2,
                                     w,sph,k,dx, dy, dz,
                                     lmax1, lmax2, mmax1, mmax2,
                                     a5leg_array,b5leg_array,
@@ -1330,9 +1330,9 @@ This section defines a class that can more easily abstract all the translation
 options defined above. This could be used as a more readable method to implement
 the different options. 
 
-Note: This class is based on the idea that the lookup options are always faster
+Note: This class is based on the idea that the hash options are always faster
 compared to the direct calculation. Also, the initial cost in setup and memory 
-of the lookup is minimal. Therefore, it should always be used as the default 
+of the hash is minimal. Therefore, it should always be used as the default 
 option. 
 
 Futhermore, the class is a python class so that getter and setter methods do not
@@ -1384,26 +1384,26 @@ need to be defined in order to pickle.
 #     def __translate_2d(self, k, dx, dy, dz, kind, threaded):
         
 #         if (self.a5leg_array == None or self.b5leg_array == None):
-#             self.a5leg_array, self.b5leg_array = c_hard_ab5_coefficient_and_legendre_lookup(self.lmax1, 
+#             self.a5leg_array, self.b5leg_array = c_hard_ab5_coefficient_and_legendre_hash_table(self.lmax1, 
 #                                                                                             self.lmax2, 
 #                                                                                             self.mmax1, 
 #                                                                                             self.mmax2)
-#         return csvh_translate_2D_lookup(complex(k),float(dx),float(dy),float(dz),
+#         return csvh_translate_2D_from_hash_table(complex(k),float(dx),float(dy),float(dz),
 #                          self.lmax1,self.lmax2,self.mmax1,self.mmax2,
-#                          self.a5leg_lookup, self.b5leg_lookup,
+#                          self.a5leg_hash_table, self.b5leg_hash_table,
 #                          kind, threaded)  
     
 #     def __translate_3d(self, k, dx, dy, dz, kind, threaded):
         
 #         if (self.a5_array == None or self.b5_array == None):
-#             self.a5_array, self.b5_array = chard_ab5_coefficient_lookup(self.lmax1, 
+#             self.a5_array, self.b5_array = chard_ab5_coefficient_hash_table(self.lmax1, 
 #                                                                         self.lmax2, 
 #                                                                         self.mmax1, 
 #                                                                         self.mmax2)
             
-#         return csvh_translate_3D_lookup(complex(k),float(dx),float(dy),float(dz),
+#         return csvh_translate_3D_from_hash_table(complex(k),float(dx),float(dy),float(dz),
 #                          self.lmax1,self.lmax2,self.mmax1,self.mmax2,
-#                          self.a5_lookup, self.b5_lookup,
+#                          self.a5_hash_table, self.b5_hash_table,
 #                          kind, threaded)  
         
 
