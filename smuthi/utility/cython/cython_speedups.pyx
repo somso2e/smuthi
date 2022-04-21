@@ -97,7 +97,7 @@ This section details all the subfunctions.
 '''
 
 
-cdef api wofz(double in1_real,double in1_imag,double *out_real,double *out_imag) nogil:
+cdef api wofz(double in1_real,double in1_imag,double *out_real,double *out_imag):
   cdef double complex z
   z.real=in1_real
   z.imag=in1_imag
