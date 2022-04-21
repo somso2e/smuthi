@@ -107,7 +107,7 @@ _PTR = ctypes.POINTER
 _dble = ctypes.c_double
 _ptr_dble = _PTR(_dble)
 
-addr = get_cython_function_address("special", "wofz")
+addr = get_cython_function_address("cython_speedups", "wofz")
 functype = ctypes.CFUNCTYPE(None, _dble, _dble, _ptr_dble, _ptr_dble)
 wofz_fn = functype(addr)
 
