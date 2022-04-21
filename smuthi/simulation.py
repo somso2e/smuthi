@@ -80,6 +80,13 @@ class Simulation:
         do_sanity_check (bool):              if true (default), check numerical input for some flaws. Warning: A passing
                                              sanity check does not guarantee correct numerical settings. For many
                                              particles, the sanity check might take some time and/or occupy large memory.
+        periodicity (tuple):                 tuple (a1, a2) specifying two 3-dimensional lattice vectors in Carthesian coordinates
+                                             with a1, a2 (numpy.ndarrays)
+        ewald_sum_separation_parameter (float):     Used to separate the real and reciprocal lattice sums to evaluate
+                                                    particle coupling in periodic lattices.
+        number_of_threads_periodic (int or str):     sets the number of threats used in a simulation with periodic particle arrangements
+                                                    if 'default', all available CPU cores are used 
+                                                    if negative, all but number_of_threads_periodic are used 
     """
     def __init__(self,
                  layer_system=None,
@@ -107,7 +114,10 @@ class Simulation:
                  log_to_terminal=True,
                  check_circumscribing_spheres=True,
                  identical_particles=False,
-                 do_sanity_check=True):
+                 do_sanity_check=True,
+                 periodicity=None,
+                 ewald_sum_separation_parameter='default',
+                 number_of_threads_periodic='default'):
 
         # initialize attributes
         self.layer_system = layer_system
@@ -133,6 +143,9 @@ class Simulation:
         self.check_circumscribing_spheres = check_circumscribing_spheres
         self.identical_particles = identical_particles
         self.do_sanity_check = do_sanity_check
+        self.periodicity = periodicity
+        self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
+        self.number_of_threads_periodic = number_of_threads_periodic
 
         # output
         timestamp = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
@@ -164,15 +177,16 @@ class Simulation:
 
         if not os.path.exists(self.output_dir) and self.log_to_file:
             os.makedirs(self.output_dir)
-        sys.stdout = log.Logger(log_filename=self.log_filename,
-                            log_to_file=self.log_to_file,
-                            log_to_terminal=self.log_to_terminal)
+        # sys.stdout = log.Logger(log_filename=self.log_filename,
+        #                     log_to_file=self.log_to_file,
+        #                     log_to_terminal=self.log_to_terminal)
 
     def __getstate__(self):
         """Return state values to be pickled."""
         return (self.layer_system, self.particle_list, self.initial_field, self.k_parallel, self.solver_type,
                 self.solver_tolerance, self.store_coupling_matrix, self.coupling_matrix_lookup_resolution,
                 self.coupling_matrix_interpolator_kind, self.post_processing, self.length_unit, self.save_after_run,
+                self.periodicity, self.ewald_sum_separation_parameter, self.number_of_threads_periodic,
                 flds.default_Sommerfeld_k_parallel_array, flds.default_initial_field_k_parallel_array,
                 flds.default_polar_angles, flds.default_azimuthal_angles)
 
@@ -181,6 +195,7 @@ class Simulation:
         (self.layer_system, self.particle_list, self.initial_field, self.k_parallel, self.solver_type,
          self.solver_tolerance, self.store_coupling_matrix, self.coupling_matrix_lookup_resolution,
          self.coupling_matrix_interpolator_kind, self.post_processing, self.length_unit, self.save_after_run,
+         self.periodicity, self.ewald_sum_separation_parameter, self.number_of_threads_periodic,
          flds.default_Sommerfeld_k_parallel_array, flds.default_initial_field_k_parallel_array,
          flds.default_polar_angles, flds.default_azimuthal_angles) = state
 
@@ -240,7 +255,10 @@ class Simulation:
                                                store_coupling_matrix=self.store_coupling_matrix,
                                                coupling_matrix_lookup_resolution=self.coupling_matrix_lookup_resolution,
                                                interpolator_kind=self.coupling_matrix_interpolator_kind,
-                                               identical_particles=self.identical_particles)
+                                               identical_particles=self.identical_particles,
+                                               periodicity=self.periodicity,
+                                               ewald_sum_separation_parameter=self.ewald_sum_separation_parameter,
+                                               number_of_threads_periodic=self.number_of_threads_periodic)
 
     def circumscribing_spheres_disjoint(self):
         """Check if all circumscribing spheres are disjoint"""

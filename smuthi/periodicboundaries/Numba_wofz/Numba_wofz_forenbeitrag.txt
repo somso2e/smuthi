@@ -1,0 +1,43 @@
+Scipy.special.wofz() mit Numba:
+
+(Ich hab keine Ahnung was ich hier mache.)
+
+Ich habe diesen Forenbeitrag gefunden:
+https://github.com/numba/numba/issues/3086
+
+Darin wird Cython Wrapper gezeigt, mit dem scipy.special.wofz() auch mit Numba rechnen kann. 
+Dazu muss Cython installiert sein:
+pip install cython
+
+Hat man die drei Dateien (special.pyx, setup.py, wrapper)aus dem Forenbeitrag erstellt, kann man wofz() installieren. 
+python setup.py install 
+
+Außerdem muss Visual Studio installiert sein!
+
+
+Commandozeilenausgabe:
+
+(base) C:\Test Numba wofz>python setup.py install
+Compiling special.pyx because it changed.
+[1/1] Cythonizing special.pyx
+C:\ProgramData\Anaconda3\lib\site-packages\Cython\Compiler\Main.py:369: FutureWarning: Cython directive 'language_level' not set, using 2 for now (Py2). This will change in a later release! File: C:\Test Numba wofz\special.pyx
+  tree = Parsing.p_module(s, pxd, full_module_name)
+running install
+running build
+running build_ext
+building 'special' extension
+creating build
+creating build\temp.win-amd64-3.7
+creating build\temp.win-amd64-3.7\Release
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\bin\HostX86\x64\cl.exe /c /nologo /Ox /W3 /GL /DNDEBUG /MD -IC:\ProgramData\Anaconda3\lib\site-packages\numpy\core\include -IC:\ProgramData\Anaconda3\include -IC:\ProgramData\Anaconda3\include "-IC:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\ATLMFC\include" "-IC:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\include" "-IC:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um" "-IC:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\ucrt" "-IC:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\shared" "-IC:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\um" "-IC:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\winrt" "-IC:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\cppwinrt" /Tcspecial.c /Fobuild\temp.win-amd64-3.7\Release\special.obj
+special.c
+c:\programdata\anaconda3\lib\site-packages\numpy\core\include\numpy\npy_1_7_deprecated_api.h(14) : Warning Msg: Using deprecated NumPy API, disable it with #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+creating C:\Test Numba wofz\build\lib.win-amd64-3.7
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\bin\HostX86\x64\link.exe /nologo /INCREMENTAL:NO /LTCG /DLL /MANIFEST:EMBED,ID=2 /MANIFESTUAC:NO /LIBPATH:C:\ProgramData\Anaconda3\libs /LIBPATH:C:\ProgramData\Anaconda3\PCbuild\amd64 "/LIBPATH:C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\ATLMFC\lib\x64" "/LIBPATH:C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\lib\x64" "/LIBPATH:C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\lib\um\x64" "/LIBPATH:C:\Program Files (x86)\Windows Kits\10\lib\10.0.17763.0\ucrt\x64" "/LIBPATH:C:\Program Files (x86)\Windows Kits\10\lib\10.0.17763.0\um\x64" /EXPORT:PyInit_special build\temp.win-amd64-3.7\Release\special.obj /OUT:build\lib.win-amd64-3.7\special.cp37-win_amd64.pyd /IMPLIB:build\temp.win-amd64-3.7\Release\special.cp37-win_amd64.lib
+   Creating library build\temp.win-amd64-3.7\Release\special.cp37-win_amd64.lib and object build\temp.win-amd64-3.7\Release\special.cp37-win_amd64.exp
+Generating code
+Finished generating code
+running install_lib
+copying build\lib.win-amd64-3.7\special.cp37-win_amd64.pyd -> C:\ProgramData\Anaconda3\Lib\site-packages
+running install_egg_info
+Writing C:\ProgramData\Anaconda3\Lib\site-packages\UNKNOWN-0.0.0-py3.7.egg-info
