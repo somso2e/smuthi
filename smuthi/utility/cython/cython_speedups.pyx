@@ -74,6 +74,8 @@ cdef extern from "<stdlib.h>" nogil:
 # V5: Minor bug fixes comparing python to cython. Note: AB coeffs are now 
 # enforced real/imag. All int -> long
 # 
+# V6: Proved the ability to call Cython functions from Numba using the "api" command.
+# This was shown on the wofz function. 
 #
 # Cython vs. Python implementations were tested for speed and accuracy. 
 # Values output by the Cython funcitons sub-functions match Python sub-functions
@@ -95,6 +97,18 @@ cdef extern from "<stdlib.h>" nogil:
 
 This section details all the subfunctions.
 '''
+
+##############################################################################
+# Calculate wofz special function in a numba-compatible fashion
+##############################################################################
+
+# Numba  requires a compatible version of the Faddevva function - replacing scipy.special.wofz().
+# The cwrapper is used in smuthi/periodicboundaries/ewald_helper.py and 
+# is copied from: https://github.com/numba/numba/issues/3086
+# The cython portion of this solution is found below. The purpose is to have a 
+# singular file housing all cython functions because this is easier to track/manage.
+# This file is automatically compiled for the user and the "api" generates 
+# a header file that numba can find. 
 
 
 cdef api wofz(double in1_real,double in1_imag,double *out_real,double *out_imag):
@@ -580,12 +594,10 @@ back option is accessable.
 '''
 
 ##############################################################################
-#  Make hard hash table of ab5 for a particle order pair (WITH GIL)
+#  Make  hash table of ab5 for a particle order pair (WITH GIL)
 ##############################################################################
 # """
-#     This hash table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This hash 
-#     table is particularly good when all particles have the same order. 
+# This hash table is particularly good when all particles have the same order. 
 # """
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -623,7 +635,7 @@ cdef c_hard_ab5_coefficient_hash_table(long lmax1,
                         
     return a5_array, b5_array
 
-def hard_ab5_coefficient_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
+def _ab5_coefficient_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
     cdef double complex[:] a5_array, b5_array
     a5_array, b5_array = c_hard_ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
     return np.asarray(a5_array, dtype = np.complex128),  np.asarray(b5_array, dtype = np.complex128)
@@ -631,7 +643,7 @@ def hard_ab5_coefficient_hash_table(long lmax1, long lmax2, long mmax1, long mma
 
 
 ##############################################################################
-# Translation 3D with Hard Hash
+# Translation 3D with  Hash
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -709,7 +721,7 @@ cdef double complex [:,:]  c_svh_translate_3D_from_hash_table(long blocksize1,lo
 
 
 ##############################################################################
-# Translation 3D with Hard Hash and Multithreading
+# Translation 3D with  Hash and Multithreading
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -1071,7 +1083,7 @@ back option is accessable.
 
 
 ##############################################################################
-#  Make hard hash table of ab5 and legendre for a particle pair
+#  Make  hash table of ab5 and legendre for a particle pair
 ##############################################################################
 # """
 #     This hash table is considered "hard" because it is dependent on the order 
@@ -1122,13 +1134,13 @@ cdef c_hard_ab5_coefficient_and_legendre_hash_table(long lmax1,
                         
     return a5leg_array, b5leg_array
 
-def hard_ab5_coefficient_and_legendre_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
+def _ab5_coefficient_and_legendre_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
     cdef double complex[:] a5leg_array, b5leg_array 
     a5leg_array, b5leg_array = c_hard_ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
     return np.asarray(a5leg_array, dtype = np.complex128),  np.asarray(b5leg_array, dtype = np.complex128)
 
 ##############################################################################
-#  Direct coupling block using hard hash table
+#  Direct coupling block using  hash table
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -1202,7 +1214,7 @@ cdef double complex[:,:] c_svh_translate_2D_from_hash_table(long blocksize1,
 
     return w
 ##############################################################################
-#  Direct coupling block using hard hash table
+#  Direct coupling block using  hash table
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)

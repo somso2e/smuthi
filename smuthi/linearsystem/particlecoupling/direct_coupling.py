@@ -92,14 +92,14 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
 
         #Note: It is allways better to use the hash tables so just do it. 
         if dz == 0:
-            a5leg_array, b5leg_array = ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
+            a5leg_array, b5leg_array =  ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
             w = direct_coupling_block_2D_from_hash_table(blocksize1, blocksize2,
                                                         w, sph, k, dx, dy,dz,
                                                         lmax1, lmax2, mmax1, mmax2,
                                                         a5leg_array, b5leg_array,                              
                                                         threaded = False)
         else:
-            a5_array, b5_array = ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
+            a5_array, b5_array =  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
             w = direct_coupling_block_3D_from_hash_table(blocksize1, blocksize2,
                                                         w, sph, k, dx, dy,dz,
                                                         lmax1, lmax2, mmax1, mmax2,
@@ -139,20 +139,18 @@ def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
 
 
 ##############################################################################
-#  Make hard hash table of ab5 and Legendre for a particle order pair 
+#  Make  hash table of ab5 and Legendre for a particle order pair 
 #  This is for 2D coupling (Cython uses the GIL)
 ##############################################################################
 # """
-#     This hash table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This hash table 
-#     table is particularly good when all particles have the same order. 
+# This hash table is particularly good when all particles have the same order. 
 # """
 
 try: 
-    from smuthi.utility.cython.cython_speedups import hard_ab5_coefficient_and_legendre_hash_table
+    from smuthi.utility.cython.cython_speedups import _ab5_coefficient_and_legendre_hash_table
     @memo.Memoize
     def ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2):
-        return hard_ab5_coefficient_and_legendre_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))
+        return _ab5_coefficient_and_legendre_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))
 except:
     sys.stdout.write(
 """
@@ -209,23 +207,21 @@ Falling back on Python equivalents...
 
 
 ##############################################################################
-#  Make hard hash table of ab5  for a particle order pair 
+#  Make  hash table of ab5  for a particle order pair 
 #  This is for 3D coupling (Cython uses the GIL)
 ##############################################################################
 # """
-#     This hash table is considered "hard" because it is dependent on the order 
-#     of which particle is the emitter and which is the reciever. This hash 
-#     table is particularly good when all particles have the same order. 
+# This hash table is particularly good when all particles have the same order. 
 # """
 
 try:
-    from smuthi.utility.cython.cython_speedups  import hard_ab5_coefficient_hash_table
+    from smuthi.utility.cython.cython_speedups  import _ab5_coefficient_hash_table
     @memo.Memoize
-    def ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
-        return hard_ab5_coefficient_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))  
+    def  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
+        return _ab5_coefficient_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))  
 except:
     @memo.Memoize
-    def ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
+    def  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
         r"""Creates a hash table of the elements
         :math:`a5(l_1,m_1,l_2,m_2,l_d)` and :math:`a5(l_1,m_1,l_2,m_2,l_d)`
         found in appendix B of [Egel 2018 diss],where a5 and b5 are the coefficients used in the evaluation of the SVWF translation
@@ -262,7 +258,7 @@ except:
 
 
 ##############################################################################
-#  2D Direct coupling block using hard hash table (Cython releases the Gil)
+#  2D Direct coupling block using  hash table (Cython releases the Gil)
 ##############################################################################
 
 try:
@@ -338,7 +334,7 @@ except:
     
     
 ##############################################################################
-#  3D Direct coupling block using hard hash table (Cython releases the Gil)
+#  3D Direct coupling block using  hash table (Cython releases the Gil)
 ##############################################################################  
     
 try:
