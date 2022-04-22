@@ -34,7 +34,7 @@ except Exception as e:
     def nb_wig3jj(jj_1, jj_2, jj_3, mm_1, mm_2, mm_3):
         return float(wigner_3j(jj_1/2, jj_2/2, jj_3/2, mm_1/2, mm_2/2, mm_3/2))
 
-
+    
 def legendre_normalized(ct, st, lmax):
     r"""Return the normalized associated Legendre function :math:`P_l^m(\cos\theta)` and the angular functions
     :math:`\pi_l^m(\cos \theta)` and :math:`\tau_l^m(\cos \theta)`, as defined in

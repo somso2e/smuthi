@@ -57,7 +57,7 @@ def test_equivalent_layer_systems():
               / np.linalg.norm(simulation1.linear_system.coupling_matrix.linear_operator.A))
     print(relerr)
     assert relerr < 1e-3
-
+    print('Tests Passed!')
 
 def test_against_prototype():
     b00 = -0.8609045 + 0.4019615j
@@ -79,7 +79,7 @@ def test_against_prototype():
     bottom_power_flux = 2.9024410e+04
     print(abs((sum(ff.bottom().integral()) - bottom_power_flux) / bottom_power_flux))
     assert abs((sum(ff.bottom().integral()) - bottom_power_flux) / bottom_power_flux) < 1e-3
-
+    print('Tests Passed!')
 
 if __name__ == '__main__':
     test_equivalent_layer_systems()

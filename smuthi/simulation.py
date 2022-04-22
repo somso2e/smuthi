@@ -77,7 +77,7 @@ class Simulation:
         identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
                                              particles, located in the same background medium). Then, the T-matrix is
                                              computed only once for all particles.
-         do_sanity_check (bool):             if true (default), check numerical input for some flaws. Warning: A passing
+        do_sanity_check (bool):              if true (default), check numerical input for some flaws. Warning: A passing
                                              sanity check does not guarantee correct numerical settings. For many
                                              particles, the sanity check might take some time and/or occupy large memory.
         periodicity (tuple):                 tuple (a1, a2) specifying two 3-dimensional lattice vectors in Carthesian coordinates
@@ -153,7 +153,8 @@ class Simulation:
         self.log_to_terminal = log_to_terminal
         self.log_to_file = log_to_file
         self.log_filename = self.output_dir + '/' + 'smuthi.log'
-        self.set_logging()
+        self.old_log = sys.stdout
+        
 
         if input_file is not None and log_to_file:
             shutil.copyfile(input_file, self.output_dir + '/input.dat')
@@ -176,9 +177,9 @@ class Simulation:
 
         if not os.path.exists(self.output_dir) and self.log_to_file:
             os.makedirs(self.output_dir)
-        # sys.stdout = log.Logger(log_filename=self.log_filename,
-        #                     log_to_file=self.log_to_file,
-        #                     log_to_terminal=self.log_to_terminal)
+        sys.stdout = log.Logger(log_filename=self.log_filename,
+                            log_to_file=self.log_to_file,
+                            log_to_terminal=self.log_to_terminal)
 
     def __getstate__(self):
         """Return state values to be pickled."""
@@ -345,6 +346,7 @@ class Simulation:
         self.set_default_Sommerfeld_contour()
 
     def run(self):
+        self.set_logging()
         """Start the simulation."""
         self.print_simulation_header()
 
@@ -392,5 +394,6 @@ class Simulation:
 
         sys.stdout.write('\n')
         sys.stdout.flush()
+        sys.stdout = self.old_log
 
         return preparation_time, solution_time, postprocessing_time

@@ -62,5 +62,6 @@ def test_versus_prototype():
     assert abs((particle_list[0].scattered_field.coefficients[21] - b21) / b21) < 1e-4
 
 
+
 if __name__ == '__main__':
     test_versus_prototype()
