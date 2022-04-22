@@ -24,7 +24,7 @@ License: SMUTHI is provided under the MIT license.
 
 Author: Amos Egel (amos.egel@gmail.com).
 
-The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Alexey Kuznetsov, Lorenzo Pattelli.
+The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Alexey Kuznetsov, Lorenzo Pattelli, Parker Wray.
 
 We thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for allowing us to use their NFM-DS Fortran code, 
 Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
@@ -40,6 +40,16 @@ Contributions are highly welcome! Please refer to the `contribution guidelines <
 
 If you have used Smuthi for a publication, please cite us as: 
 Amos Egel, Krzysztof M. Czajkowski, Dominik Theobald, Konstantin Ladutenko, Alexey S. Kuznetsov, Lorenzo Pattelli, "SMUTHI: A python package for the simulation of light scattering by multiple particles near or between planar interfaces", Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 273, 2021, 107846, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107846. 
+
+If you use Smuthi to simulate periodic particle arrangements, please also cite:
+Dominik Theobald, Dominik Beutel, Luisa Borgmann, Henning Mescher, Guillaume Gomard, Carsten Rockstuhl, Uli Lemmer, "Simulation of light scattering in large, disordered nanostructures using a periodic T-matrix method",
+Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 272, 2021, 107802, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107802.
+
+Unreleased features
+-------------------
+Simulation of periodic particle aggregates (Dominik Theobald).
+CYTHON acceleration for direct particle coupling. Skipping layer mediated coupling in case of trivial (i.e., homogeneous) background media (Parker Wray). 
+MPI acceleration for near field evaluation (Alexey Kuznetsov). 
 
 What's new in version 1.2
 -------------------------

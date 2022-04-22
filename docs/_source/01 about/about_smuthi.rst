@@ -117,7 +117,7 @@ Email to the author under |emailpic| or to the Smuthi mailing list under smuthi@
 Acknowledgments
 ---------------
 
-The following persons are/were involved in the Smuthi development: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Lorenzo Pattelli, Alexey Kuznetsov.
+The following persons are/were involved in the Smuthi development: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Lorenzo Pattelli, Alexey Kuznetsov, Parker Wray.
 
 The authors wish to thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for the
 `NFM-DS <https://scattport.org/index.php/programs-menu/t-matrix-codes-menu/239-nfm-ds>`_ package, a copy of which
