@@ -118,36 +118,25 @@ def get_requirements():
 def get_extensions(static=True):
     """Depending on the platform, pick suitable Extension object. This is important such that if
     MinGW is used, the DLLs are statically linked (otherwise the user cannot use the binary if he 
-    doesn't have MinGW on his computer, too."""
-    f2py_options = ['only:', 'tlay','taxsym','tnonaxsym', ':']
+    doesn't have MinGW on his computer, too)."""    
     if os.environ.get('READTHEDOCS'):
-        return []
+        return []    
+    f2py_options = ['only:', 'tlay','taxsym','tnonaxsym', ':']
+    static_link_args = []    
     if sys.platform.startswith('win'):
         if static:
-            extra_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]            
-        else:
-            extra_link_args = []
-        return [
-		Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
-                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/TAXSYM_SMUTHI.f90'],
-                          extra_link_args=extra_link_args,f2py_options=f2py_options),
-
-		Extension("smuthi.utility.cython.cython_speedups",
-				["smuthi/utility/cython/cython_speedups.c"],
-				extra_compile_args=['-fopenmp'],
-				extra_link_args=['-fopenmp'],
-				include_dirs=[np.get_include()])
-		]
+            static_link_args = ["-static", "-static-libgfortran", "-static-libgcc"]            
+        nfmds_path = 'smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/TAXSYM_SMUTHI.f90'
     else:
-        return [
-		Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds',
-                          ['smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'],f2py_options=f2py_options),
-		Extension("smuthi.utility.cython.cython_speedups",
-				["smuthi/utility/cython/cython_speedups.c"],
-				extra_compile_args=['-fopenmp'],
-				extra_link_args=['-fopenmp'],
-				include_dirs=[np.get_include()])
-		]
+        nfmds_path = 'smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'    
+    extensions = [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds', [nfmds_path],
+                            extra_link_args=static_link_args, f2py_options=f2py_options),
+                  Extension("smuthi.utility.cython.cython_speedups", 
+                            ["smuthi/utility/cython/cython_speedups.c"],
+                            extra_compile_args=['-fopenmp'],
+                            extra_link_args=static_link_args+['-fopenmp'],
+                            include_dirs=[np.get_include()])]    
+    return extensions
 
 setup(
     name="SMUTHI",
