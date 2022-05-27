@@ -34,11 +34,6 @@ import smuthi.linearsystem.linear_system_cuda as cusrc
 from numba import config, set_num_threads
 import smuthi.periodicboundaries as pb
 import smuthi.periodicboundaries.coupling_helper as pbch
-import smuthi.periodicboundaries.particle_coupling as pbcoup
-
-
-
-
 
 
 iter_num = 0
@@ -549,7 +544,8 @@ class CouplingMatrixPeriodicGridNumba(SystemMatrix):
                 radii[idx] = particle.radius
             elif type(particle).__name__ == 'FiniteCylinder':
                 radii[idx] = np.sqrt(particle.cylinder_radius ** 2 + (particle.cylinder_height / 2) ** 2)
-            
+
+        import smuthi.periodicboundaries.particle_coupling as pbcoup
         coup_mat = pbcoup.periodic_coupling_matrix(initial_field.vacuum_wavelength, k0t,
                             pwe_exc.azimuthal_angles[0], np.array(layer_system.thicknesses, np.float64),
                             np.array(layer_system.refractive_indices, np.complex128),
