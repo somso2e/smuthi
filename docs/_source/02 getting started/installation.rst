@@ -82,6 +82,18 @@ project folder and enter::
 
   python -m pip install -e .
 
+If that command fails (e.g. because pip tries to compile the extension modules with the MSVC compiler instead of mingw), you can try::
+
+  python -m pip install wheel
+	python -m pip install numpy
+	python setup.py develop
+	
+Depending on the Python version, the above commands may fail to create statically linked extensions. This will lead to runtime errors saying that some DLL cannot be found. In that case you can try to overwrite the extension modules statically linked PYD-files by running the command::
+
+  python setup.py build_ext --inplace --compiler=mingw32 --fcompiler=gnu95 -f
+
+Installing Smuthi from source on Windows can be troublesome. If you experience difficulties, please seek support from the `Smuthi mailing list <https://groups.google.com/g/smuthi>`_ or open an issue on the `Smuthi GitLab repository <https://gitlab.com/AmosEgel/smuthi/-/issues>`_.
+
 
 Verification
 ~~~~~~~~~~~~
