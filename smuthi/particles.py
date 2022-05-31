@@ -1,15 +1,56 @@
 # -*- coding: utf-8 -*-
 """Classes for the representation of scattering particles."""
+
+'''
+Developer notes:
+    22/05/31 - Added multiple private funcitons for calculating the T-matrix of each particle. 
+                The inputs of this function are the basic variables needed to calc. the T-matrix. 
+                In this way the t-matrix can be efficiently memoized. This creates a more pythonic
+                method to reuse T-matrix calculations automatically compared to the prior "is same particle" flag.
+                Furthermore, particles do not all need to be the same for the memory + speed improvement now. 
+                Note: these functions are outside of the function class. I believe this to be better since
+                these are low-level functions that do not require "self" and could be used in other funcitons outside of the class.
+
+                Possible to do: 
+                Rotations of the T-matrix can also be memoized. This can be done such that 
+                the normal T-matrix is not computed when the euler angles are not [0,0,0], but instead calculate
+                the rotated version directly. Or both versions could be memoized. I did not implement this feature 
+                bec. a lot of different angles could quickly eat up memory and provide no speed benefit if memoizing 
+                the rotated matrix.
+                
+                -Parker 
+
+
+
+'''
+
 import smuthi.linearsystem.tmatrix.t_matrix as tmt
 import smuthi.linearsystem.tmatrix.nfmds.indexconverter as nfic
 import smuthi.linearsystem.tmatrix.nfmds.stlmanager as stlc
+import smuthi.utility.memoizing as memo
 import os
-if not os.environ.get('READTHEDOCS'):
-    import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
 import smuthi.utility.logging as log
 import numpy as np
 import tempfile
-# import cylinder_t_matrix.t_matrix as t_alan   <- uncomment as soon as Alan's code is on PyPi
+import warnings
+
+if not os.environ.get('READTHEDOCS'):
+    try: 
+        import smuthi.linearsystem.tmatrix.nfmds.nfmds as nfmds
+    except:
+        warnings.warn('''
+                      Unable to load the NFMDS package for calculating the T-matricies.
+                      This limits the ability of Smuthi to calculating only the T-matricies
+                      of spheres and finite cylinders.
+                      ''')
+
+try:
+    import cylinder_t_matrix.t_matrix as t_alan   #<- uncomment as soon as Alan's code is on PyPi
+except:
+    warnings.warn('''
+                  Unable to load the Python package for calculating the T-matrix of a Finite cylinder.
+                  ''')
+
 
 
 nfmds_logfile = None
@@ -80,6 +121,9 @@ class Particle:
         raise ValueError('T-matrix for ' + type(self).__name__ + ' currently not implemented.')
 
 
+
+
+
 class Sphere(Particle):
     """Particle subclass for spheres.
 
@@ -110,11 +154,31 @@ class Sphere(Particle):
                 z - self.position[2]) ** 2 > self.radius ** 2
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        k_medium = 2 * np.pi / vacuum_wavelength * n_medium
-        k_particle = 2 * np.pi / vacuum_wavelength * self.refractive_index
-        radius = self.radius
-        t = tmt.t_matrix_sphere(k_medium, k_particle, radius, self.l_max, self.m_max)
-        return t
+        # By memoizing the call to compute_t_matrix through a wrapper, 
+        # you can efficiently reuse t-matricies when particles are the same type.
+        # This method is done automatically, so no other changes in the linear system
+        # are necessary to efficiently use memory and save computation time. 
+        
+        return _compute_sphere_t_matrix(sphere_radius = self.radius,
+                                       sphere_refractive_index = self.refractive_index, 
+                                       sphere_l_max = self.l_max,
+                                       sphere_m_max = self.m_max, 
+                                       vacuum_wavelength = vacuum_wavelength,
+                                       medium_refractive_index = n_medium)
+
+
+@memo.Memoize
+def _compute_sphere_t_matrix(sphere_radius, sphere_refractive_index, 
+                            sphere_l_max, sphere_m_max, 
+                            vacuum_wavelength, medium_refractive_index):
+    k_medium = 2 * np.pi / vacuum_wavelength * medium_refractive_index
+    k_particle = 2 * np.pi / vacuum_wavelength * sphere_refractive_index
+    t = tmt.t_matrix_sphere(k_medium, k_particle, sphere_radius, sphere_l_max, sphere_m_max)
+    return t
+
+
+
+
 
 
 class AnisotropicSphere(Particle):
@@ -154,22 +218,40 @@ class AnisotropicSphere(Particle):
         return self.radius
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium)
+        # By memoizing the call to compute_t_matrix through a wrapper, 
+        # you can efficiently reuse t-matricies when particles are the same type.
+        # This method is done automatically, so no other changes in the linear system
+        # are necessary to efficiently use memory and save computation time. 
+        return _compute_anisotropic_sphere_t_matrix_nfmds(sphere_radius = self.radius, 
+                                                sphere_refractive_index = self.refractive_index,
+                                                sphere_refractive_index_z = self.refractive_index_z,
+                                                sphere_l_max = self.l_max,
+                                                sphere_m_max = self.m_max,
+                                                sphere_n_rank = self.n_rank,
+                                                vacuum_wavelength = vacuum_wavelength, 
+                                                medium_refractive_index = n_medium)
 
-    def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium):
-        nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        Nmax = nrank * (2 + nrank)
-        r = self.radius
-        surf = np.array([r,r,r])
-        
-        with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tnonaxsym(surf, Nmax, filegeom=0,
-                                     wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
-                                     ind_refrelz=self.refractive_index_z / n_medium + 0j,
-                                     nrank=nrank, mrank=nrank, ind_refmed=n_medium,
-                                     anisotropic=1, typegeom=1, nparam=1)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
-        return t
+@memo.Memoize
+def _compute_anisotropic_sphere_t_matrix_nfmds(sphere_radius, 
+                                        sphere_refractive_index,
+                                        sphere_refractive_index_z,
+                                        sphere_l_max, sphere_m_max, sphere_n_rank,
+                                        vacuum_wavelength, 
+                                        medium_refractive_index):
+    
+    nrank = sphere_n_rank if sphere_n_rank is not None else sphere_l_max + 5
+    Nmax = nrank * (2 + nrank)
+    r = sphere_radius
+    surf = np.array([r,r,r])
+    
+    with log.LoggerLowLevelMuted(filename=nfmds_logfile):
+        tnfmds = nfmds.tnonaxsym(surf, Nmax, filegeom=0,
+                                 wavelength=vacuum_wavelength, ind_refrel=sphere_refractive_index / medium_refractive_index + 0j,
+                                 ind_refrelz= sphere_refractive_index_z / medium_refractive_index + 0j,
+                                 nrank=nrank, mrank=nrank, ind_refmed=medium_refractive_index,
+                                 anisotropic=1, typegeom=1, nparam=1)
+    t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=sphere_l_max, m_max=sphere_m_max)
+    return t
 
 
 class Spheroid(Particle):
@@ -208,18 +290,37 @@ class Spheroid(Particle):
         return max([self.semi_axis_a, self.semi_axis_c])
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium)
+        # By memoizing the call to compute_t_matrix through a wrapper, 
+        # you can efficiently reuse t-matricies when particles are the same type.
+        # This method is done automatically, so no other changes in the linear system
+        # are necessary to efficiently use memory and save computation time. 
+        return _compute_sphereoid_t_matrix_nfmds(sphereoid_refractive_index = self.refractive_index,
+                                                        sphereoid_semi_axis_c = self.semi_axis_c,
+                                                        sphereoid_semi_axis_a = self.semi_axis_a,
+                                                        sphereoid_l_max = self.l_max, 
+                                                        sphereoid_m_max = self.m_max, 
+                                                        sphereoid_n_rank = self.nrank,
+                                                        vacuum_wavelength = vacuum_wavelength, 
+                                                        medium_refractive_index = n_medium)
 
-    def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium):
-        nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        Nmax = nrank * (2 + nrank)
-        surf = [self.semi_axis_c, self.semi_axis_a]
-        with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.taxsym(surf, Nmax, typegeom=1, nparam=1,
-                                  wavelength=vacuum_wavelength, ind_refrel=self.refractive_index / n_medium + 0j,
-                                  nrank=nrank, ind_refmed=n_medium)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
-        return t
+@memo.Memoize
+def _compute_sphereoid_t_matrix_nfmds(sphereoid_refractive_index,
+                            sphereoid_semi_axis_c,
+                            sphereoid_semi_axis_a,
+                            sphereoid_l_max, 
+                            sphereoid_m_max, 
+                            sphereoid_n_rank,
+                            vacuum_wavelength, 
+                            medium_refractive_index):
+    nrank = sphereoid_n_rank if sphereoid_n_rank is not None else sphereoid_l_max + 5
+    Nmax = nrank * (2 + nrank)
+    surf = [sphereoid_semi_axis_c, sphereoid_semi_axis_a]
+    with log.LoggerLowLevelMuted(filename=nfmds_logfile):
+        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=1, nparam=1,
+                              wavelength=vacuum_wavelength, ind_refrel=sphereoid_refractive_index / medium_refractive_index + 0j,
+                              nrank=nrank, ind_refmed=medium_refractive_index)
+    t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=sphereoid_l_max, m_max=sphereoid_m_max)
+    return t
 
 
 class LayeredSpheroid(Particle):
@@ -253,13 +354,36 @@ class LayeredSpheroid(Particle):
         self.layer_semi_axes_a = layer_semi_axes_a
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
-        nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        surf = np.hstack((self.layer_semi_axes_c[:,np.newaxis],self.layer_semi_axes_a[:,np.newaxis]))
-        k = 2 * np.pi / vacuum_wavelength
-        with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tlay(k,self.layer_refractive_indices,surf,nrank)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
-        return t
+        # By memoizing the call to compute_t_matrix through a wrapper, 
+        # you can efficiently reuse t-matricies when particles are the same type.
+        # This method is done automatically, so no other changes in the linear system
+        # are necessary to efficiently use memory and save computation time. 
+        return _compute_layered_sphereoid_t_matrix(sphereoid_layer_refractive_indices = self.layer_refractive_indices,
+                                                sphereoid_semi_axis_c = self.layer_semi_axes_c,
+                                                sphereoid_semi_axis_a = self.layer_semi_axes_a,
+                                                sphereoid_l_max = self.l_max, 
+                                                sphereoid_m_max = self.m_max, 
+                                                sphereoid_n_rank = self.nrank ,
+                                                vacuum_wavelength = vacuum_wavelength, 
+                                                medium_refractive_index = n_medium)
+    
+@memo.Memoize
+def _compute_layered_sphereoid_t_matrix(sphereoid_layer_refractive_indices,
+                                        sphereoid_semi_axis_c,
+                                        sphereoid_semi_axis_a,
+                                        sphereoid_l_max, 
+                                        sphereoid_m_max, 
+                                        sphereoid_n_rank,
+                                        vacuum_wavelength, 
+                                        medium_refractive_index):
+    nrank = sphereoid_n_rank if sphereoid_n_rank is not None else sphereoid_l_max + 5
+    surf = np.hstack((sphereoid_semi_axis_c[:,np.newaxis],sphereoid_semi_axis_a[:,np.newaxis]))
+    k = 2 * np.pi / vacuum_wavelength
+    with log.LoggerLowLevelMuted(filename=nfmds_logfile):
+        tnfmds = nfmds.tlay(k,sphereoid_layer_refractive_indices,surf,nrank)
+    t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=sphereoid_l_max, m_max=sphereoid_m_max)
+    return t
+
 
 
 class FiniteCylinder(Particle):
@@ -303,30 +427,71 @@ class FiniteCylinder(Particle):
         return np.sqrt((self.cylinder_height / 2) ** 2 + self.cylinder_radius ** 2)
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
+        # By memoizing the call to compute_t_matrix through a wrapper, 
+        # you can efficiently reuse t-matricies when particles are the same type.
+        # This method is done automatically, so no other changes in the linear system
+        # are necessary to efficiently use memory and save computation time. 
         if self.python_tmt:
-            return self._compute_t_matrix_python(vacuum_wavelength, n_medium)
+            return _compute_finite_cylinder_t_matrix_python(cylinder_radius = self.cylinder_radius, 
+                                                        cylinder_height = self.cylinder_height, 
+                                                        cylinder_refractive_index = self.refractive_index,
+                                                        cylinder_n_rank = self.nrank,
+                                                        cylinder_l_max = self.l_max, 
+                                                        cylinder_m_max = self.m_max, 
+                                                        cylinder_Ntheta = self.nint,
+                                                        vacuum_wavelength = vacuum_wavelength,
+                                                        medium_refractive_index = n_medium)
         else:
-            return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium)
+            return _compute_finite_cylinder_t_matrix_nfmds(cylinder_radius = self.cylinder_radius, 
+                                                        cylinder_height = self.cylinder_height, 
+                                                        cylinder_refractive_index = self.refractive_index,
+                                                        cylinder_n_rank = self.nrank,
+                                                        cylinder_l_max = self.l_max, 
+                                                        cylinder_m_max = self.m_max, 
+                                                        vacuum_wavelength = vacuum_wavelength,
+                                                        medium_refractive_index = n_medium)
 
-    def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium):
-        nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        Nmax = nrank * (2 + nrank)
-        surf = [self.cylinder_height / 2, self.cylinder_radius]
-        with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.taxsym(surf, Nmax, typegeom=2, nparam=3, wavelength=vacuum_wavelength,
-                                  ind_refrel=self.refractive_index / n_medium + 0j, nrank=nrank, ind_refmed=n_medium)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
-        return t
 
-    def _compute_t_matrix_python(self, vacuum_wavelength, n_medium):
-        nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        Ntheta = self.nint
-        geometric_params = [self.cylinder_radius, self.cylinder_height]
-        t, dt = t_alan.compute_T(lmax=nrank, Ntheta=Ntheta, geometric_params=geometric_params,
-                                 n0=n_medium, ns=self.refractive_index, wavelength=vacuum_wavelength,
-                                 particle_type="cylinder")
-        t = -nfic.python_to_smuthi_matrix(t, Nrank=nrank, l_max=self.l_max, m_max=self.m_max)
-        return t
+
+@memo.Memoize
+def _compute_finite_cylinder_t_matrix_nfmds(cylinder_radius, 
+                                            cylinder_height, 
+                                            cylinder_refractive_index,
+                                            cylinder_n_rank,
+                                            cylinder_l_max, 
+                                            cylinder_m_max, 
+                                            vacuum_wavelength,
+                                            medium_refractive_index):
+    nrank = cylinder_n_rank if cylinder_n_rank is not None else cylinder_l_max + 5
+    Nmax = nrank * (2 + nrank)
+    surf = [cylinder_height / 2, cylinder_radius]
+    with log.LoggerLowLevelMuted(filename=nfmds_logfile):
+        tnfmds = nfmds.taxsym(surf, Nmax, typegeom=2, nparam=3, wavelength=vacuum_wavelength,
+                              ind_refrel=cylinder_refractive_index / medium_refractive_index + 0j,
+                              nrank=nrank, ind_refmed=medium_refractive_index)
+    t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=cylinder_l_max, m_max=cylinder_m_max)
+    return t
+
+
+@memo.Memoize
+def _compute_finite_cylinder_t_matrix_python(cylinder_radius, 
+                                            cylinder_height, 
+                                            cylinder_refractive_index,
+                                            cylinder_n_rank,
+                                            cylinder_l_max, 
+                                            cylinder_m_max, 
+                                            cylinder_Ntheta,
+                                            vacuum_wavelength,
+                                            medium_refractive_index):
+    nrank = cylinder_n_rank if cylinder_n_rank is not None else cylinder_l_max + 5
+    Ntheta = cylinder_Ntheta
+    geometric_params = [cylinder_radius, cylinder_height]
+    t, dt = t_alan.compute_T(lmax=nrank, Ntheta=Ntheta, geometric_params=geometric_params,
+                             n0=medium_refractive_index, ns=cylinder_refractive_index,
+                             wavelength=vacuum_wavelength,
+                             particle_type="cylinder")
+    t = -nfic.python_to_smuthi_matrix(t, Nrank=nrank, l_max=cylinder_l_max, m_max=cylinder_m_max)
+    return t
 
 
 class CustomParticle(Particle):
@@ -362,26 +527,53 @@ class CustomParticle(Particle):
         return self.scale
 
     def compute_t_matrix(self, vacuum_wavelength, n_medium):
+        # By memoizing the call to compute_t_matrix through a wrapper, 
+        # you can efficiently reuse t-matricies when particles are the same type.
+        # This method is done automatically, so no other changes in the linear system
+        # are necessary to efficiently use memory and save computation time. 
+        
         if self.geometry_filename.endswith(".fem") or self.geometry_filename.endswith(".FEM"):
-            return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium, self.geometry_filename)
+            return _compute_custom_particle_t_matrix_nfmds(custom_particle_refractive_index = self.refractive_index, 
+                                        custom_particle_scale = self.scale, 
+                                        custom_particle_l_max = self.l_max, 
+                                        custom_particle_m_max = self.m_max, 
+                                        custom_particle_n_rank = self.nrank,
+                                        vacuum_wavelength = vacuum_wavelength,
+                                        medium_refractive_index = n_medium, 
+                                        fem_file = self.geometry_filename)
 
         elif self.geometry_filename.endswith(".stl") or self.geometry_filename.endswith(".STL"):
             with tempfile.TemporaryDirectory() as tempdir:
                 stlc.convert_stl_to_fem(stlname=self.geometry_filename,
                                         femname=tempdir + "/temp.fem")
-                return self._compute_t_matrix_nfmds(vacuum_wavelength, n_medium, tempdir + "/temp.fem")
+                return _compute_custom_particle_t_matrix_nfmds(custom_particle_refractive_index = self.refractive_index, 
+                                            custom_particle_scale = self.scale, 
+                                            custom_particle_l_max = self.l_max, 
+                                            custom_particle_m_max = self.m_max, 
+                                            custom_particle_n_rank = self.nrank,
+                                            vacuum_wavelength = vacuum_wavelength,
+                                            medium_refractive_index = n_medium, 
+                                            fem_file = tempdir + "/temp.fem")
         else:
             raise Exception("Invalid geometry file extension.")
 
-    def _compute_t_matrix_nfmds(self, vacuum_wavelength, n_medium, fem_file):
-        """Private t-matrix method function"""
-        nrank = self.nrank if self.nrank is not None else self.l_max + 5
-        Nmax = nrank * (2 + nrank)
-        surf = np.array([1, 1, 1])	
-        with log.LoggerLowLevelMuted(filename=nfmds_logfile):
-            tnfmds = nfmds.tnonaxsym(surf, Nmax, filefem=fem_file,
-                                     wavelength=vacuum_wavelength / self.scale,
-                                     ind_refrel=self.refractive_index / n_medium + 0j,
-                                     nrank=nrank, mrank=nrank, ind_refmed=n_medium)
-        t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=self.l_max, m_max=self.m_max)
-        return t
+@memo.Memoize
+def _compute_custom_particle_t_matrix_nfmds(custom_particle_refractive_index, 
+                            custom_particle_scale, 
+                            custom_particle_l_max, 
+                            custom_particle_m_max, 
+                            custom_particle_n_rank,
+                            vacuum_wavelength,
+                            medium_refractive_index, 
+                            fem_file):
+    """Private t-matrix method function"""
+    nrank = custom_particle_n_rank if custom_particle_n_rank is not None else custom_particle_l_max + 5
+    Nmax = nrank * (2 + nrank)
+    surf = np.array([1, 1, 1])	
+    with log.LoggerLowLevelMuted(filename=nfmds_logfile):
+        tnfmds = nfmds.tnonaxsym(surf, Nmax, filefem=fem_file,
+                                 wavelength=vacuum_wavelength / custom_particle_scale,
+                                 ind_refrel=custom_particle_refractive_index / medium_refractive_index + 0j,
+                                 nrank=nrank, mrank=nrank, ind_refmed=medium_refractive_index)
+    t = nfic.nfmds_to_smuthi_matrix(tnfmds, l_max=custom_particle_l_max, m_max=custom_particle_m_max)
+    return t

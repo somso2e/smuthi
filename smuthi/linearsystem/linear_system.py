@@ -60,9 +60,6 @@ class LinearSystem:
         interpolator_kind (str): interpolation order to be used, e.g. 'linear' or 'cubic'. This argument is ignored if
                                  coupling_matrix_lookup_resolution is None. In general, cubic interpolation is more
                                  accurate but a bit slower than linear.
-        identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
-                                             particles, located in the same background medium). Then, the T-matrix is
-                                             computed only once for all particles.
         periodicity (tuple):                 tuple (a1, a2) specifying two 3-dimensional lattice vectors in Carthesian coordinates
                                              with a1, a2 (numpy.ndarrays)
         ewald_sum_separation_parameter (float):     Used to separate the real and reciprocal lattice sums to evaluate
@@ -83,7 +80,6 @@ class LinearSystem:
                  coupling_matrix_lookup_resolution=None,
                  interpolator_kind='cubic',
                  cuda_blocksize=None,
-                 identical_particles=False,
                  periodicity=None,
                  ewald_sum_separation_parameter='default',
                  number_of_threads_periodic='default'):
@@ -101,7 +97,6 @@ class LinearSystem:
         self.coupling_matrix_lookup_resolution = coupling_matrix_lookup_resolution
         self.interpolator_kind = interpolator_kind
         self.cuda_blocksize = cuda_blocksize
-        self.identical_particles = identical_particles
         self.periodicity = periodicity
         self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
         self.number_of_threads_periodic = number_of_threads_periodic
@@ -126,32 +121,16 @@ class LinearSystem:
 
     def compute_t_matrix(self):
         """Initialize T-matrix object."""
-        if self.identical_particles:
-            particle = self.particle_list[0]
+        for particle in tqdm(self.particle_list,
+                             desc='T-matrices                ',
+                             file=sys.stdout,
+                             bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
             iS = self.layer_system.layer_number(particle.position[2])
             niS = self.layer_system.refractive_indices[iS]
-            t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
+            particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
             if not particle.euler_angles == [0, 0, 0]:
-                t_matrix = tmt.rotate_t_matrix(t_matrix, particle.l_max, particle.m_max,
-                                               particle.euler_angles, wdsympy=False)
-            for particle in tqdm(self.particle_list,
-                                 desc='T-matrices                ',
-                                 file=sys.stdout,
-                                 bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
-                iS = self.layer_system.layer_number(particle.position[2])
-                niS = self.layer_system.refractive_indices[iS]
-                particle.t_matrix = t_matrix
-        else:
-            for particle in tqdm(self.particle_list,
-                                 desc='T-matrices                ',
-                                 file=sys.stdout,
-                                 bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
-                iS = self.layer_system.layer_number(particle.position[2])
-                niS = self.layer_system.refractive_indices[iS]
-                particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
-                if not particle.euler_angles == [0, 0, 0]:
-                    particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
-                                                            particle.euler_angles, wdsympy=False)
+                particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
+                                                        particle.euler_angles, wdsympy=False)
         self.t_matrix = TMatrix(particle_list=self.particle_list)
 
     def compute_coupling_matrix(self):
