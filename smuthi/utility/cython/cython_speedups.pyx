@@ -828,7 +828,7 @@ def svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
     return np.asarray(val, dtype = np.complex128)
 
 # Special case of translate. Make wrapper for readability in smuthi.
-def direct_coupling_block_2D_from_hash_table(long blocksize1,long blocksize2,
+def direct_coupling_block_3D_from_hash_table(long blocksize1,long blocksize2,
                                 double complex[:,:] w,
                                 double complex[:] sph,
                                 double complex k,
