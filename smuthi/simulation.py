@@ -74,9 +74,6 @@ class Simulation:
         log_to_terminal(bool):  if true, the simulation progress will be displayed in the terminal
         check_circumscribing_spheres(bool):  if true, check all particles for overlapping circumscribing spheres
                                              and print a warning if detected
-        identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
-                                             particles, located in the same background medium). Then, the T-matrix is
-                                             computed only once for all particles.
         do_sanity_check (bool):              if true (default), check numerical input for some flaws. Warning: A passing
                                              sanity check does not guarantee correct numerical settings. For many
                                              particles, the sanity check might take some time and/or occupy large memory.
@@ -113,7 +110,6 @@ class Simulation:
                  log_to_file=False,
                  log_to_terminal=True,
                  check_circumscribing_spheres=True,
-                 identical_particles=False,
                  do_sanity_check=True,
                  periodicity=None,
                  ewald_sum_separation_parameter='default',
@@ -141,7 +137,6 @@ class Simulation:
         self.length_unit = length_unit
         self.save_after_run = save_after_run
         self.check_circumscribing_spheres = check_circumscribing_spheres
-        self.identical_particles = identical_particles
         self.do_sanity_check = do_sanity_check
         self.periodicity = periodicity
         self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
@@ -255,7 +250,6 @@ class Simulation:
                                                store_coupling_matrix=self.store_coupling_matrix,
                                                coupling_matrix_lookup_resolution=self.coupling_matrix_lookup_resolution,
                                                interpolator_kind=self.coupling_matrix_interpolator_kind,
-                                               identical_particles=self.identical_particles,
                                                periodicity=self.periodicity,
                                                ewald_sum_separation_parameter=self.ewald_sum_separation_parameter,
                                                number_of_threads_periodic=self.number_of_threads_periodic)
