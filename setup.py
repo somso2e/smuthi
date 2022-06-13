@@ -153,6 +153,7 @@ setup(
               'smuthi.linearsystem.tmatrix.nfmds',
               'smuthi.linearsystem.particlecoupling',
               'smuthi.postprocessing',
+              'smuthi.periodicboundaries',
               'smuthi.utility'],
     ext_modules=get_extensions(True),
     cmdclass={'prepare': PrepareCommand,
