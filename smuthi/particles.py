@@ -44,12 +44,12 @@ if not os.environ.get('READTHEDOCS'):
                       of spheres and finite cylinders.
                       ''')
 
-try:
-    import cylinder_t_matrix.t_matrix as t_alan   #<- uncomment as soon as Alan's code is on PyPi
-except:
-    warnings.warn('''
-                  Unable to load the Python package for calculating the T-matrix of a Finite cylinder.
-                  ''')
+#try:
+#    import cylinder_t_matrix.t_matrix as t_alan   #<- uncomment as soon as Alan's code is on PyPi
+#except:
+#    warnings.warn('''
+#                  Unable to load the Python package for calculating the T-matrix of a Finite cylinder.
+#                  ''')
 
 
 
