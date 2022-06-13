@@ -1,26 +1,6 @@
 """
 This module contains functions to compute the direct (i.e., not layer 
 mediated) particle coupling coefficients.
-
-This file is to offer the ability to have fast calculations of the direct coupling 
-matrix between two particles. The key idea is that many particles share the 
-same order pairs. Therefore, the ab5 (and, in the case of 2d, the legendre) functions
-need not be calculated for every particle pair. Instead we can construct a 
-hash table of the result of these coefficients using memoization. This is 
-beneficial because the coupling matrix involves MANY loops. Just memoizing the 
-ab5 or legendre functions isn't as good as making a list and efficiently 
-iterating over that list.
-
-This file also offers the ability to do efficient looping using Cython. Cython 
-can loop very quickly over a large array. So, again, it is better to memoize 
-the elements in the loop and not just the ab5 solutions themselves.
-
-Since some people may not have cython (or know how to compile c), I provide 
-python equivalent functions. These functions still give speedups compared to 
-direct calculation. But, they are much slower compared to cython.
-
-The code is written in an attempt to change as little as possible past the 
-"direct coupling block" funciton. This should help Smuthi compatibility.
 """
 
 import numpy as np
@@ -31,6 +11,7 @@ import smuthi.utility.memoizing as memo
 import scipy.optimize
 import scipy.special
 import sys
+import warnings
 
 
 def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_particle, layer_system):
@@ -92,14 +73,14 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
 
         #Note: It is allways better to use the hash tables so just do it. 
         if dz == 0:
-            a5leg_array, b5leg_array =  ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
+            a5leg_array, b5leg_array = ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
             w = direct_coupling_block_2D_from_hash_table(blocksize1, blocksize2,
                                                         w, sph, k, dx, dy,dz,
                                                         lmax1, lmax2, mmax1, mmax2,
                                                         a5leg_array, b5leg_array,                              
                                                         threaded = False)
         else:
-            a5_array, b5_array =  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
+            a5_array, b5_array = ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
             w = direct_coupling_block_3D_from_hash_table(blocksize1, blocksize2,
                                                         w, sph, k, dx, dy,dz,
                                                         lmax1, lmax2, mmax1, mmax2,
@@ -107,7 +88,6 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
                                                         threaded = False)           
         
     return w
-
 
 
 def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
@@ -137,27 +117,13 @@ def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
     return w
 
 
-
-##############################################################################
-#  Make  hash table of ab5 and Legendre for a particle order pair 
-#  This is for 2D coupling (Cython uses the GIL)
-##############################################################################
-# """
-# This hash table is particularly good when all particles have the same order. 
-# """
-
 try: 
     from smuthi.utility.cython.cython_speedups import _ab5_coefficient_and_legendre_hash_table
     @memo.Memoize
     def ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2):
         return _ab5_coefficient_and_legendre_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))
 except:
-    sys.stdout.write(
-"""
-Cython acceleration could not be loaded.
-Falling back on Python equivalents... 
-"""
-        )
+    sys.stdout.write("Cython acceleration could not be loaded. \nFalling back on Python equivalents...")
     sys.stdout.flush()
     @memo.Memoize
     def ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2):
@@ -206,22 +172,14 @@ Falling back on Python equivalents...
         return a5leg_array, b5leg_array
 
 
-##############################################################################
-#  Make  hash table of ab5  for a particle order pair 
-#  This is for 3D coupling (Cython uses the GIL)
-##############################################################################
-# """
-# This hash table is particularly good when all particles have the same order. 
-# """
-
 try:
     from smuthi.utility.cython.cython_speedups  import _ab5_coefficient_hash_table
     @memo.Memoize
-    def  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
+    def ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
         return _ab5_coefficient_hash_table(int(lmax1), int(lmax2), int(mmax1), int(mmax2))  
 except:
     @memo.Memoize
-    def  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
+    def ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2):
         r"""Creates a hash table of the elements
         :math:`a5(l_1,m_1,l_2,m_2,l_d)` and :math:`a5(l_1,m_1,l_2,m_2,l_d)`
         found in appendix B of [Egel 2018 diss],where a5 and b5 are the coefficients used in the evaluation of the SVWF translation
@@ -256,10 +214,6 @@ except:
                           
         return a5_array, b5_array
 
-
-##############################################################################
-#  2D Direct coupling block using  hash table (Cython releases the Gil)
-##############################################################################
 
 try:
     from smuthi.utility.cython.cython_speedups import direct_coupling_block_2D_from_hash_table 
@@ -332,11 +286,7 @@ except:
     
         return w
     
-    
-##############################################################################
-#  3D Direct coupling block using  hash table (Cython releases the Gil)
-##############################################################################  
-    
+
 try:
     from smuthi.utility.cython.cython_speedups import direct_coupling_block_3D_from_hash_table
 except:  
@@ -411,8 +361,6 @@ except:
         return w
 
 
-
-
 ###############################################################################
 #                  PVWF coupling - experimental!                              #                               
 ###############################################################################
@@ -421,6 +369,7 @@ coupling via a PVWF expansion. This allows in principle to treat particles
 with intersecting circumscribing spheres, see 
 Theobald et al.: "Plane-wave coupling formalism for T-matrix simulations of 
 light scattering by nonspherical particles", Phys Rev A, 2018"""
+
 
 def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, ab_halfaxis2, c_halfaxis2, center2, 
                              orientation2):
@@ -540,17 +489,79 @@ def spheroids_closest_points(ab_halfaxis1, c_halfaxis1, center1, orientation1, a
     return p1, p2, alpha, beta
 
 
-def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, 
+def get_separating_plane(receiving_particle, emitting_particle):
+    """Estimate the orientation of a plane that separates two particles.
+    Such a plane always exists for convex particles.
+
+    For some special cases (pairs of spheroids, pairs of non-rotated cylinders)
+    a separating plane is constructed.
+
+    For all other cases, the orientation is chosen along the center-to-center
+    vector. Note that this choice is not guaranteed
+    to yield a correct PVWF coupling result.
+
+        Args:
+        receiving_particle (smuthi.particles.Particle):        Receiving particle
+        emitting_particle (smuthi.particles.Particle):         Emitting particle
+
+    Retruns:
+        Tuple containing Euler angles for the active rotation into a frame such
+        that the emitting particle is above some z-plane and the receiving particle
+        is below that plane:
+          - first rotation Euler angle alpha (float)
+          - second rotation Euler angle beta (float)
+    """
+
+    relpos = np.array(emitting_particle.position) - np.array(receiving_particle.position)
+
+    if type(receiving_particle).__name__ == 'Spheroid' \
+            and type(emitting_particle).__name__ == 'Spheroid':
+        _, _, alpha, beta = spheroids_closest_points(
+            emitting_particle.semi_axis_a, emitting_particle.semi_axis_c,
+            emitting_particle.position, emitting_particle.euler_angles,
+            receiving_particle.semi_axis_a, receiving_particle.semi_axis_c,
+            receiving_particle.position, receiving_particle.euler_angles)
+        return alpha, beta
+
+    elif (type(receiving_particle).__name__ == 'FiniteCylinder'
+            and type(emitting_particle).__name__ == 'FiniteCylinder'
+            and np.linalg.norm(receiving_particle.euler_angles) == 0
+            and np.linalg.norm(emitting_particle.euler_angles) == 0):
+        in_plane_distance2 = relpos[0]**2 + relpos[1]**2
+        sum_radii2 = (emitting_particle.cylinder_radius + receiving_particle.cylinder_radius)**2
+        if in_plane_distance2 > sum_radii2:
+            alpha = - np.arctan2(relpos[1], relpos[0])
+            beta = - np.pi / 2
+            return alpha, beta
+        if relpos[2] > (emitting_particle.cylinder_height + receiving_particle.cylinder_height) / 2.0:
+            return 0, 0
+        if -relpos[2] > (emitting_particle.cylinder_height + receiving_particle.cylinder_height) / 2.0:
+            return 0, np.pi
+
+    warnings.warn("Unable to estimate suitable separating plane. Using center-to-center vector for PVWF coupling.")
+    alpha = - np.arctan2(relpos[1], relpos[0])
+    beta = - np.arccos(relpos[2] / np.linalg.norm(relpos))
+    return alpha, beta
+
+
+def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, emitting_particle, layer_system,
                                         k_parallel, alpha=None, beta=None):
     """Direct particle coupling matrix :math:`W` for two particles (via plane vector wave functions).
     For details, see:
     Dominik Theobald et al., Phys. Rev. A 96, 033822, DOI: 10.1103/PhysRevA.96.033822 or arXiv:1708.04808
 
-    The plane wave coupling is performed in a rotated coordinate system, which must be chosen such that both particles can be separated by a plane that is parallel to the xy-plane (such that the emitting particle is entirely above that plane and the receiving particle is entirely below that plane).
+    The plane wave coupling is performed in a rotated coordinate system,
+    which must be chosen such that both particles can be separated by a plane
+    that is parallel to the xy-plane (such that the emitting particle is
+    entirely above that plane and the receiving particle is entirely below that
+    plane).
 
-    Two angles (alpha and beta) are required to specify the active rotation into that coordinate system, i.e., the rotation which rotates the particle locations such that the abovementioned condition is fulfilled.
+    Two angles (alpha and beta) are required to specify the active rotation into
+    that coordinate system, i.e., the rotation which rotates the particle
+    locations such that the abovementioned condition is fulfilled.
 
-    For spheroids, alpha and beta can be determinded automatically, for other particle shapes the user needs to provide alpha and beta.
+    If the angle arguments are omitted, Smuthi tries to estimate a suitable
+    separating plane.
 
     Args:
         vacuum_wavelength (float):                          Vacuum wavelength :math:`\lambda` (length unit)
@@ -571,22 +582,25 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     mmax2 = emitting_particle.m_max
     assert lmax2 == mmax2, 'PVWF coupling requires lmax == mmax for each particle.'
     lmax = max([lmax1, lmax2])
-    m_max = max([mmax1, mmax2]) 
     blocksize1 = flds.blocksize(lmax1, mmax1)
     blocksize2 = flds.blocksize(lmax2, mmax2)
-    
+
+    # initialize result
+    w = np.zeros((blocksize1, blocksize2), dtype=complex)
+
+    # Check if particles are in the same layer.
+    rS1 = receiving_particle.position
+    rS2 = emitting_particle.position
+    iS1 = layer_system.layer_number(rS1[2])
+    iS2 = layer_system.layer_number(rS2[2])
+    if (iS1 != iS2) or emitting_particle == receiving_particle:
+        return w
+
     n_medium = layer_system.refractive_indices[layer_system.layer_number(receiving_particle.position[2])]
     
     if alpha is None or beta is None:
-        if type(receiving_particle).__name__ != 'Spheroid' or type(emitting_particle).__name__ != 'Spheroid':
-            raise NotImplementedError('Automatic evaluation of a separation plane only available for spheroids! Please provide alpha and beta.')
-        
-        # finding the orientation of a plane separating the spheroids
-        _, _, alpha, beta = spheroids_closest_points(
-            emitting_particle.semi_axis_a, emitting_particle.semi_axis_c, emitting_particle.position, 
-            emitting_particle.euler_angles, receiving_particle.semi_axis_a, receiving_particle.semi_axis_c,
-            receiving_particle.position, receiving_particle.euler_angles)
-    
+        alpha, beta = get_separating_plane(receiving_particle, emitting_particle)
+
     # positions
     r1 = np.array(receiving_particle.position)
     r2 = np.array(emitting_particle.position)
@@ -619,9 +633,6 @@ def direct_coupling_block_pvwf_mediated(vacuum_wavelength, receiving_particle, e
     st = k_parallel / k
     _, pilm_list, taulm_list = sma.legendre_normalized(ct, st, lmax)
     
-    # initialize result
-    w = np.zeros((blocksize1, blocksize2), dtype=complex)
-
     # prefactor
     const_arr = k_parallel / (kz * k) * np.exp(1j * (kz_var * z21))
                         

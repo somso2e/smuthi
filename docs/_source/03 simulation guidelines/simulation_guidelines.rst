@@ -44,3 +44,7 @@ In this section, you can find general hints how to properly run a simulation wit
 
    custom_particles
 
+.. toctree::
+   :maxdepth: 2
+
+   plane_wave_coupling

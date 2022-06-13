@@ -66,7 +66,10 @@ class LinearSystem:
                                                     particle coupling in periodic lattices.
         number_of_threads_periodic (int or str):    sets the number of threats used in a simulation with periodic particle arrangements
                                                     if 'default', all available CPU cores are used 
-                                                    if negative, all but number_of_threads_periodic are used 
+                                                    if negative, all but number_of_threads_periodic are used
+        use_pvwf_coupling (bool):              If set to True, plane wave coupling is used to calculate
+                                               the direct. Currently only possible in combination with direct solver strategy.
+        pvwf_coupling_k_parallel (array):      k-parallel for PVWF coupling
     """
 
     def __init__(self,
@@ -82,7 +85,9 @@ class LinearSystem:
                  cuda_blocksize=None,
                  periodicity=None,
                  ewald_sum_separation_parameter='default',
-                 number_of_threads_periodic='default'):
+                 number_of_threads_periodic='default',
+                 use_pvwf_coupling=False,
+                 pvwf_coupling_k_parallel=None):
 
         if cuda_blocksize is None:
             cuda_blocksize = cu.default_blocksize
@@ -100,6 +105,14 @@ class LinearSystem:
         self.periodicity = periodicity
         self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
         self.number_of_threads_periodic = number_of_threads_periodic
+        self.use_pvwf_coupling = use_pvwf_coupling
+        self.pvwf_coupling_k_parallel = pvwf_coupling_k_parallel
+
+        if use_pvwf_coupling and (coupling_matrix_lookup_resolution is not None):
+            warnings.warn(
+                "The use_pvwf_coupling flag was defined in combination with a  "
+                "lookup. This combination is not yet available. Ignoring the "
+                "use_pvwf_coupling flag.")
 
         dummy_matrix = SystemMatrix(self.particle_list)
         sys.stdout.write('Number of unknowns: %i\n' % dummy_matrix.shape[0])
@@ -234,7 +247,9 @@ class LinearSystem:
                     vacuum_wavelength=self.initial_field.vacuum_wavelength,
                     particle_list=self.particle_list,
                     layer_system=self.layer_system,
-                    k_parallel=self.k_parallel)
+                    k_parallel=self.k_parallel,
+                    use_pvwf_coupling=self.use_pvwf_coupling,
+                    pvwf_coupling_k_parallel=self.pvwf_coupling_k_parallel)
 
     def solve(self):
         """Compute scattered field coefficients and store them
@@ -434,7 +449,7 @@ class CouplingMatrixExplicit(SystemMatrix):
                                             If 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
     """
 
-    def __init__(self, vacuum_wavelength, particle_list, layer_system, k_parallel='default'):
+    def __init__(self, vacuum_wavelength, particle_list, layer_system, k_parallel='default', use_pvwf_coupling=False, pvwf_coupling_k_parallel=None):
 
         SystemMatrix.__init__(self, particle_list)
         coup_mat = np.zeros(self.shape, dtype=complex)
@@ -450,14 +465,24 @@ class CouplingMatrixExplicit(SystemMatrix):
             idx1 = np.array(self.index_block(s1))[:, None]
             for s2, particle2 in enumerate(particle_list):
                 idx2 = self.index_block(s2)
-                
-                if layer_system.is_degenerate(): # Only calc direct coupling if degenerate case.                
-                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,layer_system)
+
+                # direct contribution
+                if use_pvwf_coupling:
+                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block_pvwf_mediated(vacuum_wavelength,
+                                                                                       particle1,
+                                                                                       particle2,
+                                                                                       layer_system,
+                                                                                       pvwf_coupling_k_parallel)
                 else:
-                    coup_mat[idx1, idx2] = (laycoup.layer_mediated_coupling_block(vacuum_wavelength, particle1, particle2,
-                                                                              layer_system, k_parallel)
-                                        + dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,
-                                                                        layer_system))
+                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block(vacuum_wavelength,
+                                                                         particle1,
+                                                                         particle2,
+                                                                         layer_system)
+
+                # layer mediated contribution
+                if not layer_system.is_degenerate():
+                    coup_mat[idx1, idx2] += laycoup.layer_mediated_coupling_block(vacuum_wavelength, particle1, particle2,
+                                                                                  layer_system, k_parallel)
         self.linear_operator = scipy.sparse.linalg.aslinearoperator(coup_mat)
 
 
