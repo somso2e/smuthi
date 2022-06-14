@@ -21,7 +21,8 @@ import os
 import sys
 
 for x in os.walk('../../smuthi'):
-  sys.path.insert(0, x[0])
+  if not x[0].__contains__('venv'):
+    sys.path.insert(0, x[0])
 
 
 import sphinx_rtd_theme
