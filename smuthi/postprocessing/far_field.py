@@ -254,14 +254,16 @@ def pwe_to_ff_conversion(vacuum_wavelength, plane_wave_expansion):
     intens = (2 * np.pi ** 2 / omega * kkz2[np.newaxis, :, np.newaxis]
               * abs(plane_wave_expansion.coefficients) ** 2).real
     srt_idcs = np.argsort(polar_angles)  # reversing order in case of downgoing
-    ff = FarField(polar_angles=polar_angles[srt_idcs], azimuthal_angles=azimuthal_angles)
+    ff = FarField(polar_angles=polar_angles[srt_idcs], azimuthal_angles=azimuthal_angles,
+                  reference_point=plane_wave_expansion.reference_point)
     ff.amplitude = ampli[:, srt_idcs, :]
     ff.signal = intens[:, srt_idcs, :]
     return ff
 
 
 def total_far_field(initial_field, particle_list, layer_system,
-                    polar_angles='default', azimuthal_angles='default', angular_resolution=None):
+                    polar_angles='default', azimuthal_angles='default',
+                    angular_resolution=None, reference_point=None):
     """
     Evaluate the total far field, the initial far field and the scattered far field. Cannot be used if initial field
     is a plane wave.
@@ -276,7 +278,8 @@ def total_far_field(initial_field, particle_list, layer_system,
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):                 If provided, angular arrays are generated with this angular
                                                     resolution over the default angular range
-
+        reference_point (list or tuple):            If set to a value other than None, the far field
+                                                    will be calculated with this as its reference point.
     Returns:
         A tuple of three smuthi.field_expansion.FarField objects for total, initial and scattered far field. Mind that the scattered far field
         has no physical meaning and is for illustration purposes only.
@@ -303,6 +306,10 @@ def total_far_field(initial_field, particle_list, layer_system,
                                                  include_direct=True, include_layer_response=True)
         pwe_in_top, _ = initial_field.plane_wave_expansion(layer_system, i_top, k_parallel_array=neff_top*omega,
                                                            azimuthal_angles_array=azimuthal_angles)
+        if reference_point is not None:
+            pwe_in_top.set_reference_point(reference_point)
+            pwe_scat_top.set_reference_point(reference_point)
+
         pwe_top = pwe_scat_top + pwe_in_top
         top_far_field = pwe_to_ff_conversion(vacuum_wavelength=vacuum_wavelength, plane_wave_expansion=pwe_top)
         top_far_field_init = pwe_to_ff_conversion(vacuum_wavelength=vacuum_wavelength,
@@ -320,6 +327,10 @@ def total_far_field(initial_field, particle_list, layer_system,
                                                    include_direct=True, include_layer_response=True)
         _, pwe_in_bottom = initial_field.plane_wave_expansion(layer_system, 0, k_parallel_array=neff_bottom*omega,
                                                               azimuthal_angles_array=azimuthal_angles)
+        if reference_point is not None:
+            pwe_in_bottom.set_reference_point(reference_point)
+            pwe_scat_bottom.set_reference_point(reference_point)
+
         pwe_bottom = pwe_scat_bottom + pwe_in_bottom
         bottom_far_field = pwe_to_ff_conversion(vacuum_wavelength=vacuum_wavelength,
                                                 plane_wave_expansion=pwe_bottom)
@@ -352,7 +363,8 @@ def total_far_field(initial_field, particle_list, layer_system,
 
 
 def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
-                        polar_angles='default', azimuthal_angles='default', angular_resolution=None):
+                        polar_angles='default', azimuthal_angles='default',
+                        angular_resolution=None, reference_point=None):
     """
     Evaluate the scattered far field.
 
@@ -366,6 +378,8 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
                                                     if 'default', use smuthi.fields.default_azimuthal_angles
         angular_resolution (float):                 If provided, angular arrays are generated with this angular
                                                     resolution over the default angular range
+        reference_point (list or tuple):            If set to a value other than None, the far field
+                                                    will be calculated with this as its reference point.
 
     Returns:
         A smuthi.field_expansion.FarField object of the scattered field.
@@ -386,6 +400,8 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
         pwe_top, _ = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, i_top,
                                             k_parallel=neff_top*omega, azimuthal_angles=azimuthal_angles,
                                             include_direct=True, include_layer_response=True)
+        if reference_point is not None:
+            pwe_top.set_reference_point(reference_point)
         top_far_field = pwe_to_ff_conversion(vacuum_wavelength=vacuum_wavelength, plane_wave_expansion=pwe_top)
     else:
         top_far_field = None
@@ -394,6 +410,8 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
         _, pwe_bottom = sf.scattered_field_pwe(vacuum_wavelength, particle_list, layer_system, 0,
                                                k_parallel=neff_bottom*omega, azimuthal_angles=azimuthal_angles,
                                                include_direct=True, include_layer_response=True)
+        if reference_point is not None:
+            pwe_bottom.set_reference_point(reference_point)
         bottom_far_field = pwe_to_ff_conversion(vacuum_wavelength=vacuum_wavelength,
                                                 plane_wave_expansion=pwe_bottom)
     else:
@@ -411,7 +429,8 @@ def scattered_far_field(vacuum_wavelength, particle_list, layer_system,
 
 
 def scattering_cross_section(initial_field, particle_list, layer_system,
-                             polar_angles='default', azimuthal_angles='default', angular_resolution=None):
+                             polar_angles='default', azimuthal_angles='default',
+                             angular_resolution=None):
     """Evaluate and display the differential scattering cross section as a function of solid angle.
 
     Args:

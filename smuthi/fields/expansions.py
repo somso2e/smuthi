@@ -518,6 +518,31 @@ class PlaneWaveExpansion(FieldExpansion):
         # - index of the alpha dimension
         self.coefficients = np.zeros((2, len(self.k_parallel), len(self.azimuthal_angles)), dtype=complex)
 
+    def set_reference_point(self, new_reference_point):
+        r"""Set a new reference point. This implies also a phase factor on the
+        coefficients.
+
+        Args:
+            new_reference_point (list or tuple):    [x, y, z]-coordinates of
+                                                    point relative to which the
+                                                    plane waves are defined.
+        """
+        kpgrid = self.k_parallel_grid()
+        agrid = self.azimuthal_angle_grid()
+        kx = kpgrid * np.cos(agrid)
+        ky = kpgrid * np.sin(agrid)
+        kz = self.k_z_grid()
+
+        new_mn_old = np.array(new_reference_point) - np.array(self.reference_point)
+
+        # phase factor for the translation
+        ejkr = np.exp(1j * (kx * new_mn_old[0]
+                            + ky * new_mn_old[1]
+                            + kz * new_mn_old[2]))
+
+        self.coefficients = self.coefficients * ejkr[np.newaxis, :, :]  # indices: pol, jk, ja
+        self.reference_point = new_reference_point
+
     def valid(self, x, y, z):
         """Test if points are in definition range of the expansion.
         
