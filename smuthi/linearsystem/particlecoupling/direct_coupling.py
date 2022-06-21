@@ -81,8 +81,7 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
         #                You need to first deal with the effect of the layer interface!
         #                ''')
 
-<<<<<<< HEAD
-=======
+
         dx = float(rS1[0] - rS2[0])
         dy = float(rS1[1] - rS2[1])
         dz = float(rS1[2] - rS2[2])
@@ -104,7 +103,7 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
                                                         threaded = False)           
         
     return w
->>>>>>> master
+
 
 
 def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
@@ -134,8 +133,6 @@ def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
     return w
 
 
-<<<<<<< HEAD
-=======
 try: 
     from smuthi.utility.cython.cython_speedups import _ab5_coefficient_and_legendre_hash_table
     @memo.Memoize
@@ -379,7 +376,7 @@ except:
     
         return w
 
->>>>>>> master
+
 
 ###############################################################################
 #                  PVWF coupling - experimental!                              #                               
