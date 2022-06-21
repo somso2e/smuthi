@@ -6,7 +6,7 @@ mediated) particle coupling coefficients.
 import numpy as np
 import smuthi.fields as flds
 import smuthi.fields.transformations as trf
-from smuthi.fields.spherical_harmonic_translations import svh_translate
+from smuthi.fields.spherical_harmonic_translations import svwf_translate
 import smuthi.utility.math as sma
 
 import scipy.optimize
@@ -63,7 +63,7 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
         omega = flds.angular_frequency(vacuum_wavelength)
         k = complex(omega * layer_system.refractive_indices[iS1])
         d = [rS1[i]-rS2[i] for i in range(3)]
-        return svh_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind = 'outgoing to regular', threaded = False)
+        return svwf_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind = 'outgoing to regular', threaded = False)
 
     else:
         blocksize1 = int(flds.blocksize(lmax1, mmax1)) # Rows of translation matrix

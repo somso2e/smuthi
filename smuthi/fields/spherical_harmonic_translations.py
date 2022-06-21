@@ -13,7 +13,7 @@ import numpy as np
 # Note: The direct coupling block is just an outgoing to incoming translation
 
 
-def svh_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False):
+def svwf_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False):
     
     # Cython has a non-intuitive convention to dealing with strings/chars between python2 and python3
     # To avoid this, convert the readable string flag to a binary int flag. This prevents compatibility problems.
@@ -46,7 +46,7 @@ def svh_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False):
         # Note: The hash table is memoized. So if this lmax and mmax combo was used 
         # prior (such as in the solution of the linear system) it will not be re-calculated
         a5leg_array, b5leg_array =  ab5_coefficient_and_legendre_hash_table(lmax1, lmax2, mmax1, mmax2)
-        return svh_translate_2D_from_hash_table(blocksize1, blocksize2,
+        return svwf_translate_2D_from_hash_table(blocksize1, blocksize2,
                                                     w, sph, k, dx, dy,dz,
                                                     lmax1, lmax2, mmax1, mmax2,
                                                     a5leg_array, b5leg_array,                              
@@ -55,7 +55,7 @@ def svh_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False):
         # Note: The hash table is memoized. So if this lmax and mmax combo was used 
         # prior (such as in the solution of the linear system) it will not be re-calculated
         a5_array, b5_array =  ab5_coefficient_hash_table(lmax1, lmax2, mmax1, mmax2)
-        return svh_translate_3D_from_hash_table(blocksize1, blocksize2,
+        return svwf_translate_3D_from_hash_table(blocksize1, blocksize2,
                                                     w, sph, k, dx, dy,dz,
                                                     lmax1, lmax2, mmax1, mmax2,
                                                     a5_array, b5_array,                              
@@ -122,9 +122,9 @@ except:
 
 # Call to lower level translation funciton. Use Try to enable Cython if able. 
 try:
-    from smuthi.utility.cython.cython_speedups import svh_translate_3D_from_hash_table
+    from smuthi.utility.cython.cython_speedups import svwf_translate_3D_from_hash_table
 except:  
-    def svh_translate_3D_from_hash_table(blocksize1,blocksize2,
+    def svwf_translate_3D_from_hash_table(blocksize1,blocksize2,
                                         w,sph,k,dx, dy, dz,
                                         lmax1, lmax2, mmax1, mmax2,
                                         a5_hash_table, b5_hash_table,
@@ -276,9 +276,9 @@ Falling back on Python equivalents...
 ##############################################################################
 
 try:
-    from smuthi.utility.cython.cython_speedups import svh_translate_2D_from_hash_table
+    from smuthi.utility.cython.cython_speedups import svwf_translate_2D_from_hash_table
 except:  
-    def svh_translate_2D_from_hash_table(blocksize1,blocksize2,
+    def svwf_translate_2D_from_hash_table(blocksize1,blocksize2,
                                     w,sph,k,dx, dy, dz,
                                     lmax1, lmax2, mmax1, mmax2,
                                     a5leg_hash_table,b5leg_hash_table,

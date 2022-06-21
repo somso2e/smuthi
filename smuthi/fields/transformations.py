@@ -6,7 +6,7 @@ import smuthi.fields.expansions as fex
 import smuthi.fields as flds
 import smuthi.utility.math as mathfunc
 import smuthi.utility.memoizing as memo
-from smuthi.fields.spherical_harmonic_translations import svh_translate
+from smuthi.fields.spherical_harmonic_translations import svwf_translate
 
 
 
@@ -231,7 +231,7 @@ def swe_to_pwe_conversion(swe, k_parallel, azimuthal_angles, layer_system=None, 
 ###############################################################################
 
 
-def direct_translation_block(vacuum_wavelength, recieving_particle, emitting_particle, layer_system, kind):
+def translation_block(vacuum_wavelength, recieving_particle, emitting_particle, layer_system, kind):
     r"""Direct particle translation matrix :math:`W` for two particles that do not have intersecting circumscribing spheres.
        This routine is explicit.
        
@@ -280,7 +280,7 @@ def direct_translation_block(vacuum_wavelength, recieving_particle, emitting_par
             omega = flds.angular_frequency(vacuum_wavelength)
             k = complex(omega * layer_system.refractive_indices[iS1])
             d = [rS1[i]-rS2[i] for i in range(3)]
-            return svh_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False)
+            return svwf_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False)
         else:
             blocksize1 = int(flds.blocksize(lmax1, mmax1)) # Rows of translation matrix
             blocksize2 = int(flds.blocksize(lmax2, mmax2)) # Cols of translation matrix
