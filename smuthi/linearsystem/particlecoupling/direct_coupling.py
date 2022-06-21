@@ -8,7 +8,7 @@ import smuthi.fields as flds
 import smuthi.fields.transformations as trf
 from smuthi.fields.spherical_harmonic_translations import svwf_translate
 import smuthi.utility.math as sma
-
+import smuthi.utility.memoizing as memo
 import scipy.optimize
 import scipy.special
 import sys
