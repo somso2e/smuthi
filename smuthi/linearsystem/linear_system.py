@@ -60,16 +60,16 @@ class LinearSystem:
         interpolator_kind (str): interpolation order to be used, e.g. 'linear' or 'cubic'. This argument is ignored if
                                  coupling_matrix_lookup_resolution is None. In general, cubic interpolation is more
                                  accurate but a bit slower than linear.
-        identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
-                                             particles, located in the same background medium). Then, the T-matrix is
-                                             computed only once for all particles.
         periodicity (tuple):                 tuple (a1, a2) specifying two 3-dimensional lattice vectors in Carthesian coordinates
                                              with a1, a2 (numpy.ndarrays)
         ewald_sum_separation_parameter (float):     Used to separate the real and reciprocal lattice sums to evaluate
                                                     particle coupling in periodic lattices.
         number_of_threads_periodic (int or str):    sets the number of threats used in a simulation with periodic particle arrangements
                                                     if 'default', all available CPU cores are used 
-                                                    if negative, all but number_of_threads_periodic are used 
+                                                    if negative, all but number_of_threads_periodic are used
+        use_pvwf_coupling (bool):              If set to True, plane wave coupling is used to calculate
+                                               the direct. Currently only possible in combination with direct solver strategy.
+        pvwf_coupling_k_parallel (array):      k-parallel for PVWF coupling
     """
 
     def __init__(self,
@@ -83,10 +83,11 @@ class LinearSystem:
                  coupling_matrix_lookup_resolution=None,
                  interpolator_kind='cubic',
                  cuda_blocksize=None,
-                 identical_particles=False,
                  periodicity=None,
                  ewald_sum_separation_parameter='default',
-                 number_of_threads_periodic='default'):
+                 number_of_threads_periodic='default',
+                 use_pvwf_coupling=False,
+                 pvwf_coupling_k_parallel=None):
 
         if cuda_blocksize is None:
             cuda_blocksize = cu.default_blocksize
@@ -101,10 +102,17 @@ class LinearSystem:
         self.coupling_matrix_lookup_resolution = coupling_matrix_lookup_resolution
         self.interpolator_kind = interpolator_kind
         self.cuda_blocksize = cuda_blocksize
-        self.identical_particles = identical_particles
         self.periodicity = periodicity
         self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
         self.number_of_threads_periodic = number_of_threads_periodic
+        self.use_pvwf_coupling = use_pvwf_coupling
+        self.pvwf_coupling_k_parallel = pvwf_coupling_k_parallel
+
+        if use_pvwf_coupling and (coupling_matrix_lookup_resolution is not None):
+            warnings.warn(
+                "The use_pvwf_coupling flag was defined in combination with a  "
+                "lookup. This combination is not yet available. Ignoring the "
+                "use_pvwf_coupling flag.")
 
         dummy_matrix = SystemMatrix(self.particle_list)
         sys.stdout.write('Number of unknowns: %i\n' % dummy_matrix.shape[0])
@@ -126,32 +134,16 @@ class LinearSystem:
 
     def compute_t_matrix(self):
         """Initialize T-matrix object."""
-        if self.identical_particles:
-            particle = self.particle_list[0]
+        for particle in tqdm(self.particle_list,
+                             desc='T-matrices                ',
+                             file=sys.stdout,
+                             bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
             iS = self.layer_system.layer_number(particle.position[2])
             niS = self.layer_system.refractive_indices[iS]
-            t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
+            particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
             if not particle.euler_angles == [0, 0, 0]:
-                t_matrix = tmt.rotate_t_matrix(t_matrix, particle.l_max, particle.m_max,
-                                               particle.euler_angles, wdsympy=False)
-            for particle in tqdm(self.particle_list,
-                                 desc='T-matrices                ',
-                                 file=sys.stdout,
-                                 bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
-                iS = self.layer_system.layer_number(particle.position[2])
-                niS = self.layer_system.refractive_indices[iS]
-                particle.t_matrix = t_matrix
-        else:
-            for particle in tqdm(self.particle_list,
-                                 desc='T-matrices                ',
-                                 file=sys.stdout,
-                                 bar_format='{l_bar}{bar}| elapsed: {elapsed} remaining: {remaining}'):
-                iS = self.layer_system.layer_number(particle.position[2])
-                niS = self.layer_system.refractive_indices[iS]
-                particle.t_matrix = particle.compute_t_matrix(self.initial_field.vacuum_wavelength, niS)
-                if not particle.euler_angles == [0, 0, 0]:
-                    particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
-                                                            particle.euler_angles, wdsympy=False)
+                particle.t_matrix = tmt.rotate_t_matrix(particle.t_matrix, particle.l_max, particle.m_max,
+                                                        particle.euler_angles, wdsympy=False)
         self.t_matrix = TMatrix(particle_list=self.particle_list)
 
     def compute_coupling_matrix(self):
@@ -255,7 +247,9 @@ class LinearSystem:
                     vacuum_wavelength=self.initial_field.vacuum_wavelength,
                     particle_list=self.particle_list,
                     layer_system=self.layer_system,
-                    k_parallel=self.k_parallel)
+                    k_parallel=self.k_parallel,
+                    use_pvwf_coupling=self.use_pvwf_coupling,
+                    pvwf_coupling_k_parallel=self.pvwf_coupling_k_parallel)
 
     def solve(self):
         """Compute scattered field coefficients and store them
@@ -455,7 +449,7 @@ class CouplingMatrixExplicit(SystemMatrix):
                                             If 'default', use smuthi.fields.default_Sommerfeld_k_parallel_array
     """
 
-    def __init__(self, vacuum_wavelength, particle_list, layer_system, k_parallel='default'):
+    def __init__(self, vacuum_wavelength, particle_list, layer_system, k_parallel='default', use_pvwf_coupling=False, pvwf_coupling_k_parallel=None):
 
         SystemMatrix.__init__(self, particle_list)
         coup_mat = np.zeros(self.shape, dtype=complex)
@@ -471,14 +465,24 @@ class CouplingMatrixExplicit(SystemMatrix):
             idx1 = np.array(self.index_block(s1))[:, None]
             for s2, particle2 in enumerate(particle_list):
                 idx2 = self.index_block(s2)
-                
-                if layer_system.is_degenerate(): # Only calc direct coupling if degenerate case.                
-                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,layer_system)
+
+                # direct contribution
+                if use_pvwf_coupling:
+                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block_pvwf_mediated(vacuum_wavelength,
+                                                                                       particle1,
+                                                                                       particle2,
+                                                                                       layer_system,
+                                                                                       pvwf_coupling_k_parallel)
                 else:
-                    coup_mat[idx1, idx2] = (laycoup.layer_mediated_coupling_block(vacuum_wavelength, particle1, particle2,
-                                                                              layer_system, k_parallel)
-                                        + dircoup.direct_coupling_block(vacuum_wavelength, particle1, particle2,
-                                                                        layer_system))
+                    coup_mat[idx1, idx2] = dircoup.direct_coupling_block(vacuum_wavelength,
+                                                                         particle1,
+                                                                         particle2,
+                                                                         layer_system)
+
+                # layer mediated contribution
+                if not layer_system.is_degenerate():
+                    coup_mat[idx1, idx2] += laycoup.layer_mediated_coupling_block(vacuum_wavelength, particle1, particle2,
+                                                                                  layer_system, k_parallel)
         self.linear_operator = scipy.sparse.linalg.aslinearoperator(coup_mat)
 
 

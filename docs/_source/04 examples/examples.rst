@@ -21,6 +21,7 @@ No. Tutorial                             level           script        Google co
 8   |ex8link|                             |advanced|    |ex8script|    n/a
 9   |ex9link|                             |intermed|    |ex9script|    n/a
 10  |ex10link|                            |intermed|    |ex10script|   n/a
+11  |ex11link|                            |advanced|    |ex11script|   n/a
 === ==================================  ============== ============== =====================
 
 .. |ex1script| replace:: :download:`download <../../../examples/tutorials/01_setting_up_a_simulation/dielectric_sphere_on_substrate.py>`
@@ -69,6 +70,9 @@ No. Tutorial                             level           script        Google co
 
 .. |ex10link| replace:: :doc:`Periodic near field <10_periodic_near_field/discussion>`
 
+.. |ex11script| replace:: :download:`download <../../../examples/tutorials/11_plane_wave_coupling/plane_wave_coupling.py>`
+
+.. |ex11link| replace:: :doc:`Plane wave coupling <11_plane_wave_coupling/discussion>`
 
 
 .. |introd| raw:: html

@@ -74,9 +74,6 @@ class Simulation:
         log_to_terminal(bool):  if true, the simulation progress will be displayed in the terminal
         check_circumscribing_spheres(bool):  if true, check all particles for overlapping circumscribing spheres
                                              and print a warning if detected
-        identical_particles (bool):          set this flag to true, if all particles have the same T-matrix (identical
-                                             particles, located in the same background medium). Then, the T-matrix is
-                                             computed only once for all particles.
         do_sanity_check (bool):              if true (default), check numerical input for some flaws. Warning: A passing
                                              sanity check does not guarantee correct numerical settings. For many
                                              particles, the sanity check might take some time and/or occupy large memory.
@@ -86,7 +83,11 @@ class Simulation:
                                                     particle coupling in periodic lattices.
         number_of_threads_periodic (int or str):     sets the number of threats used in a simulation with periodic particle arrangements
                                                     if 'default', all available CPU cores are used 
-                                                    if negative, all but number_of_threads_periodic are used 
+                                                    if negative, all but number_of_threads_periodic are used
+        use_pvwf_coupling (bool):              If set to True, plane wave coupling is used to calculate
+                                               the direct. Currently only possible in combination with direct solver strategy.
+        pvwf_coupling_neff_max (float):        Truncation neff for the integration contour of the PVWF coupling integral
+        pvwf_coupling_neff_resolution (float): Discretization of the neff integral for PVWF coupling
     """
     def __init__(self,
                  layer_system=None,
@@ -113,11 +114,13 @@ class Simulation:
                  log_to_file=False,
                  log_to_terminal=True,
                  check_circumscribing_spheres=True,
-                 identical_particles=False,
                  do_sanity_check=True,
                  periodicity=None,
                  ewald_sum_separation_parameter='default',
-                 number_of_threads_periodic='default'):
+                 number_of_threads_periodic='default',
+                 use_pvwf_coupling=False,
+                 pvwf_coupling_neff_max=None,
+                 pvwf_coupling_neff_resolution=1e-2):
 
         # initialize attributes
         self.layer_system = layer_system
@@ -141,11 +144,13 @@ class Simulation:
         self.length_unit = length_unit
         self.save_after_run = save_after_run
         self.check_circumscribing_spheres = check_circumscribing_spheres
-        self.identical_particles = identical_particles
         self.do_sanity_check = do_sanity_check
         self.periodicity = periodicity
         self.ewald_sum_separation_parameter = ewald_sum_separation_parameter
         self.number_of_threads_periodic = number_of_threads_periodic
+        self.use_pvwf_coupling = use_pvwf_coupling
+        self.pvwf_coupling_neff_max = pvwf_coupling_neff_max
+        self.pvwf_coupling_neff_resolution = pvwf_coupling_neff_resolution
 
         # output
         timestamp = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
@@ -246,6 +251,14 @@ class Simulation:
         return np.sqrt(np.max(rho_squared))
 
     def initialize_linear_system(self):
+        if self.use_pvwf_coupling:
+            pvwf_kpar = flds.reasonable_Sommerfeld_kpar_contour(vacuum_wavelength=self.initial_field.vacuum_wavelength,
+                                                                layer_refractive_indices=self.layer_system.refractive_indices,
+                                                                neff_waypoints=[0, self.pvwf_coupling_neff_max],
+                                                                neff_resolution=self.pvwf_coupling_neff_resolution)
+        else:
+            pvwf_kpar = None
+
         self.linear_system = lsys.LinearSystem(particle_list=self.particle_list,
                                                initial_field=self.initial_field,
                                                layer_system=self.layer_system,
@@ -255,10 +268,12 @@ class Simulation:
                                                store_coupling_matrix=self.store_coupling_matrix,
                                                coupling_matrix_lookup_resolution=self.coupling_matrix_lookup_resolution,
                                                interpolator_kind=self.coupling_matrix_interpolator_kind,
-                                               identical_particles=self.identical_particles,
                                                periodicity=self.periodicity,
                                                ewald_sum_separation_parameter=self.ewald_sum_separation_parameter,
-                                               number_of_threads_periodic=self.number_of_threads_periodic)
+                                               number_of_threads_periodic=self.number_of_threads_periodic,
+                                               use_pvwf_coupling=self.use_pvwf_coupling,
+                                               pvwf_coupling_k_parallel=pvwf_kpar
+                                               )
 
     def circumscribing_spheres_disjoint(self):
         """Check if all circumscribing spheres are disjoint"""

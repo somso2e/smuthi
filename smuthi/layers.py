@@ -21,7 +21,7 @@ class LayerSystem:
         thicknesses (list):         layer thicknesses, first and last are semi inf and set to 0 (length unit)
         refractive_indices (list):  complex refractive indices in the form n+jk
     """
-    def __init__(self, thicknesses = None, refractive_indices = None):
+    def __init__(self, thicknesses=None, refractive_indices=None):
         
         if thicknesses is None:
             thicknesses = [0, 0]
@@ -40,7 +40,6 @@ class LayerSystem:
         self.thicknesses[0] = 0
         self.thicknesses[-1] = 0
         self.refractive_indices = refractive_indices
-        
 
     def is_degenerate(self):
         """
@@ -52,17 +51,6 @@ class LayerSystem:
         Returns: 
             True if layer system is degenerate. False otherwise.
         """
-
-        # If there is no layer system then there is no need to calculate values 
-        # associated with a layer system. The best way to define this is to have
-        # a flag telling the simulation if it is relevant to calculate the layer
-        # system of not. This flag is best placed as a function in the layer system object
-        # because it requires the least amount of changes to the code. 
-        # Note: upon further reflection, giving the user the ability to swith
-        # on/off the layer system is likely not a great idea. It is better that 
-        # The user just define the degenerate cases they want to simulate and 
-        # compare. This prevents the user from assuming Smuthi performs in a 
-        # way that it may not. The user explictliy giving the inputs is more safe (I feel)
         return (self.thicknesses == [0,0] and self.refractive_indices[0] == self.refractive_indices[-1])
 
 
@@ -343,7 +331,7 @@ def layersystem_scattering_matrix(pol, layer_d, layer_n, kpar, omega):
 
 
 @memo.Memoize
-def layersystem_response_matrix(pol, layer_d, layer_n, kpar, omega, fromlayer, tolayer, prec=None):
+def layersystem_response_matrix(pol, layer_d, layer_n, kpar, omega, fromlayer, tolayer):
     """Layer system response matrix of a planarly layered medium.
 
     Args:
@@ -354,18 +342,14 @@ def layersystem_response_matrix(pol, layer_d, layer_n, kpar, omega, fromlayer, t
         omega (float):                      angular frequency in units of c=1: omega=2*pi/lambda
         fromlayer (int):                    number of layer where the excitation is located
         tolayer (int):                      number of layer where the response is evaluated
-        prec (int or None):                 allows to set the precision to this value (see set_precision)
 
     Returns:
         Layer system response matrix as a 2x2 array if kpar is float, or as 2x2xN array if kpar is array with len = N.
     """
-    if not prec == precision:
-        set_precision(prec)
-    
     if hasattr(kpar, "__len__"):    # is kpar an array? then use recursive call to fill an 2 x 2 x N ndarray
         result = np.zeros((2, 2, len(kpar)), dtype=complex)
         for i, kp in enumerate(kpar):
-            result[:, :, i] = layersystem_response_matrix(pol, layer_d, layer_n, kp, omega, fromlayer, tolayer, prec)
+            result[:, :, i] = layersystem_response_matrix(pol, layer_d, layer_n, kp, omega, fromlayer, tolayer)
         return result
 
     if fromlayer == 0:  # bottom excitation
@@ -436,6 +420,8 @@ def set_precision(prec=None):
     global matrix_format
     global math_module
     global precision
+
+    layersystem_response_matrix.memo.clear()
 
     precision = prec
     if prec is None:

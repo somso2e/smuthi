@@ -8,6 +8,10 @@ Main publication describing SMUTHI (if you use the software for a scientific pub
 
 Publications that describe the theory behind Smuthi:
 
+[Theobald 2017]
+   `Dominik Theobald, Amos Egel, Guillaume Gomard, Uli Lemmer: "Plane-wave coupling formalism for T-matrix simulations of light scattering by nonspherical particles." Physical Review A 96.3 (2017): 033822. <https://arxiv.org/abs/1708.04808>`_
+
+
 [Egel 2018]
    `Amos Egel: "Accurate optical simulation of disordered scattering layers for light extractionfrom organic light emitting diodes", Dissertation, Karlsruhe (2018), DOI: 10.5445/IR/1000093961 <https://publikationen.bibliothek.kit.edu/1000093961/26467128>`_
 

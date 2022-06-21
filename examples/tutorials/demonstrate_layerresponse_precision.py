@@ -8,6 +8,7 @@ import numpy as np
 import smuthi.layers as lay
 import matplotlib.pyplot as plt
 
+
 # Parameter input ----------------------------
 vacuum_wavelength = 550
 thicknesses = [0, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 0]
@@ -36,8 +37,10 @@ for kp in kpar_refl:
 fromlayer = 4
 tolayer = 6
 
+#lay.set_precision(None)
 L = lay.layersystem_response_matrix(pol, thicknesses, refractive_indices, kpar_L, omega, fromlayer, tolayer)
-L50 = lay.layersystem_response_matrix(pol, thicknesses, refractive_indices, kpar_L, omega, fromlayer, tolayer, 50)
+lay.set_precision(50)
+L50 = lay.layersystem_response_matrix(pol, thicknesses, refractive_indices, kpar_L, omega, fromlayer, tolayer)
 
 plt.figure()
 plt.semilogy(neff_refl, abs(np.array(r_s)), color='red', label='scattering matrix')
