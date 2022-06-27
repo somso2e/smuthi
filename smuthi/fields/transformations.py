@@ -6,6 +6,9 @@ import smuthi.fields.expansions as fex
 import smuthi.fields as flds
 import smuthi.utility.math as mathfunc
 import smuthi.utility.memoizing as memo
+from smuthi.fields.spherical_harmonic_translations import svwf_translate
+
+
 
 ###############################################################################
 #                          transformations                                    #
@@ -226,6 +229,70 @@ def swe_to_pwe_conversion(swe, k_parallel, azimuthal_angles, layer_system=None, 
 ###############################################################################
 #                          translations                                       #
 ###############################################################################
+
+
+def translation_block(vacuum_wavelength, recieving_particle, emitting_particle, layer_system, kind):
+    r"""Direct particle translation matrix :math:`W` for two particles that do not have intersecting circumscribing spheres.
+       This routine is explicit.
+       
+       To reduce computation time, this routine relies on two internal accelerations. 
+       First, in most cases the number of unique maximum multipole indicies,
+       :math:`(\tau, l_{max}, m_{max})`, is much less than the number of unique particles. 
+       Therefore, all calculations that depend only on multipole indicies are stored in an 
+       intermediate hash table. Second, Cython acceleration is used by default to leverage 
+       fast looping. If the Cython files are not supported, this routine will 
+       fall back on equivalent Python looping.
+       
+       Cython acceleration can be between 10-1,000x faster compared to the Python 
+       equivalent. Speed variability depends on the number of unique multipoles indicies,
+       the size of the largest multipole order, and if particles share the same z coordinate.
+       
+
+    Args:
+        vacuum_wavelength (float):                          Vacuum wavelength :math:`\lambda` (length unit)
+        receiving_particle (smuthi.particles.Particle):     Particle that receives the scattered field
+        emitting_particle (smuthi.particles.Particle):      Particle that emits the scattered field
+        layer_system (smuthi.layers.LayerSystem):           Stratified medium in which the coupling takes place
+
+    Returns:
+        Direct coupling matrix block as numpy array.
+    """
+    
+    # Note: Direct coupling is transpose of translation. 
+    # The translation convention is emit = 1 -> recieve = 2
+    # The transpose of this is emit = 2 -> recieve = 1
+    lmax1 = int(emitting_particle.l_max) 
+    mmax1 = int(emitting_particle.m_max)
+    lmax2 = int(recieving_particle.l_max)
+    mmax2 = int(recieving_particle.m_max)    
+
+    
+    # Check if particles are in the same layer.
+    rS1 = emitting_particle.position
+    rS2 = recieving_particle.position
+    iS1 = layer_system.layer_number(rS1[2])
+    iS2 = layer_system.layer_number(rS2[2])
+    
+    if iS1 == iS2 or layer_system.is_degenerate():
+        if not emitting_particle == receiving_particle:
+            # Initialize variables from abstract classes to be passed as simple 
+            # data types
+            omega = flds.angular_frequency(vacuum_wavelength)
+            k = complex(omega * layer_system.refractive_indices[iS1])
+            d = [rS1[i]-rS2[i] for i in range(3)]
+            return svwf_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind, threaded = False)
+        else:
+            blocksize1 = int(flds.blocksize(lmax1, mmax1)) # Rows of translation matrix
+            blocksize2 = int(flds.blocksize(lmax2, mmax2)) # Cols of translation matrix
+            # Note Translation returns identity such that you recieve the same coefficients on multiplication (translate to self returns self..)
+            return np.eye((blocksize1, blocksize2), dtype = np.complex128, order = 'C') 
+    else:
+        raise Exception('''
+                        You are attempting to directly translate a particle through a layer interface. 
+                        Direct translation (2D or 3D) is only sensible for spaces in the same layer.
+                        You need to first deal with the effect of the layer interface!
+                        ''')
+
 
 def translation_coefficients_svwf(tau1, l1, m1, tau2, l2, m2, k, d, sph_hankel=None, legendre=None, exp_immphi=None):
     r"""Coefficients of the translation operator for the expansion of an outgoing spherical wave in terms of

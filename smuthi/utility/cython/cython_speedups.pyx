@@ -388,7 +388,7 @@ back option is accessable.
 #@cython.cdivision(True) <- DO NOT ENABLE THIS. IT WILL DO INTERGER DIVISION!
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:] c_svh_translate_3D(double complex k,
+cdef double complex [:,:] c_svwf_translate_3D(double complex k,
                                                   double dx,
                                                   double dy,
                                                   double dz,
@@ -471,7 +471,7 @@ cdef double complex [:,:] c_svh_translate_3D(double complex k,
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:] c_svh_translate_3D_threaded(double complex k,
+cdef double complex [:,:] c_svwf_translate_3D_threaded(double complex k,
                                                   double dx,
                                                   double dy,
                                                   double dz,
@@ -551,24 +551,24 @@ cdef double complex [:,:] c_svh_translate_3D_threaded(double complex k,
 
 
 # Have option to thread build into the translate function for easier reuse.
-def svh_translate_3D(double complex k, double dx, double dy, double dz,
+def svwf_translate_3D(double complex k, double dx, double dy, double dz,
                       long lmax1, long lmax2, long mmax1, long mmax2,
                       long kind, threaded = False):
     cdef double complex [:,:] val
     
     if threaded == True:
         with nogil:
-            val = c_svh_translate_3D_threaded(k, dx, dy, dz, lmax1, lmax2, mmax1, mmax2, kind)
+            val = c_svwf_translate_3D_threaded(k, dx, dy, dz, lmax1, lmax2, mmax1, mmax2, kind)
     else:
         with nogil:
-            val = c_svh_translate_3D(k, dx, dy, dz, lmax1, lmax2, mmax1, mmax2, kind)
+            val = c_svwf_translate_3D(k, dx, dy, dz, lmax1, lmax2, mmax1, mmax2, kind)
     return np.asarray(val, dtype = np.complex128)
 
 # Special case of translate. Make wrapper for readability in smuthi.
 def direct_coupling_block_3D(double complex k, double dx, double dy, double dz,
                               long lmax1, long lmax2, long mmax1, long mmax2, threaded = False):
     cdef kind = 0
-    return svh_translate_3D(k, dx, dy,  dz,
+    return svwf_translate_3D(k, dx, dy,  dz,
                              lmax1,lmax2,mmax1,mmax2,
                              kind, threaded)
 
@@ -647,7 +647,7 @@ def _ab5_coefficient_hash_table(long lmax1, long lmax2, long mmax1, long mmax2):
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:]  c_svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
+cdef double complex [:,:]  c_svwf_translate_3D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -725,7 +725,7 @@ cdef double complex [:,:]  c_svh_translate_3D_from_hash_table(long blocksize1,lo
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:]  c_svh_translate_3D_from_hash_table_threaded(long blocksize1,long blocksize2,
+cdef double complex [:,:]  c_svwf_translate_3D_from_hash_table_threaded(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -799,7 +799,7 @@ cdef double complex [:,:]  c_svh_translate_3D_from_hash_table_threaded(long bloc
 
 
 # Have option to thread build into the translate function for easier reuse.
-def svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
+def svwf_translate_3D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -812,14 +812,14 @@ def svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
     cdef double complex [:,:] val
     if threaded == True:
         with nogil:
-            val = c_svh_translate_3D_from_hash_table_threaded(blocksize1,blocksize2,
+            val = c_svwf_translate_3D_from_hash_table_threaded(blocksize1,blocksize2,
                                             w,sph,k, dx, dy,  dz,
                                             lmax1,lmax2,mmax1,mmax2,
                                             a5_array, b5_array,
                                             kind)
     else:
         with nogil:
-            val = c_svh_translate_3D_from_hash_table(blocksize1,blocksize2,
+            val = c_svwf_translate_3D_from_hash_table(blocksize1,blocksize2,
                                             w,sph,k, dx, dy,  dz,
                                             lmax1,lmax2,mmax1,mmax2,
                                             a5_array, b5_array,
@@ -828,7 +828,7 @@ def svh_translate_3D_from_hash_table(long blocksize1,long blocksize2,
     return np.asarray(val, dtype = np.complex128)
 
 # Special case of translate. Make wrapper for readability in smuthi.
-def direct_coupling_block_2D_from_hash_table(long blocksize1,long blocksize2,
+def direct_coupling_block_3D_from_hash_table(long blocksize1,long blocksize2,
                                 double complex[:,:] w,
                                 double complex[:] sph,
                                 double complex k,
@@ -838,7 +838,7 @@ def direct_coupling_block_2D_from_hash_table(long blocksize1,long blocksize2,
                                 double complex[:] b5_array,                             
                                 threaded = False):
     cdef kind = 0
-    return svh_translate_3D_from_hash_table(blocksize1,blocksize2,
+    return svwf_translate_3D_from_hash_table(blocksize1,blocksize2,
                                     w,sph,k, dx, dy,  dz,
                                     lmax1,lmax2,mmax1,mmax2,
                                     a5_array, b5_array,
@@ -869,7 +869,7 @@ back option is accessable.
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:] c_svh_translate_2D(double complex k,
+cdef double complex [:,:] c_svwf_translate_2D(double complex k,
                                                   double dx,
                                                   double dy,
                                                   double dz,
@@ -953,7 +953,7 @@ cdef double complex [:,:] c_svh_translate_2D(double complex k,
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex [:,:] c_svh_translate_2D_threaded(double complex k,
+cdef double complex [:,:] c_svwf_translate_2D_threaded(double complex k,
                                                   double dx,
                                                   double dy,
                                                   double dz,
@@ -1032,7 +1032,7 @@ cdef double complex [:,:] c_svh_translate_2D_threaded(double complex k,
 
 
 # Have option to thread build into the translate function for easier reuse.
-def svh_translate_2D(double complex k, double dx, double dy, double dz,
+def svwf_translate_2D(double complex k, double dx, double dy, double dz,
                       long lmax1, long lmax2, long mmax1, long mmax2,
                       long kind, threaded = False):
     
@@ -1040,12 +1040,12 @@ def svh_translate_2D(double complex k, double dx, double dy, double dz,
 
     if threaded == True:
         with nogil:
-            val = c_svh_translate_2D_threaded(k, dx, dy, dz, 
+            val = c_svwf_translate_2D_threaded(k, dx, dy, dz, 
                                               lmax1, lmax2, mmax1, mmax2,
                                               kind)
     else:
         with nogil:
-            val = c_svh_translate_2D(k, dx, dy, dz, 
+            val = c_svwf_translate_2D(k, dx, dy, dz, 
                                      lmax1, lmax2, mmax1, mmax2,
                                      kind)
             
@@ -1056,7 +1056,7 @@ def direct_coupling_block_2D(double complex k, double dx, double dy, double dz,
                               long lmax1, long lmax2, long mmax1, long mmax2,                          
                               threaded = False):
     cdef kind = 0
-    return svh_translate_2D(k, dx, dy, dz,
+    return svwf_translate_2D(k, dx, dy, dz,
                              lmax1, lmax2, mmax1, mmax2, 
                              kind, threaded)
 
@@ -1144,7 +1144,7 @@ def _ab5_coefficient_and_legendre_hash_table(long lmax1, long lmax2, long mmax1,
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex[:,:] c_svh_translate_2D_from_hash_table(long blocksize1,
+cdef double complex[:,:] c_svwf_translate_2D_from_hash_table(long blocksize1,
                                                             long blocksize2,
                                                             double complex[:,:] w,
                                                             double complex[:] sph,
@@ -1218,7 +1218,7 @@ cdef double complex[:,:] c_svh_translate_2D_from_hash_table(long blocksize1,
 ##############################################################################
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef double complex[:,:] c_svh_translate_2D_from_hash_table_threaded(long blocksize1,
+cdef double complex[:,:] c_svwf_translate_2D_from_hash_table_threaded(long blocksize1,
                                                             long blocksize2,
                                                             double complex[:,:] w,
                                                             double complex[:] sph,
@@ -1293,7 +1293,7 @@ cdef double complex[:,:] c_svh_translate_2D_from_hash_table_threaded(long blocks
 
 
 # Have option to thread build into the translate function for easier reuse.
-def svh_translate_2D_from_hash_table(long blocksize1,long blocksize2,
+def svwf_translate_2D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:,:] w,
                             double complex[:] sph,
                             double complex k,
@@ -1306,14 +1306,14 @@ def svh_translate_2D_from_hash_table(long blocksize1,long blocksize2,
     cdef double complex [:,:] val
     if threaded == True:
         with nogil:
-            val = c_svh_translate_2D_from_hash_table_threaded(blocksize1,blocksize2,
+            val = c_svwf_translate_2D_from_hash_table_threaded(blocksize1,blocksize2,
                                                     w,sph,k,dx, dy, dz,
                                                     lmax1, lmax2, mmax1, mmax2,
                                                     a5leg_array,b5leg_array,
                                                     kind)
     else:
         with nogil:
-            val = c_svh_translate_2D_from_hash_table(blocksize1,blocksize2,
+            val = c_svwf_translate_2D_from_hash_table(blocksize1,blocksize2,
                                             w,sph,k,dx, dy, dz,
                                             lmax1, lmax2, mmax1, mmax2,
                                             a5leg_array,b5leg_array,
@@ -1332,7 +1332,7 @@ def direct_coupling_block_2D_from_hash_table(long blocksize1,long blocksize2,
                             double complex[:] b5leg_array,
                             threaded = False):
     cdef long kind = 0
-    return svh_translate_2D_from_hash_table(blocksize1,blocksize2,
+    return svwf_translate_2D_from_hash_table(blocksize1,blocksize2,
                                     w,sph,k,dx, dy, dz,
                                     lmax1, lmax2, mmax1, mmax2,
                                     a5leg_array,b5leg_array,
@@ -1393,7 +1393,7 @@ need to be defined in order to pickle.
 #         elif harmonic_kind == 'outgoing to outgoing':
 #             kind = int(1)
 #         else:
-#             raise Exception(f'''The svh translation matrix transforms a particle into a basis
+#             raise Exception(f'''The svwf translation matrix transforms a particle into a basis
 #         of either "incoming" or "outgoing" spherical vector harmonics.
 #         \n You did not properly specify if the harmonic_kind should be "incoming" or "outgoing"
 #         \n Instead you specified harmonic_kind = {harmonic_kind}''') 
@@ -1411,7 +1411,7 @@ need to be defined in order to pickle.
 #                                                                                             self.lmax2, 
 #                                                                                             self.mmax1, 
 #                                                                                             self.mmax2)
-#         return csvh_translate_2D_from_hash_table(complex(k),float(dx),float(dy),float(dz),
+#         return csvwf_translate_2D_from_hash_table(complex(k),float(dx),float(dy),float(dz),
 #                          self.lmax1,self.lmax2,self.mmax1,self.mmax2,
 #                          self.a5leg_hash_table, self.b5leg_hash_table,
 #                          kind, threaded)  
@@ -1424,7 +1424,7 @@ need to be defined in order to pickle.
 #                                                                         self.mmax1, 
 #                                                                         self.mmax2)
             
-#         return csvh_translate_3D_from_hash_table(complex(k),float(dx),float(dy),float(dz),
+#         return csvwf_translate_3D_from_hash_table(complex(k),float(dx),float(dy),float(dz),
 #                          self.lmax1,self.lmax2,self.mmax1,self.mmax2,
 #                          self.a5_hash_table, self.b5_hash_table,
 #                          kind, threaded)  

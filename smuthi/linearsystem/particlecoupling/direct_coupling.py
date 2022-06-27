@@ -6,6 +6,7 @@ mediated) particle coupling coefficients.
 import numpy as np
 import smuthi.fields as flds
 import smuthi.fields.transformations as trf
+from smuthi.fields.spherical_harmonic_translations import svwf_translate
 import smuthi.utility.math as sma
 import smuthi.utility.memoizing as memo
 import scipy.optimize
@@ -40,15 +41,15 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
     Returns:
         Direct coupling matrix block as numpy array.
     """
-    lmax1 = int(receiving_particle.l_max)
+    
+    # Note: Direct coupling is transpose of translation. 
+    # The translation convention is emit = 1 -> recieve = 2
+    # The transpose of this is emit = 2 -> recieve = 1
+    lmax1 = int(receiving_particle.l_max) 
     mmax1 = int(receiving_particle.m_max)
     lmax2 = int(emitting_particle.l_max)
     mmax2 = int(emitting_particle.m_max)    
 
-    # initialize result.
-    blocksize1 = int(flds.blocksize(lmax1, mmax1))
-    blocksize2 = int(flds.blocksize(lmax2, mmax2))
-    w = np.zeros((blocksize1, blocksize2), dtype=np.complex128)
     
     # Check if particles are in the same layer.
     rS1 = receiving_particle.position
@@ -56,16 +57,30 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
     iS1 = layer_system.layer_number(rS1[2])
     iS2 = layer_system.layer_number(rS2[2])
     
-    if iS1 == iS2 and not emitting_particle == receiving_particle:
-        
-        # Initialize bessel funciton array used in calculation so 
-        # that c-functions do not need the gil.
-        sph = np.zeros((lmax1+lmax2+1), dtype=np.complex128)
-        
+    if (iS1 == iS2 or layer_system.is_degenerate()) and not emitting_particle == receiving_particle:
         # Initialize variables from abstract classes to be passed as simple 
         # data types
         omega = flds.angular_frequency(vacuum_wavelength)
         k = complex(omega * layer_system.refractive_indices[iS1])
+        d = [rS1[i]-rS2[i] for i in range(3)]
+        return svwf_translate(k, d, lmax1, mmax1, lmax2, mmax2, kind = 'outgoing to regular', threaded = False)
+
+    else:
+        blocksize1 = int(flds.blocksize(lmax1, mmax1)) # Rows of translation matrix
+        blocksize2 = int(flds.blocksize(lmax2, mmax2)) # Cols of translation matrix
+        # Note: Direct coupling returns zeros such that you recieve 0 on multiplication (no coupling to self..)
+        # Note: Smuthi assumes that if you try to calculate direct coupling of two particles across an interface
+        # that the function returns zero instead of an exception! This allows for lazy functions that do not 
+        # check for the validity of direct coupling before calling. 
+        return np.zeros((blocksize1, blocksize2), dtype = np.complex128, order = 'C')
+    
+    # To Do: lazy evaluation of direct coupling could be replaced with an explicit check?
+    #raise Exception('''
+        #                You are attempting to couple particles directly that exist in different layers. 
+        #                Direct coupling (2D or 3D) is only sensible for particles in the same layer.
+        #                You need to first deal with the effect of the layer interface!
+        #                ''')
+
 
         dx = float(rS1[0] - rS2[0])
         dy = float(rS1[1] - rS2[1])
@@ -88,6 +103,7 @@ def direct_coupling_block(vacuum_wavelength, receiving_particle, emitting_partic
                                                         threaded = False)           
         
     return w
+
 
 
 def direct_coupling_matrix(vacuum_wavelength, particle_list, layer_system):
@@ -359,6 +375,7 @@ except:
                                     w[n1, n2] = B
     
         return w
+
 
 
 ###############################################################################

@@ -72,11 +72,7 @@ def legendre_normalized_numbed(ct, st, lmax):
     taulm = np.zeros((lmax+1, lmax+1, *ct.shape), dtype=np.complex128)
     pprimel0 = np.zeros((lmax+1, *ct.shape), dtype=np.complex128)
 
-    plm = plm + np.sqrt(2)/2
-    pilm = pilm + np.sqrt(2)/2
-    taulm = taulm + np.sqrt(2)/2
-    pprimel0 = pprimel0 + np.sqrt(2)/2
-
+    plm[0,0] = np.sqrt(2)/2
     plm[1, 0] = np.sqrt(3/2) * ct
     pprimel0[1] = np.sqrt(3) * plm[0, 0]
     taulm[0, 0] = -st * pprimel0[0]

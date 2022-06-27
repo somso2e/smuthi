@@ -91,7 +91,7 @@ def simulation(lda = 416, l_max = 4, dimension = '2D'):
 if __name__ == '__main__':
     
     simulation(dimension = '2D')
-    #simulation(dimension = '3D')
+    simulation(dimension = '3D')
     
 
 

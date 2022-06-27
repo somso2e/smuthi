@@ -5,6 +5,7 @@ spherical wave basis sets."""
 import numpy as np
 import smuthi.fields
 import smuthi.fields.vector_wave_functions as vwf
+import smuthi.fields.transformations as trans
 import smuthi.fields.expansions_cuda as cu_src
 import smuthi.utility.cuda as cu
 import smuthi.utility.numba_helpers as nh
@@ -458,6 +459,8 @@ class SphericalWaveExpansion(FieldExpansion):
                                          upper_z=min(self.upper_z, other.upper_z))
         swe_sum.coefficients = self.coefficients + other.coefficients
         return swe_sum
+
+
 
 
 class PlaneWaveExpansion(FieldExpansion):

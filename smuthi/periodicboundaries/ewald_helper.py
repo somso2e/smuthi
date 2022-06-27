@@ -107,7 +107,39 @@ _PTR = ctypes.POINTER
 _dble = ctypes.c_double
 _ptr_dble = _PTR(_dble)
 
-addr = get_cython_function_address("cython_speedups", "wofz")
+
+def load_wofz(name):
+    try:
+        addr = get_cython_function_address(name, "wofz")
+    except: return None
+    else: return addr
+
+
+import_wofz_possible_file_paths = ["cython_speedups",
+         "smuthi.utility.cython.cython_speedups",
+         "utility.cython.cython_speedups"]
+
+try: 
+    for name in import_wofz_possible_file_paths:
+        addr = load_wofz(name)
+        if addr != None:
+            break
+except:
+    raise Exception('''
+                    In smuthi/periodic/ewald_helper.py Numba needs to know the location of the function "wofz".\n
+                    This function is imported from the Cython file in smuthi/utility/cython/cython_speedups_api.h.\n
+                    We tried three main methods to import this file, but all three failed. :( \n
+                    This likely means that you are trying to run Smuthi for a non-standard directory and \n
+                    Smuthi is unable to deterine where to find the cython_speedups file. If you need to run \n
+                    Smuthi in a non-standard directory, you can add the proper file paths to the import_wofz_possible_file_paths\n
+                    variable on line 118 in the ewald_helper file. 
+                    
+                    Alternatively, this error may occur because cython_speedups_api.h does not exist and needs to be\n
+                    recompiled from cython_speedups.pyx. If this is the case, please follow the instructions in the file\n
+                    smuthi/utility/cython/compile_speedups_from_c.py or, if compile_speedups.c does not exist \n
+                    follow the instructions in compile_speedups_from_pyx.py. 
+                    ''')
+
 functype = ctypes.CFUNCTYPE(None, _dble, _dble, _ptr_dble, _ptr_dble)
 wofz_fn = functype(addr)
 
