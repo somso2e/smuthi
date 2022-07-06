@@ -231,7 +231,7 @@ def swe_to_pwe_conversion(swe, k_parallel, azimuthal_angles, layer_system=None, 
 ###############################################################################
 
 
-def translation_block(vacuum_wavelength, recieving_particle, emitting_particle, layer_system, kind):
+def translation_block(vacuum_wavelength, receiving_particle, emitting_particle, layer_system, kind):
     r"""Direct particle translation matrix :math:`W` for two particles that do not have intersecting circumscribing spheres.
        This routine is explicit.
        
@@ -263,13 +263,13 @@ def translation_block(vacuum_wavelength, recieving_particle, emitting_particle, 
     # The transpose of this is emit = 2 -> recieve = 1
     lmax1 = int(emitting_particle.l_max) 
     mmax1 = int(emitting_particle.m_max)
-    lmax2 = int(recieving_particle.l_max)
-    mmax2 = int(recieving_particle.m_max)    
+    lmax2 = int(receiving_particle.l_max)
+    mmax2 = int(receiving_particle.m_max)    
 
     
     # Check if particles are in the same layer.
     rS1 = emitting_particle.position
-    rS2 = recieving_particle.position
+    rS2 = receiving_particle.position
     iS1 = layer_system.layer_number(rS1[2])
     iS2 = layer_system.layer_number(rS2[2])
     
