@@ -10,10 +10,10 @@ class FarField:
     r"""Represent the far field amplitude and far field intensity of an
     electromagnetic field.
 
-    The electric field amplitude is defined by
+    The electric field amplitude :math:`\mathbf{A}(\theta,\phi)` is defined by
 
     .. math::
-        \mathbf{E}(\mathbf{r}) = \frac{e^{ikr}}{-ikr} \mathbf{A}(\theta,\phi)
+        \mathbf{E}(\mathbf{r}) \approx \frac{e^{ikr}}{-ikr} \mathbf{A}(\theta,\phi)
 
     for :math:`kr\rightarrow\infty`, compare equation (3.10) of Bohren and Huffman's
     textbook on light scattering.
@@ -38,10 +38,8 @@ class FarField:
                                             smuthi.fields.default_azimuthal_angles
         angular_resolution (float):         If provided, angular arrays are generated with this angular resolution
                                             over the default angular range
-        signal_type (str):                  Use this field to describe the physical
-                                            meaning of the power related signal
-                                            (e.g., 'intensity' for standard power flux far fields).
-         reference_point (list or tuple):   [x, y, z]-coordinates of point relative to which the far field is defined
+        signal_type (str):                  Use this field to describe the physical meaning of the power related signal (e.g., 'intensity' for standard power flux far fields).
+        reference_point (list or tuple):    [x, y, z]-coordinates of point relative to which the far field is defined
     """
 
     def __init__(self, polar_angles='default', azimuthal_angles='default',
@@ -610,18 +608,48 @@ def extinction_cross_section(simulation=None, initial_field=None, particle_list=
     P_top_ext = 4 * np.pi ** 2 * kz_top / omega * (gRPtop * np.conj(g_scat_top)).real
     top_extinction_cs = - P_top_ext / initial_intensity
 
+    bottom_error = ""
+    if not k_bot.imag == 0:
+        bottom_error = "Extinction into bottom direction cannot be evaluated " \
+                       "because bottom layer is lossy."
+    elif kappa_P > k_bot:
+        bottom_error = "Extinction into bottom direction cannot be evaluated " \
+                       "because wave is evanescent."
+
+    top_error = ""
+    if not k_top.imag == 0:
+        top_error = "Extinction into top direction cannot be evaluated " \
+                       "because top layer is lossy."
+    elif kappa_P > k_top:
+        top_error = "Extinction into top direction cannot be evaluated " \
+                    "because wave is evanescent."
+
     if extinction_direction == 'both':
-        return bottom_extinction_cs + top_extinction_cs
+        if not bottom_extinction_cs.imag == 0:
+            raise ValueError(bottom_error)
+        if not top_extinction_cs.imag == 0:
+            raise ValueError(top_error)
+        return bottom_extinction_cs.real + top_extinction_cs.real
+
     elif extinction_direction == 'reflection':
         if i_P == 0:
-            return bottom_extinction_cs
+            if not bottom_extinction_cs.imag == 0:
+                raise ValueError(bottom_error)
+            return bottom_extinction_cs.real
         else:
-            return top_extinction_cs
+            if not top_extinction_cs.imag == 0:
+                raise ValueError(top_error)
+            return top_extinction_cs.real
+
     elif extinction_direction == 'transmission':
         if i_P == 0:
-            return top_extinction_cs
+            if not top_extinction_cs.imag == 0:
+                raise ValueError(top_error)
+            return top_extinction_cs.real
         else:
-            return bottom_extinction_cs
+            if not bottom_extinction_cs.imag == 0:
+                raise ValueError(bottom_error)
+            return bottom_extinction_cs.real
     else:
         raise ValueError('extinction_direction can be only \'both\', \
                                         \'reflection\' or \'transmission\'')
