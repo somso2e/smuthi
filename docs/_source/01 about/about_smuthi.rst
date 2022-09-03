@@ -123,7 +123,7 @@ The authors wish to thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for the
 `NFM-DS <https://scattport.org/index.php/programs-menu/t-matrix-codes-menu/239-nfm-ds>`_ package, a copy of which
 is distributed with Smuthi.
 
-Ilia Rasskazov, Giacomo Mazzamuto and Fabio Mangini have helped with useful comments, bug reports and code additions.
+Ilia Rasskazov, Giacomo Mazzamuto, Fabio Mangini and Refet Ali Yalcin have helped with useful comments, bug reports and code additions.
 
 We thank Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
 

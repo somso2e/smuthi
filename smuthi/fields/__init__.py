@@ -212,10 +212,9 @@ def create_neff_array(neff_waypoints, neff_resolution):
     for i in range(len(neff_waypoints) - 1):
         abs_dneff = abs(neff_waypoints[i + 1] - neff_waypoints[i])
         if abs_dneff > 0:
-            neff_segments.append(
-                neff_waypoints[i] + np.arange(0, 1 + neff_resolution / abs_dneff / 2, neff_resolution / abs_dneff,
-                                              dtype=complex)
-                * (neff_waypoints[i + 1] - neff_waypoints[i]))
+            num_samples = int(np.ceil(abs_dneff / neff_resolution)) + 1
+            array = np.linspace(0, 1, num=num_samples, endpoint=True, dtype=complex)
+            neff_segments.append(neff_waypoints[i] + array  * (neff_waypoints[i + 1] - neff_waypoints[i]))
     return np.concatenate(neff_segments)
 
 

@@ -27,7 +27,7 @@ Author: Amos Egel (amos.egel@gmail.com).
 The following persons have contributed to the project: Amos Egel, Dominik Theobald, Krzysztof Czajkowski, Konstantin Ladutenko, Alexey Kuznetsov, Lorenzo Pattelli, Parker Wray.
 
 We thank Adrian Doicu, Thomas Wriedt and Yuri Eremin for allowing us to use their NFM-DS Fortran code, 
-Giacomo Mazzamuto, Ilia Rasskazov as well as Fabio Mangini for bug reports, useful comments and smaller code additions and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
+Giacomo Mazzamuto, Ilia Rasskazov, Fabio Mangini and Refet Ali Yalcin for bug reports, useful comments and smaller code additions and Håkan T Johansson for making his pywigjxpf software availible through PyPi and also under Windows.
 
 For a guide how to install and use the software, see the `documentation <http://smuthi.readthedocs.io>`_ or read `our paper <https://arxiv.org/abs/2105.04259>`_ describing the software.
 
