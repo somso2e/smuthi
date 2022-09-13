@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """This module is needed for the installation of the package."""
 
+import os
+os.environ["SETUPTOOLS_ENABLE_FEATURES"] = "legacy-editable"
+
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.build_ext import build_ext
 
 import sys
 import subprocess
-import os
 
 from wheel.bdist_wheel import bdist_wheel
 from numpy.distutils.core import setup
@@ -21,7 +23,6 @@ with open("smuthi/version.py") as fp:
     exec(fp.read(), version)
 __version__ = version['__version__']
 
-os.environ["SETUPTOOLS_ENABLE_FEATURES"] = "legacy-editable"
 
 def get_numpy_version():
     import numpy as np
