@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """This module is needed for the installation of the package."""
 
-import os
-os.environ["SETUPTOOLS_ENABLE_FEATURES"] = "legacy-editable"
-
 from setuptools.command.install import install
 from setuptools.command.develop import develop
 from setuptools.command.build_ext import build_ext
 
+import os
 import sys
 import subprocess
 
