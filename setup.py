@@ -21,6 +21,7 @@ with open("smuthi/version.py") as fp:
     exec(fp.read(), version)
 __version__ = version['__version__']
 
+os.environ["SETUPTOOLS_ENABLE_FEATURES"] = "legacy-editable"
 
 def get_numpy_version():
     import numpy as np
