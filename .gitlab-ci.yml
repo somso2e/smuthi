@@ -1,4 +1,4 @@
-image: python:3.9
+image: python:3.7
 
 stages:
   - test
@@ -13,7 +13,7 @@ test:
     - echo "Testing"
     - apt-get update
     - apt-get install -y gfortran
-    - pip3 install setuptools==64.0.0
+    - pip3 install setuptools==40.0.0
     - pip3 install -e .
     - pip3 install nose2
     - nose2 -v
