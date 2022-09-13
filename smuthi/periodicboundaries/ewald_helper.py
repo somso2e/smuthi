@@ -119,12 +119,8 @@ import_wofz_possible_file_paths = ["cython_speedups",
          "smuthi.utility.cython.cython_speedups",
          "utility.cython.cython_speedups"]
 
-try: 
-    for name in import_wofz_possible_file_paths:
-        addr = load_wofz(name)
-        if addr != None:
-            break
-except:
+
+def raise_wofz_exception():
     raise Exception('''
                     In smuthi/periodic/ewald_helper.py Numba needs to know the location of the function "wofz".\n
                     This function is imported from the Cython file in smuthi/utility/cython/cython_speedups_api.h.\n
@@ -140,8 +136,21 @@ except:
                     follow the instructions in compile_speedups_from_pyx.py. 
                     ''')
 
+
+try: 
+    for name in import_wofz_possible_file_paths:
+        addr = load_wofz(name)
+        if addr != None:
+            break    
+except:
+    raise_wofz_exception()
+
+if addr is None:
+    raise_wofz_exception()
+
 functype = ctypes.CFUNCTYPE(None, _dble, _dble, _ptr_dble, _ptr_dble)
 wofz_fn = functype(addr)
+
 
 @njit()
 def numba_wofz_complex(x):

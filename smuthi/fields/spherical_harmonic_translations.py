@@ -4,6 +4,7 @@ import smuthi.fields as flds
 import smuthi.utility.math as sma
 import smuthi.utility.memoizing as memo
 import numpy as np
+import sys
 
 ##############################################################################
 #                       Highest Level Translation Method 
