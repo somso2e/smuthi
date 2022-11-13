@@ -411,14 +411,15 @@ def converge_neff_max(simulation,
                                                                         max_iter=max_iter,
                                                                         converge_m=False,
                                                                         ax=ax)
+        lmx_lists = [lmx_list]
+        lmx_values_lists = [values]
+
     else:
         current_value = evaluate(simulation, detector)
 
     x = np.array([neff_max.real])
     y = np.array([current_value.real])
     r = np.array([])
-    lmx_lists = [lmx_list]
-    lmx_values_lists = [values]
     if ax is not None:
         line1, = ax[-2].plot(x, y, 'k.-')
         line2, = ax[-1].plot(x[1:], r, 'k.-')
@@ -443,6 +444,8 @@ def converge_neff_max(simulation,
                                                                         current_value=None,
                                                                         converge_m=False,
                                                                         ax=ax)
+            lmx_lists.append(lmx_list)
+            lmx_values_lists.append(values)
         else:
             new_value = evaluate(simulation, detector)
 
@@ -456,8 +459,6 @@ def converge_neff_max(simulation,
         x = np.append(x, neff_max.real)
         y = np.append(y, new_value.real)
         r = np.append(r, rel_diff)
-        lmx_lists.append(lmx_list)
-        lmx_values_lists.append(values)
         if ax is not None:
             line1.set_data(x, y)
             line1.set_label('$n_{eff}^{max}$')
