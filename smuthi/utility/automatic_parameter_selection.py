@@ -477,14 +477,18 @@ def converge_neff_max(simulation,
             log.write_green(
                 "Relative difference smaller than tolerance. Keep neff_max = %g" % neff_max.real)
             if converge_lm:
+                # until now, we have looked for convergence with regard to reduced tolerance (by tolerance factor)
+                # now, we check for the smallest l_max value that satisfies the actual tolerance criterium
                 for idx, lmx in enumerate(lmx_lists[-2]):
                     update_lmax_mmax(simulation, lmx)
-                    rel_diff_1 = abs(
-                        lmx_values_lists[-2][idx] - lmx_values_lists[-2][idx + 1]) / abs(lmx_values_lists[-2][idx + 1])
-                    rel_diff_2 = abs(
-                        lmx_values_lists[-2][idx] - lmx_values_lists[-2][idx + 2]) / abs(lmx_values_lists[-2][idx + 2])
                     current_value = lmx_values_lists[-2][idx]
-                    if rel_diff_1 < tolerance and rel_diff_2 < tolerance:
+                    all_fine = True
+                    print("check ", lmx_lists[-2][idx])
+                    for incr in range(1, tolerance_steps + 1):
+                        rel_diff = abs(current_value - lmx_values_lists[-2][idx + incr]) / abs(lmx_values_lists[-2][idx + incr])
+                        if rel_diff > tolerance:
+                            all_fine = False
+                    if all_fine:
                         break
 
             if ax is not None:
