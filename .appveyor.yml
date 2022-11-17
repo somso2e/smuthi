@@ -14,9 +14,9 @@ environment:
     - PYTHON: "C:/Python39-x64"
       NPVERS: "1.19.3"
     - PYTHON: "C:/Python310-x64"
-      NPVERS: "1.19.3"
+      NPVERS: "1.23"
     - PYTHON: "C:/Python311-x64"
-      NPVERS: "1.19.3"
+      NPVERS: "1.23"
   MINGW_DIR: C:/msys64/mingw64/bin
   LDFLAGS: "-Wl,--default-image-base-low"
   TESTPYPI_USER: AmosEgel
