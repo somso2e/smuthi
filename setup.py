@@ -164,7 +164,7 @@ setup(
               'bdist_wheel': CustomBdistWheelCommand},
     package_data={'smuthi.linearsystem.tmatrix.nfmds': ['NFM-DS/*.txt', 'NFM-DS/TMATSOURCES/*.f90', 'NFM-DS/TMATFILES/*',
                                                         'NFM-DS/INPUTFILES/*.dat', 'NFM-DS/OUTPUTFILES/*','nfmds*'],
-                  },
+                  'smuthi.utility.cython': ['cython_speedups*']},
     include_package_data=True,                  
     install_requires=get_requirements(),
     extras_require={'cuda':  ['PyCuda']},
