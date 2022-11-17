@@ -32,7 +32,7 @@ class Logger(object):
     def flush(self):
         self.terminal.flush()
         
-    def fileno():
+    def fileno(self):
         return self.terminal.fileno()
 
 

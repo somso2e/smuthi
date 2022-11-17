@@ -260,9 +260,10 @@ class SphericalWaveExpansion(FieldExpansion):
     Args:
         k (float):    wavenumber in layer where expansion is valid
         l_max (int):  maximal multipole degree :math:`l_\mathrm{max}\geq 1` 
-        where to truncate the expansion. m_max (int):  maximal multipole order 
-        :math:`0 \leq m_\mathrm{max} \leq l_\mathrm{max}` where to truncate the 
-        expansion.
+                      where to truncate the expansion. 
+        m_max (int):  maximal multipole order :math:`0 \leq m_\mathrm{max} \leq l_\mathrm{max}`
+                      where to truncate the 
+                      expansion.
         kind (str):   'regular' for :math:`\nu=1` or 'outgoing' for :math:`\nu=3`
         reference_point (list or tuple):  [x, y, z]-coordinates of point relative 
                                           to which the spherical waves are 
@@ -274,8 +275,7 @@ class SphericalWaveExpansion(FieldExpansion):
         outer_r (float):   radius outside which the expansion diverges
 
     Attributes:
-        coefficients (numpy ndarray): expansion coefficients 
-        :math:`a_{\tau l m}` ordered by multi index n
+        coefficients (numpy ndarray): expansion coefficients :math:`a_{\tau l m}` ordered by multi index :math:`n`                          
     """
 
     def __init__(self, k, l_max, m_max=None, kind=None, reference_point=None, lower_z=-np.inf, upper_z=np.inf,
