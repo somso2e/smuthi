@@ -118,3 +118,4 @@ What's new in version 0.2
 In addition to spherical particles, spheroids can now be selected as scattering particles, too.
 Spheroids are ellipsoidal particles with one axis of rotational symmetry (which is currently fixed
 to be the direction perpendicular to the layer interfaces).
+
