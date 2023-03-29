@@ -271,7 +271,7 @@ subroutine T_spherical_local_global (thetaL, phiL, alpha, beta, gamma, thetaG, p
   thetaG = theta
   phiG   = phi 
 !..................................................................................!      
-!         Íf thetaG = 0 or thetaG = 180 then phiG is undetermined and we           !
+!         If thetaG = 0 or thetaG = 180 then phiG is undetermined and we           !
 !         choose phiG such that: ItG = ItL and IpG = IpL.                          !    
 !..................................................................................!
   if (abs(thetaG) < MachEps) then    

@@ -111,7 +111,7 @@ subroutine ScatteringMatrix (MirorSym, theta, Ntheta, ZE, Z)
 ! The routine computes the scattering matrix Z at a specified scattering angle     !
 ! theta. ZE is the extended scattering matrix and Ntheta is the number of zenith   !
 ! angles (at which the extended scattering matrix is computed) in the azimuthal    !
-! plane phi = 0°.                                                                  !
+! plane phi = 0 [deg].                                                                  !
 !-----------------------------------------------------------------------------------
   use parameters
   implicit none
@@ -297,8 +297,8 @@ end subroutine HovTest
 subroutine ExtendedScatteringMatrix (MirorSym, Ntheta, SS, ZE)
 !-----------------------------------------------------------------------------------
 ! The routine computes the scattering matrix ZE for all scattering angles in the   !
-! azimuthal plane phi = 0°. SS is the average matrix <SpqSp1q1*> and Ntheta is the !
-! number of zenith angles in the azimuthale plane phi = 0°.                        !
+! azimuthal plane phi = 0 [deg]. SS is the average matrix <SpqSp1q1*> and Ntheta is the !
+! number of zenith angles in the azimuthale plane phi = 0 [deg].                        !
 !-----------------------------------------------------------------------------------
   use parameters
   implicit none
@@ -1097,7 +1097,7 @@ subroutine MNinfiniteMatrix (Mrank, Nrank, Nmax, Ntheta, M2inf, M3inf)
 !-----------------------------------------------------------------------------------
 ! The routine computes the theta- and phi- components of the vector spherical wave !
 ! functions Mmn at infinity. The scattering direction is in the azimuthal plane    !
-! phi = 0° and therefore the azimuthal dependence exp(j * m * phi) is omitted.     !
+! phi = 0 [deg] and therefore the azimuthal dependence exp(j * m * phi) is omitted.     !
 ! Note that N2inf = - j * M3inf and N3inf =  j * M2inf.                            !
 !-----------------------------------------------------------------------------------
   use parameters
