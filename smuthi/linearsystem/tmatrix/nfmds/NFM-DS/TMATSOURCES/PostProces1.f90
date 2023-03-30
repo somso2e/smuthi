@@ -1074,7 +1074,7 @@ subroutine DSCS_SCAT (ComputeDSCS, ComputeScatPar, ComputeAsymPar, axsym, sphere
 ! scattered field are computed for linearly polarized waves (vector plane waves and ! 
 ! Gaussian beams propagating in the direction (thetaGI,phiGI)). The calculations    !
 ! are performed for incident parallel and perpendicular polarizations, that is for  !
-! alphap = 0° and alphap = 90°. The code also determines the differential           !
+! alphap = 0 [deg] and alphap = 90 [deg]. The code also determines the differential           !
 ! scattering cross sections at a set of NthetaGS scattering angles in the azimuthal !
 ! plane phiAZIMUT. The calculations are performed for elliptically polarized plane  !
 ! waves and linearly polarized Gaussian beams. For a plane wave incidence, the      !

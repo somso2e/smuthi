@@ -16,7 +16,7 @@ subroutine SCTAVRGSPH
 ! The scattering matrix is computed at scattering angles which are uniformly        !
 ! spaced in the interval (thetaminAvrg, thetamaxAvrg), while the differential       !
 ! scattering cross sections are computed at scattering angles which are uniformly   !
-! spaced in the interval (0, 180°).                                                 !
+! spaced in the interval (0, 180 [deg]).                                                 !
 !                                                                                   !
 ! The basic optical characteristics of a homogeneous spherical particles can be     !
 ! directly expressed in terms of the Lorenz-Mie coefficients Fn and Gn, and         !
@@ -125,7 +125,7 @@ subroutine SCTAVRGSPH
 ! amplitude matrix, e_r is the unit vector along the scattering direction           !
 ! (theta,0) and e_z is the unit vector along the Z axis. The average quantities     !
 ! are computed at NthetaGSAvrg scattering angles, which are uniformly spaced in     !  
-! the interval (0,180°). The scattering matrix is computed at the same sample       !
+! the interval (0,180 [deg]). The scattering matrix is computed at the same sample       !
 ! angles and polynomial interpolation is used to evaluate the scattering matrix     ! 
 ! at any zenith angle theta (in the range (thetaminAvrg, thetamaxAvrg)). The        !
 ! same scattering angles are used for computing the DSCS and the average            !
@@ -187,11 +187,11 @@ subroutine SCTAVRGSPH
 !   used for computing the average differential scattering cross sections.          !
 !                                                                                   !
 ! - ComputeDSCSAvrg (logical) - if ComputeDSCSAvrg = t, the average differential    ! 
-!   scattering cross sections are computed in the azimuthal plane phi = 0°.         !
+!   scattering cross sections are computed in the azimuthal plane phi = 0 [deg].         !
 !                                                                                   !
 ! - NthetaGSAvrg (integer) - number of zenith angles at which the average           !
 !   differential scattering cross section are computed. The scattering angles       !
-!   are uniformly spaced in the interval (0, 180°).                                 !
+!   are uniformly spaced in the interval (0, 180 [deg]).                                 !
 !                                                                                   !
 ! - normalizedAvrg (logical) - if normalizedAvrg = t, the average differential      ! 
 !   scattering cross section are normalized by Pi * anormAvrg**2, where             !
