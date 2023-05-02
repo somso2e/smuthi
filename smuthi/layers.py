@@ -36,10 +36,11 @@ class LayerSystem:
                             Simulation is fatally terminating because there is no other way to proceed... 
                             ''')
 
-        self.thicknesses = thicknesses
+
+        self.thicknesses = [thick for thick in thicknesses]
         self.thicknesses[0] = 0
         self.thicknesses[-1] = 0
-        self.refractive_indices = refractive_indices
+        self.refractive_indices = [n for n in refractive_indices]
 
     def is_degenerate(self):
         """
