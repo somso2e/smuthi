@@ -46,6 +46,11 @@ If you use Smuthi to simulate periodic particle arrangements, please also cite:
 Dominik Theobald, Dominik Beutel, Luisa Borgmann, Henning Mescher, Guillaume Gomard, Carsten Rockstuhl, Uli Lemmer, "Simulation of light scattering in large, disordered nanostructures using a periodic T-matrix method",
 Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 272, 2021, 107802, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107802.
 
+What's new in version 2.1
+-------------------------
+
+This version is fixes a bug with non-ascii characters in the NFM-DS Fortran sources that prevented Smuthi to be compiled with newest Python and Numpy versions (Konstantin Ladutenko).
+
 What's new in version 2.0
 -------------------------
 Simulation of periodic particle aggregates (Dominik Theobald).
