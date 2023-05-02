@@ -19,12 +19,12 @@ def numba_wofz_complex(x):
     out_imag = np.empty(1,dtype=np.float64)
     wofz_fn(np.real(x), np.imag(x), out_real.ctypes, out_imag.ctypes)
     
-    return np.complex(out_real[0] + 1j * out_imag[0])
+    return complex(out_real[0] + 1j * out_imag[0])
 
 
 from scipy.special import wofz
 
-val=np.complex(1+2j)
+val=complex(1+2j)
 expected = wofz(val)
 got = numba_wofz_complex(val)
 

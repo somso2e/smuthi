@@ -160,7 +160,7 @@ def numba_wofz_complex(x):
     out_real = np.empty(1,dtype=np.float64)
     out_imag = np.empty(1,dtype=np.float64)
     wofz_fn(np.real(x), np.imag(x), out_real.ctypes, out_imag.ctypes)    
-    return np.complex(out_real[0] + 1j * out_imag[0])
+    return complex(out_real[0] + 1j * out_imag[0])
 ###############################################################################
 
 
