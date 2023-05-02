@@ -5,7 +5,8 @@
    :alt: Documentation Status
    :align: right
 
-
+.. image:: https://badge.fury.io/py/smuthi.svg
+    :target: https://badge.fury.io/py/smuthi
 
 |
 
