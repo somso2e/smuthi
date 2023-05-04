@@ -49,7 +49,7 @@ Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 272, 2021, 1
 What's new in version 2.1
 -------------------------
 
-This version is fixes a bug with non-ascii characters in the NFM-DS Fortran sources that prevented Smuthi to be compiled with newest Python and Numpy versions (Konstantin Ladutenko).
+This version contains a couple of smaller bug fixes that allow Smuthi to run with newer Python and Numpy versions (Konstantin Ladutenko, Amos Egel).
 
 What's new in version 2.0
 -------------------------
