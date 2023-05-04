@@ -33,14 +33,9 @@ cylinder = smuthi.particles.FiniteCylinder(position=[0, 0, 100],
                                            cylinder_radius=100,
                                            l_max=5)
 
-cube = smuthi.particles.CustomParticle(position=[500, 0, 100],
-                                       refractive_index=1.7,
-                                       geometry_filename="cube.stl",
-                                       scale=100,
-                                       l_max=5)
 
 # list of all scattering particles
-three_particles = [spheroid, cylinder, cube]
+three_particles = [spheroid, cylinder]
 
 # Initial field
 plane_wave = smuthi.initial_field.PlaneWave(vacuum_wavelength=550,

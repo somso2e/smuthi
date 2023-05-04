@@ -200,9 +200,11 @@ subroutine tmatrix_MrankAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,    
 !  call write_InfoFileTmat (FileTmat, Mrank, Nrank, .true., .false., chiral)
 !  call ScatCharact (k, FileTmat, Mrank, Nrank, .true., .false., chiral)
 !  print "(/,2x,'T matrix is stored in ',a50)", FileTmat
-  print "(  2x,'The dimensions of the T matrix are given by:')"      
-  print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrank
-  print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank                     
+  if (PrnProgress) then
+	  print "(  2x,'The dimensions of the T matrix are given by:')"      
+    print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrank
+    print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank                     
+  end if
   deallocate (a, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine tmatrix_MrankAXSYM
 !***********************************************************************************
@@ -335,9 +337,11 @@ subroutine tmatrix_MrankDSAXSYM (FileGeom, TypeGeom, k, ind_ref, snorm, Nsurf,  
       call extend_vector_negative (c1, cc, m, Nrank, Nmax, Nmaxmax)
     end if
   end do
-  print "(  2x,'The dimensions of the T matrix are given by:')"
-  print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrank 
-  print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank             
+	if (PrnProgress) then
+    print "(  2x,'The dimensions of the T matrix are given by:')"
+    print "(  2x,'- maximum expansion order,   Nrank = ',i3,',')", Nrank 
+    print "(  2x,'- number of azimuthal modes, Mrank = ',i3,';')", Mrank             
+  end if
   deallocate (a, c, c1, cc, h, v, oldh, oldv, paramG, weightsG, Nintparam)
 end subroutine tmatrix_MrankDSAXSYM
 subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,                &
@@ -446,34 +450,38 @@ subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,            
   NrankW = int(x + 4.05_O * x**0.33_O + 2._O)
   if (.not. DS) then
 !    else
-    print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
-    print "(  2x,'--------------------------------------------------------')"
-    print "(/,2x,'Input values:')"
-    if (.not. FileGeom) then
-      print "(  2x, a, i4, a, i4, a)",                                            & 
-     'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
-     ', respectively,'  
-      print "(  2x, a, i3, a)",                                                   &
-     'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'
-    else
-      print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
-      print "(  2x, a, i3, a)",                                                   &
-     'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
-    end if                                                                          
+    if (PrnProgress) then
+  		print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+      print "(  2x,'--------------------------------------------------------')"
+      print "(/,2x,'Input values:')"
+      if (.not. FileGeom) then
+        print "(  2x, a, i4, a, i4, a)",                                            & 
+       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
+       ', respectively,'  
+        print "(  2x, a, i3, a)",                                                   &
+       'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'
+      else
+        print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+        print "(  2x, a, i3, a)",                                                   &
+       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+      end if                                                                          
+    end if
     TypeConvTest = 3      
 !    end if
     Nrank1 = Nrank - 1 ! redundant            
   else
     if (autGenDS) then                       
 !      else
-      print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
-      print "(  2x,'--------------------------------------------------------')"
-      print "(/,2x,'Input values:')"
-      print "(  2x, a, i4, a, i4, a)",                                            &
-     'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
-     ', respectively,' 
-      print "(  2x, a, i3, a)",                                                   &
-     'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'         
+      if (PrnProgress) then
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+        print "(  2x,'--------------------------------------------------------')"
+        print "(/,2x,'Input values:')"
+        print "(  2x, a, i4, a, i4, a)",                                            &
+       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,             &
+       ', respectively,' 
+        print "(  2x, a, i3, a)",                                                   &
+       'while the estimated value of Nrank from Wiscombe''s criterion is ', NrankW,';'         
+			end if
       call check_MaxNrank (Nrank)
       call zDSAXSYM (TypeGeom, Nsurf, surf, Nrank, ComplexPlane, epsZReIm, zRe, zIm) 
       TypeConvTest = 3    
@@ -481,20 +489,22 @@ subroutine TAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,            
       Nrank1 = Nrank - 1 ! redundant  
     else 
 !      else
-      print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
-      print "(  2x,'--------------------------------------------------------')" 
-      print "(/,2x,'Input values:')" 
-      if (.not. FileGeom) then                  
-        print "(  2x, a, i4, a, i4, a)",                                          &
-       'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,           &
-       ', respectively,' 
-        print "(  2x, a, i3, a)",                                                 &
-       'while the estimated value of Nrank from Wiscombe''s criterion is ',       &
-        NrankW,';' 
-      else
-        print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
-        print "(  2x, a, i3, a)",                                                 &
-       'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+      if (PrnProgress) then
+        print "(/,2x,'Convergence Test for an Axisymmetric Particle over Mrank')" 
+        print "(  2x,'--------------------------------------------------------')" 
+        print "(/,2x,'Input values:')" 
+        if (.not. FileGeom) then                  
+          print "(  2x, a, i4, a, i4, a)",                                          &
+         'the input values of Nint and Nrank are ', Nint, ' and ', Nrank,           &
+         ', respectively,' 
+          print "(  2x, a, i3, a)",                                                 &
+         'while the estimated value of Nrank from Wiscombe''s criterion is ',       &
+          NrankW,';' 
+        else
+          print "(  2x,'the input value of Nrank is ', i4,', while')", Nrank
+          print "(  2x, a, i3, a)",                                                 &
+         'the estimated value of Nrank from Wiscombe''s criterion is ', NrankW, ';' 
+        end if
       end if
       TypeConvTest = 3              
 !      end if
