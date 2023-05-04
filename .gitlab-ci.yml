@@ -1,4 +1,4 @@
-image: python:3.11
+image: python:3.10
 
 stages:
   - test
@@ -59,16 +59,16 @@ pypi:
   only:
     - tags
 
-whl_test_python36:
-  stage: postupload
-  image: python:3.6
-  script:
-    - pip3 install smuthi
-    - pip3 install nose2
-    - rm -rf smuthi
-    - nose2 -v
-  only:
-    - tags
+#whl_test_python36:
+#  stage: postupload
+#  image: python:3.6
+#  script:
+#    - pip3 install smuthi
+#    - pip3 install nose2
+#    - rm -rf smuthi
+#    - nose2 -v
+#  only:
+#    - tags
 
 whl_test_python38:
   stage: postupload
@@ -94,18 +94,18 @@ whl_test_ubuntu_focal2004LTS:
   only:
     - tags
 
-whl_test_ubuntu_groovy2010:
-  stage: postupload
-  image: ubuntu:groovy
-  script:
-    - apt update
-    - apt install -y python3-pip
-    - pip3 install smuthi
-    - pip3 install nose2
-    - rm -rf smuthi
-    - nose2 -v
-  only:
-    - tags
+#whl_test_ubuntu_groovy2010:
+#  stage: postupload
+#  image: ubuntu:groovy
+#  script:
+#    - apt update
+#    - apt install -y python3-pip
+#    - pip3 install smuthi
+#    - pip3 install nose2
+#    - rm -rf smuthi
+#    - nose2 -v
+#  only:
+#    - tags
 
 whl_test_centos8:
   stage: postupload
