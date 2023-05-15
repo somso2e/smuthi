@@ -21,7 +21,7 @@ test:
 
 # Create binary wheels as well as the source distribution
 dist:
-  image: quay.io/pypa/manylinux2010_x86_64
+  image: quay.io/pypa/manylinux2014_x86_64
   stage: build
   script:
     - chmod +x CI/build-wheel-manylinux.sh
