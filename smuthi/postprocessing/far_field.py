@@ -494,8 +494,7 @@ def total_scattering_cross_section(simulation=None, initial_field=None, particle
                                                     resolution over the default angular range
 
     Returns:
-        A tuple of smuthi.field_expansion.FarField objects, one for forward scattering (i.e., into the top hemisphere) and one for backward
-        scattering (bottom hemisphere).
+        The total (i.e. angle integrated) scattering cross section.
     """
 
     if initial_field is None:
