@@ -6,14 +6,25 @@ Main publication describing SMUTHI (if you use the software for a scientific pub
 [Egel et al. 2021]
    `Amos Egel, Krzysztof M Czajkowski, Dominik Theobald, Konstantin Ladutenko, Alexey S Kuznetsov, Lorenzo Pattelli: "SMUTHI: A python package for the simulation of light scattering by multiple particles near or between planar interfaces", Journal of Quantitative Spectroscopy and Radiative Transfer, 273, 2021, 107846, DOI: 10.1016/j.jqsrt.2021.107846 <https://arxiv.org/pdf/2105.04259>`_
 
-Publications that describe the theory behind Smuthi:
+Periodic boundary conditions in SMUTHI are described here (if you use the software with periodic boundary conditions, please cite this):
 
-[Theobald 2017]
-   `Dominik Theobald, Amos Egel, Guillaume Gomard, Uli Lemmer: "Plane-wave coupling formalism for T-matrix simulations of light scattering by nonspherical particles." Physical Review A 96.3 (2017): 033822. <https://arxiv.org/abs/1708.04808>`_
+[Theobald 2021]
+   `Theobald, Dominik, et al. "Simulation of light scattering in large, disordered nanostructures using a periodic T-matrix method." Journal of Quantitative Spectroscopy and Radiative Transfer 272 (2021): 107802. <https://drive.google.com/file/d/1zEJ2easDBEpuouRX4IMdxlx15LrSJ_fi/view>`_
 
+Dissertations about SMUTHI:
 
 [Egel 2018]
    `Amos Egel: "Accurate optical simulation of disordered scattering layers for light extractionfrom organic light emitting diodes", Dissertation, Karlsruhe (2018), DOI: 10.5445/IR/1000093961 <https://publikationen.bibliothek.kit.edu/1000093961/26467128>`_
+
+[Theobald 2021]
+   `Dominik Theobald: "Modeling and simulation of disordered light management structures in optoelectronic devices", Dissertation, Karlsruhe (2021), DOI: DOI: 10.5445/IR/1000141626  <https://publikationen.bibliothek.kit.edu/1000141626>`_
+
+https://publikationen.bibliothek.kit.edu/1000141626
+
+Other publications that describe the theory behind Smuthi:
+
+[Theobald 2017]
+   `Dominik Theobald, Amos Egel, Guillaume Gomard, Uli Lemmer: "Plane-wave coupling formalism for T-matrix simulations of light scattering by nonspherical particles." Physical Review A 96.3 (2017): 033822. <https://arxiv.org/abs/1708.04808>`_
 
 [Egel and Lemmer 2014]
    `Amos Egel, Uli Lemmer: "Dipole emission in stratified media with multiple spherical scatterers: Enhanced outcoupling from OLEDs", Journal of Quantitative Spectroscopy and Radiative Transfer, 148, 2014, 165-176,DOI: 10.1016/j.jqsrt.2014.06.022 <https://www.sciencedirect.com/science/article/pii/S0022407314002829>`_
@@ -28,7 +39,7 @@ Publications that describe the theory behind Smuthi:
    `Egel, A., Eremin, Y., Wriedt, T., Theobald, D., Lemmer, U., & Gomard, G. (2017). Extending the applicability of the T-matrix method to light scattering by flat particles on a substrate via truncation of sommerfeld integrals. Journal of Quantitative Spectroscopy and Radiative Transfer, 202, 279-285. <https://arxiv.org/pdf/1708.05557.pdf>`_
 
 
-This book describes the Null-Field Method with Discrete Sources (NFM-DS):
+This book describes the Null-Field Method with Discrete Sources (NFM-DS, if you use the software with non spherical particles, please cite this):
 
 [Doicu et al. 2006]
     `Doicu, Adrian, Thomas Wriedt, and Yuri A. Eremin. Light scattering by systems of particles: null-field method with discrete sources: theory and programs. Vol. 124. Springer, 2006. <http://www.springer.com/us/book/9783540336969>`_

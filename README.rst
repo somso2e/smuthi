@@ -46,6 +46,9 @@ If you use Smuthi to simulate periodic particle arrangements, please also cite:
 Dominik Theobald, Dominik Beutel, Luisa Borgmann, Henning Mescher, Guillaume Gomard, Carsten Rockstuhl, Uli Lemmer, "Simulation of light scattering in large, disordered nanostructures using a periodic T-matrix method",
 Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 272, 2021, 107802, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107802.
 
+If you use Smuthi to simulate non-spherical particles, please also cite:
+Doicu, Adrian, Thomas Wriedt, and Yuri A. Eremin, "Light scattering by systems of particles: null-field method with discrete sources: theory and programs", Vol. 124. Springer, 2006, https://doi.org/10.1007/978-3-540-33697-6
+
 What's new in version 2.1
 -------------------------
 
