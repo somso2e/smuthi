@@ -104,6 +104,7 @@ How to cite this software
 
 If you use SMUTHI for a publication, please consider to cite :doc:`[Egel et al. 2021] <../literature>`.
 If you use SMUTHI with non-spherical particles for a publication, please consider to additionally cite :doc:`[Doicu et al. 2006] <../literature>`.
+If you use SMUTHI with periodic boundary conditions, please consider to additionally cite :doc:`[Doicu et al. 2006] <../literature>`.
 
 
 
