@@ -1,3 +1,4 @@
+sphinx-rtd-theme
 numpy
 scipy>=0.18
 mpmath
