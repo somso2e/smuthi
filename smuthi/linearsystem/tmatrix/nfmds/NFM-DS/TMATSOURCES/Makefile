@@ -1,4 +1,4 @@
-APPLICATION = TMATRIX
+APPLICATION = libnfmds.so
 
 OBJS =  Parameters.o\
         MachParam.o\

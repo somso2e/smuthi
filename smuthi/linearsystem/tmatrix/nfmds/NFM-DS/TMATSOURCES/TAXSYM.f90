@@ -623,11 +623,6 @@ subroutine TAXSYM
 ! -----------------------------------------------------------------------------------
 !                               Read the input file                                 ! 
 ! -----------------------------------------------------------------------------------       
-  call readinputAXSYM ( wavelength, ind_refMed, ind_refRel, perfectcond,            &
-       chiral, kb, FileGeom, TypeGeom, FileFEM, Nsurf, surf, Nparam, anorm,         &
-       Rcirc, miror, DoConvTest, MishConvTest, DS, autGenDS, ComplexPlane,          &
-       epsZReIm, Nint, Nrank, zRe, zIm, zRe1, zIm1, epsNint, epsNrank, epsMrank,    &
-       dNint, dNintMrank, FileTmat, PrnProgress, k, snorm, Nface, rp, np, area )                   
 ! -----------------------------------------------------------------------------------
 !         Select the type of convergence test and the values of Nint and Nrank      !
 ! -----------------------------------------------------------------------------------
