@@ -131,12 +131,7 @@ def get_extensions(static=True):
     else:
         nfmds_path = 'smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90'
     extensions = [Extension('smuthi.linearsystem.tmatrix.nfmds.nfmds', [nfmds_path],
-                            extra_link_args=static_link_args, f2py_options=f2py_options),
-                  Extension("smuthi.utility.cython.cython_speedups",
-                            ["smuthi/utility/cython/cython_speedups.c"],
-                            extra_compile_args=['-fopenmp'],
-                            extra_link_args=static_link_args + ['-fopenmp'],
-                            include_dirs=[np.get_include()])]
+                            extra_link_args=static_link_args, f2py_options=f2py_options)]
     return extensions
 
 
