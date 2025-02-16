@@ -1,20 +1,8 @@
-# -*- coding: utf-8 -*-
-"""This module is needed for the installation of the package."""
-
-from setuptools.command.install import install
-from setuptools.command.develop import develop
-from setuptools.command.build_ext import build_ext
-
 import os
 import sys
 import subprocess
-
-from wheel.bdist_wheel import bdist_wheel
-from numpy.distutils.core import setup
-from numpy.distutils.core import Extension
-
-import pkg_resources
-import numpy as np
+from setuptools import setup
+from setuptools.command.build_ext import build_ext
 
 version = {}
 with open("smuthi/version.py") as fp:
@@ -147,7 +135,6 @@ setup(
     author_email="amos.egel@gmail.com",
     url='https://gitlab.com/AmosEgel/smuthi',
     description="Light scattering by multiple particles in thin-film systems",
-    long_description=read('README.rst'),
     packages=['smuthi',
               'smuthi.fields',
               'smuthi.linearsystem',
@@ -172,3 +159,4 @@ setup(
     extras_require={'cuda': ['PyCuda']},
     license='MIT',
 )
+

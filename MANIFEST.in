@@ -1,0 +1,398 @@
+include .appveyor.yml
+include .gitignore
+include .gitlab-ci.yml
+include .readthedocs.yaml
+include CI/build-wheel-manylinux.sh
+include CONTRIBUTING.rst
+include README.rst
+include docs/Makefile
+include docs/_source/01 about/about_smuthi.rst
+include docs/_source/01 about/drawing.png
+include docs/_source/01 about/email.png
+include docs/_source/02 getting started/getting_started.rst
+include docs/_source/02 getting started/installation.rst
+include docs/_source/02 getting started/run_smuthi.rst
+include docs/_source/03 simulation guidelines/auto_param.rst
+include docs/_source/03 simulation guidelines/building_blocks.rst
+include docs/_source/03 simulation guidelines/complex_contours.rst
+include docs/_source/03 simulation guidelines/cross_sections.rst
+include docs/_source/03 simulation guidelines/custom_particles.rst
+include docs/_source/03 simulation guidelines/images/Fig1-2_anim.webp
+include docs/_source/03 simulation guidelines/images/Fig1_anim.webp
+include docs/_source/03 simulation guidelines/images/Fig2_anim.webp
+include docs/_source/03 simulation guidelines/images/contour.png
+include docs/_source/03 simulation guidelines/images/contour.svg
+include docs/_source/03 simulation guidelines/images/decision.png
+include docs/_source/03 simulation guidelines/images/decision.svg
+include docs/_source/03 simulation guidelines/images/delta_z.png
+include docs/_source/03 simulation guidelines/images/extinction.PNG
+include docs/_source/03 simulation guidelines/images/flowchart_lmax.drawio
+include docs/_source/03 simulation guidelines/images/flowchart_lmax.png
+include docs/_source/03 simulation guidelines/images/flowchart_many_particles.drawio
+include docs/_source/03 simulation guidelines/images/flowchart_many_particles.png
+include docs/_source/03 simulation guidelines/images/flowchart_mmax.drawio
+include docs/_source/03 simulation guidelines/images/flowchart_mmax.png
+include docs/_source/03 simulation guidelines/images/flowchart_neffmax.drawio
+include docs/_source/03 simulation guidelines/images/flowchart_neffmax.png
+include docs/_source/03 simulation guidelines/images/flowchart_neffmax_relconv.drawio
+include docs/_source/03 simulation guidelines/images/flowchart_neffmax_relconv.png
+include docs/_source/03 simulation guidelines/images/flowchart_neffresol.drawio
+include docs/_source/03 simulation guidelines/images/flowchart_neffresol.png
+include docs/_source/03 simulation guidelines/images/large_rho.png
+include docs/_source/03 simulation guidelines/images/layers.png
+include docs/_source/03 simulation guidelines/images/layers.svg
+include docs/_source/03 simulation guidelines/images/particles.png
+include docs/_source/03 simulation guidelines/images/projected_area.png
+include docs/_source/03 simulation guidelines/images/screenshot_gmsh.png
+include docs/_source/03 simulation guidelines/images/smuthi_overview.png
+include docs/_source/03 simulation guidelines/images/sommerfeld.PNG
+include docs/_source/03 simulation guidelines/large_rho/large_rho.png
+include docs/_source/03 simulation guidelines/large_rho/large_rho.py
+include docs/_source/03 simulation guidelines/multipole_cutoff.rst
+include docs/_source/03 simulation guidelines/plane_wave_coupling.rst
+include docs/_source/03 simulation guidelines/simulation_guidelines.rst
+include docs/_source/03 simulation guidelines/solver_settings.rst
+include docs/_source/03 simulation guidelines/sommerfeld_integrals.rst
+include docs/_source/03 simulation guidelines/units.rst
+include docs/_source/04 examples/01_setting_up_a_simulation/console_screenshot.PNG
+include docs/_source/04 examples/01_setting_up_a_simulation/discussion.rst
+include docs/_source/04 examples/01_setting_up_a_simulation/drawing.png
+include docs/_source/04 examples/01_setting_up_a_simulation/drawing.svg
+include docs/_source/04 examples/02_plotting_the_near_field/E_y.gif
+include docs/_source/04 examples/02_plotting_the_near_field/discussion.rst
+include docs/_source/04 examples/02_plotting_the_near_field/norm_E.png
+include docs/_source/04 examples/03_plotting_the_far_field/bottom_1d.png
+include docs/_source/04 examples/03_plotting_the_far_field/bottom_2d.png
+include docs/_source/04 examples/03_plotting_the_far_field/discussion.rst
+include docs/_source/04 examples/03_plotting_the_far_field/top_1d.png
+include docs/_source/04 examples/03_plotting_the_far_field/top_2d.png
+include docs/_source/04 examples/04_non_spherical_particles/discussion.rst
+include docs/_source/04 examples/04_non_spherical_particles/drawing.png
+include docs/_source/04 examples/04_non_spherical_particles/drawing.svg
+include docs/_source/04 examples/07_automatic_parameter_selection/bottom_1D.png
+include docs/_source/04 examples/07_automatic_parameter_selection/bottom_2D.png
+include docs/_source/04 examples/07_automatic_parameter_selection/discussion.rst
+include docs/_source/04 examples/07_automatic_parameter_selection/top_1D.png
+include docs/_source/04 examples/07_automatic_parameter_selection/top_2D.png
+include docs/_source/04 examples/08_many_particles/cross_section.png
+include docs/_source/04 examples/08_many_particles/decision.png
+include docs/_source/04 examples/08_many_particles/discussion.rst
+include docs/_source/04 examples/08_many_particles/drawing.png
+include docs/_source/04 examples/08_many_particles/drawing.svg
+include docs/_source/04 examples/08_many_particles/dscs_200spheres_bottom.png
+include docs/_source/04 examples/08_many_particles/dscs_200spheres_bottom_polar.png
+include docs/_source/04 examples/08_many_particles/dscs_200spheres_top.png
+include docs/_source/04 examples/08_many_particles/dscs_200spheres_top_polar.png
+include docs/_source/04 examples/08_many_particles/runtime.png
+include docs/_source/04 examples/08_many_particles/vogel_spiral_1000.png
+include docs/_source/04 examples/08_many_particles/vogel_spiral_200.png
+include docs/_source/04 examples/09_multipole_decomposition/With_gold.pdf
+include docs/_source/04 examples/09_multipole_decomposition/Without_gold.pdf
+include docs/_source/04 examples/09_multipole_decomposition/discussion.rst
+include docs/_source/04 examples/09_multipole_decomposition/extinction.svg
+include docs/_source/04 examples/10_periodic_near_field/discussion.rst
+include docs/_source/04 examples/10_periodic_near_field/perforated_glass_sheet.png
+include docs/_source/04 examples/10_periodic_near_field/poynting_vector_z.gif
+include docs/_source/04 examples/11_plane_wave_coupling/discussion.rst
+include docs/_source/04 examples/11_plane_wave_coupling/drawing.png
+include docs/_source/04 examples/11_plane_wave_coupling/drawing.svg
+include docs/_source/04 examples/examples.rst
+include docs/_source/04 examples/fifteen_periodic_spheres_in_slab/comsol_screenshot.png
+include docs/_source/04 examples/fifteen_periodic_spheres_in_slab/discussion.rst
+include docs/_source/04 examples/fifteen_periodic_spheres_in_slab/transmittance_comparison_fifteen_periodic_spheres.png
+include docs/_source/04 examples/four_particles_in_slab/Ey_along_line_high_n.pdf
+include docs/_source/04 examples/four_particles_in_slab/Ey_along_line_high_n.png
+include docs/_source/04 examples/four_particles_in_slab/Ey_along_line_metallic.pdf
+include docs/_source/04 examples/four_particles_in_slab/comsol_screenshot.png
+include docs/_source/04 examples/four_particles_in_slab/discussion.rst
+include docs/_source/04 examples/four_particles_in_slab/drawing.png
+include docs/_source/04 examples/four_particles_in_slab/drawing.svg
+include docs/_source/04 examples/four_particles_in_slab/imagEy_comsol_high_n.png
+include docs/_source/04 examples/four_particles_in_slab/imagEy_comsol_metallic.png
+include docs/_source/04 examples/four_particles_in_slab/imagEy_smuthi_high_n.png
+include docs/_source/04 examples/four_particles_in_slab/imagEy_smuthi_metallic.png
+include docs/_source/04 examples/four_particles_in_slab/realEy_comsol_high_n.png
+include docs/_source/04 examples/four_particles_in_slab/realEy_comsol_metallic.png
+include docs/_source/04 examples/four_particles_in_slab/realEy_smuthi_high_n.png
+include docs/_source/04 examples/four_particles_in_slab/realEy_smuthi_metallic.png
+include docs/_source/04 examples/sphere_in_vacuum/Q_sca_spectra.png
+include docs/_source/04 examples/sphere_in_vacuum/bulk-Ag-flow-R18-XZ-Eabs.png
+include docs/_source/04 examples/sphere_in_vacuum/bulk-Ag-flow-R18-YZ-Eabs.png
+include docs/_source/04 examples/sphere_in_vacuum/discussion.rst
+include docs/_source/04 examples/sphere_in_vacuum/nanocomposix.png
+include docs/_source/04 examples/sphere_in_vacuum/norm_E_fin_xz.png
+include docs/_source/04 examples/sphere_in_vacuum/norm_E_fin_yz.png
+include docs/_source/05 api/smuthi_api.rst
+include docs/_source/05 api/smuthi_api_fields.rst
+include docs/_source/05 api/smuthi_api_linearsystem.rst
+include docs/_source/05 api/smuthi_api_nfmds.rst
+include docs/_source/05 api/smuthi_api_particlecoupling.rst
+include docs/_source/05 api/smuthi_api_postprocessing.rst
+include docs/_source/05 api/smuthi_api_tmatrix.rst
+include docs/_source/05 api/smuthi_api_top.rst
+include docs/_source/05 api/smuthi_api_utility.rst
+include docs/_source/gallery/E_y_dipole.gif
+include docs/_source/gallery/E_y_gauss.gif
+include docs/_source/gallery/norm_E_scat_dipole.png
+include docs/_source/gallery/norm_E_scat_gauss.png
+include docs/_source/images/auto_param.pptx
+include docs/_source/images/auto_param.svg
+include docs/_source/images/decision_tree_contour.pptx
+include docs/_source/images/logo.svg
+include docs/_source/images/logo_cropped.png
+include docs/_source/images/logo_cropped.svg
+include docs/_source/images/projected_area.svg
+include docs/_source/images/readme_flowcharts.txt
+include docs/_source/literature.rst
+include docs/call_sphinx_apidoc.txt
+include docs/conf.py
+include docs/index.rst
+include docs/make.bat
+include docs/requirements.txt
+include examples/benchmarks/fifteen_periodic_spheres_in_slab/comsol_data_fifteen_periodic_spheres_in_slab.txt
+include examples/benchmarks/fifteen_periodic_spheres_in_slab/fifteen_periodic_spheres_in_slab.mph
+include examples/benchmarks/fifteen_periodic_spheres_in_slab/fifteen_periodic_spheres_in_slab.py
+include examples/benchmarks/fifteen_periodic_spheres_in_slab/fifteen_periodic_spheres_in_slab.zip
+include examples/benchmarks/four_particles_in_slab/comsol_data_along_line_four_dielectric_particles_in_slab.txt
+include examples/benchmarks/four_particles_in_slab/comsol_data_along_plane_four_dielectric_particles_in_slab.txt
+include examples/benchmarks/four_particles_in_slab/comsol_model_four_dielectric_particles_in_slab.mph
+include examples/benchmarks/four_particles_in_slab/four_dielectric_particles_in_slab.py
+include examples/benchmarks/four_particles_in_slab/four_particles_in_slab.zip
+include examples/submitted_to_JQSRT_2021/beam_reflection/beam_reflection.py
+include examples/submitted_to_JQSRT_2021/photonic_crystal_slab/photonic_crystal_slab.py
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/Aspnes.yml
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/Johnson.yml
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/comsol_results/2Au_spheres_on_silicon_wl_dsweep_2nm_gap_data.txt
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/comsol_results/2Au_spheres_on_silicon_wl_dsweep_2nm_gap_intermediate_steps_data.txt
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/comsol_results/comsol_results.dat
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/comsol_results/process_comsol_results.py
+include examples/submitted_to_JQSRT_2021/plasmonic_nano_spheres/two_gold_spheres.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/a_sphere/fdtd.dat
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/a_sphere/sphere_on_substrate.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/b_flat_spheroid/fdtd.dat
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/b_flat_spheroid/flat_spheroid_on_substrate.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/c_spheroid/fdtd.dat
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/c_spheroid/spheroid_on_substrate.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/d_custom_particle/create_particle.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/d_custom_particle/custom_particle_on_substrate.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/d_custom_particle/fdtd.dat
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/d_custom_particle/freeform_particle_vol0.268_minz-0.326.stl
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/d_custom_particle/sphere_fine.stl
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/e_flat_cylinder/fdtd.dat
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/e_flat_cylinder/flat_cylinder_on_substrate.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/f_cylinder/cylinder_on_substrate.py
+include examples/submitted_to_JQSRT_2021/single_particle_on_substrate/f_cylinder/fdtd.dat
+include examples/tutorials/01_setting_up_a_simulation/dielectric_sphere_on_substrate.py
+include examples/tutorials/02_plotting_the_near_field/three_spheres_in_waveguide.py
+include examples/tutorials/03_plotting_the_far_field/fifteen_spheres_on_substrate.py
+include examples/tutorials/04_non_spherical_particles/cube.stl
+include examples/tutorials/04_non_spherical_particles/non_spherical_particles.py
+include examples/tutorials/04_non_spherical_particles/non_spherical_particles.zip
+include examples/tutorials/07_automatic_parameter_selection/nine_disks_on_a_thin_film_system.py
+include examples/tutorials/08_many_particle_simulations/many_dielectric_spheres_on_substrate.py
+include examples/tutorials/09_multipole_decomposition/Au-Johnson.yml
+include examples/tutorials/09_multipole_decomposition/Si-Green-2008.yml
+include examples/tutorials/09_multipole_decomposition/decompose_extinction_for_one_sphere.py
+include examples/tutorials/10_periodic_near_field/perforated_glass_sheet.py
+include examples/tutorials/11_plane_wave_coupling/plane_wave_coupling.py
+include examples/tutorials/custom_fem_particle/axisym_sphere_on_substrate.py
+include examples/tutorials/custom_fem_particle/fem_sphere_on_substrate.py
+include examples/tutorials/custom_fem_particle/spherestl.fem
+include examples/tutorials/demonstrate_layerresponse_precision.py
+include license.txt
+include make_wheel_windows.bat
+include pyproject.toml
+include release_checklist.rst
+include run_smuthi_as_script.py
+include setup.py
+include smuthi/__init__.py
+include smuthi/fields/__init__.py
+include smuthi/fields/expansions.py
+include smuthi/fields/expansions_cuda.py
+include smuthi/fields/spherical_harmonic_translations.py
+include smuthi/fields/transformations.py
+include smuthi/fields/vector_wave_functions.py
+include smuthi/initial_field.py
+include smuthi/layers.py
+include smuthi/legacy/legacy_21_21_04/ReadMe.txt
+include smuthi/legacy/legacy_21_21_04/direct_coupling.py
+include smuthi/legacy/legacy_21_21_04/layers.py
+include smuthi/legacy/legacy_21_21_04/linear_system.py
+include smuthi/linearsystem/__init__.py
+include smuthi/linearsystem/linear_system.py
+include smuthi/linearsystem/linear_system_cuda.py
+include smuthi/linearsystem/particlecoupling/__init__.py
+include smuthi/linearsystem/particlecoupling/direct_coupling.py
+include smuthi/linearsystem/particlecoupling/layer_mediated_coupling.py
+include smuthi/linearsystem/particlecoupling/prepare_lookup.py
+include smuthi/linearsystem/particlecoupling/prepare_lookup_cuda.py
+include smuthi/linearsystem/tmatrix/__init__.py
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/GEOMFILES/cube.fem
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/GEOMFILES/prolate.fem
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/GEOMFILES/sphere.fem
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/AlternativeInputs/InputNONAXSYMCube.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/AlternativeInputs/InputNONAXSYMSphere.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/AlternativeInputs/InputPARTSUBEv.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/AlternativeInputs/InputSCTSphere.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/AlternativeInputs/Readme.txt
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/Input.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputAXSYM.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputCOMP.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputEFMED.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputINHOM.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputINHOM2SPH.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputINHOMSPH.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputINHOMSPHREC.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputLAY.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputMULT.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputMULT2SPH.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputMULTSPH.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputMULTSPHREC.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputNONAXSYM.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputPARTSUB.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputSCT.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputSCTAVRGSPH.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/INPUTFILES/InputSPHERE.dat
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/OUTPUTFILES/dummy_file.txt
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATFILES/dummy_file.txt
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/AdditonTh.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Allocation.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/BesLeg.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Check.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/EFMED.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/GeomLib.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/GeomTrans.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/IncCoeff.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/InputOutput.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Integr.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Interp.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/MachParam.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Makefile
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/MatrixOp.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/MatrixQ.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/MatrixSolv.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/MatrixTrans.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Parameters.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Parameters_extended.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/PostProces1.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/PostProces2.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/PostProces3.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Proces1.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Proces2.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Proces3.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Random.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/SCT.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/SCTAVRGSPH.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/SVWF.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TLAY.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TNONAXSYM.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TAXSYM.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TCOMP.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TINHOM.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TINHOM2SPH.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TINHOMSPH.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TINHOMSPHREC.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TMATRIX.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TMULT.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TMULT2SPH.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TMULTSPH.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TMULTSPHREC.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TPARTSUB.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/auxfiles/TSPHERE.f90
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/encoding_converter.py
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/win/.gitkeep
+include smuthi/linearsystem/tmatrix/nfmds/NFM-DS/_README.txt
+include smuthi/linearsystem/tmatrix/nfmds/__init__.py
+include smuthi/linearsystem/tmatrix/nfmds/indexconverter.py
+include smuthi/linearsystem/tmatrix/nfmds/stlmanager.py
+include smuthi/linearsystem/tmatrix/t_matrix.py
+include smuthi/particles.py
+include smuthi/periodicboundaries/Numba_wofz/Numba_wofz_forenbeitrag.txt
+include smuthi/periodicboundaries/Numba_wofz/Wrapper.py
+include smuthi/periodicboundaries/Numba_wofz/setup.py
+include smuthi/periodicboundaries/Numba_wofz/special.pyx
+include smuthi/periodicboundaries/__init__.py
+include smuthi/periodicboundaries/coupling_helper.py
+include smuthi/periodicboundaries/ewald_helper.py
+include smuthi/periodicboundaries/ewald_lattice_sums.py
+include smuthi/periodicboundaries/expansions_cuda.py
+include smuthi/periodicboundaries/particle_coupling.py
+include smuthi/periodicboundaries/post_processing.py
+include smuthi/postprocessing/__init__.py
+include smuthi/postprocessing/far_field.py
+include smuthi/postprocessing/graphical_output.py
+include smuthi/postprocessing/internal_field.py
+include smuthi/postprocessing/power_flux.py
+include smuthi/postprocessing/scattered_field.py
+include smuthi/simulation.py
+include smuthi/utility/__init__.py
+include smuthi/utility/automatic_parameter_selection.py
+include smuthi/utility/cuda.py
+include smuthi/utility/cython/__init__.py
+include smuthi/utility/cython/compile_speedups_from_c.py
+include smuthi/utility/cython/compile_speedups_from_pyx.py
+include smuthi/utility/cython/cython_speedups.c
+include smuthi/utility/cython/cython_speedups.pyx
+include smuthi/utility/cython/cython_speedups_api.h
+include smuthi/utility/logging.py
+include smuthi/utility/math.py
+include smuthi/utility/memoizing.py
+include smuthi/utility/multiprocessing_helpers.py
+include smuthi/utility/numba_helpers.py
+include smuthi/utility/optical_constants.py
+include smuthi/version.py
+include tests/system_tests/conservation_of_energy_tests/test_conservation_of_energy_autoparam.py
+include tests/system_tests/conservation_of_energy_tests/test_conservation_of_energy_dipole.py
+include tests/system_tests/conservation_of_energy_tests/test_conservation_of_energy_dipole_array.py
+include tests/system_tests/conservation_of_energy_tests/test_conservation_of_energy_gaussianbeam.py
+include tests/system_tests/conservation_of_energy_tests/test_conservation_of_energy_planewave.py
+include tests/system_tests/test_direct_radial_and_volume_particle_coupling.py
+include tests/system_tests/test_internal_field.py
+include tests/system_tests/test_single_sphere_on_substrate.py
+include tests/system_tests/test_two_spheres_in_waveguide.py
+include tests/unit_tests/Au-Johnson-test.yml
+include tests/unit_tests/Si-Green-1995-test.yml
+include tests/unit_tests/far_field_tests/test_far_field_approximation.py
+include tests/unit_tests/far_field_tests/test_far_field_power_consistency.py
+include tests/unit_tests/initial_field_tests/test_initial_field.py
+include tests/unit_tests/initial_field_tests/test_initial_field_dipole.py
+include tests/unit_tests/initial_field_tests/test_initial_field_dipole_array.py
+include tests/unit_tests/initial_field_tests/test_initial_field_gauss.py
+include tests/unit_tests/multiple_scattering_tests/test_particle_coupling.py
+include tests/unit_tests/multiple_scattering_tests/test_plane_wave_coupling.py
+include tests/unit_tests/multiple_scattering_tests/test_plane_wave_coupling_cylinders.py
+include tests/unit_tests/multiple_scattering_tests/test_plane_wave_coupling_lookup.py
+include tests/unit_tests/multiple_scattering_tests/test_radial_lookup.py
+include tests/unit_tests/multiple_scattering_tests/test_spheroid_closest_points.py
+include tests/unit_tests/multiple_scattering_tests/test_stationary_phase_approx.py
+include tests/unit_tests/multiple_scattering_tests/test_volumetric_lookup.py
+include tests/unit_tests/near_field_tests/test_magnetic_near_field_cuda.py
+include tests/unit_tests/near_field_tests/test_near_field_cuda.py
+include tests/unit_tests/near_field_tests/test_near_field_stat_phase.py
+include tests/unit_tests/t_matrix_tests/test_alan_t_matrix_cylinder.py
+include tests/unit_tests/t_matrix_tests/test_custom/cylinder.stl
+include tests/unit_tests/t_matrix_tests/test_custom/cylinder_r05_h1.geo
+include tests/unit_tests/t_matrix_tests/test_custom/sphere.stl
+include tests/unit_tests/t_matrix_tests/test_custom/sphere_fine.stl
+include tests/unit_tests/t_matrix_tests/test_custom/sphere_r1.geo
+include tests/unit_tests/t_matrix_tests/test_custom/test_custom_cylinder.py
+include tests/unit_tests/t_matrix_tests/test_custom/test_custom_sphere.py
+include tests/unit_tests/t_matrix_tests/test_t_matrix.py
+include tests/unit_tests/test_extinction.py
+include tests/unit_tests/test_gmres.py
+include tests/unit_tests/test_index_conversion.py
+include tests/unit_tests/test_layerresponse.py
+include tests/unit_tests/test_layers.py
+include tests/unit_tests/test_nfmds_wrapper.py
+include tests/unit_tests/test_numba_helpers.py
+include tests/unit_tests/test_read_index_from_yaml.py
+include tests/unit_tests/test_svwf_orthogonality.py
+include tests/unit_tests/test_wigner3j.py
+include tests/unit_tests/vwf_and_transformations_tests/test_field_expansion_transformation.py
+include tests/unit_tests/vwf_and_transformations_tests/test_pwe_translation.py
+include tests/unit_tests/vwf_and_transformations_tests/test_rotation_block.py
+include tests/unit_tests/vwf_and_transformations_tests/test_spherical_functions.py
+include tests/unit_tests/vwf_and_transformations_tests/test_svwf_translation.py
+include tests/unit_tests/vwf_and_transformations_tests/test_vector_wave_functions.py
+exclude MANIFEST.in

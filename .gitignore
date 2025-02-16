@@ -42,4 +42,6 @@ examples/*
 !examples/benchmarks/*
 smuthi/.libs/*
 *.pyd
+*.o
 !examples/published_in_JQSRT_2021
+smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/libnfmds.so

@@ -1,8 +1,10 @@
+
 # *****************************************************************************#
 # This is a simple example script for Smuthi v1.0.0                           #
 # It evaluates the total scattering cross section of a glass sphere on a      #
 # glass substrate, excited by a plane wave under normal incidence.            #
 # *****************************************************************************#
+
 
 import numpy as np
 import smuthi.simulation
@@ -16,6 +18,7 @@ import smuthi.postprocessing.far_field as ff
 
 # Initialize the layer system object containing the substrate (glass) half
 # space and the ambient (air) half space. The coordinate system is such that
+
 # the interface between the first two layers defines the plane z=0.
 # Note that semi infinite layers have thickness 0!
 two_layers = smuthi.layers.LayerSystem(thicknesses=[0, 0],

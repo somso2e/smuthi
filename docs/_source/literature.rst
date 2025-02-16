@@ -8,7 +8,7 @@ Main publication describing SMUTHI (if you use the software for a scientific pub
 
 Periodic boundary conditions in SMUTHI are described here (if you use the software with periodic boundary conditions, please cite this):
 
-[Theobald 2021]
+[Theobald et al. 2021]
    `Theobald, Dominik, et al. "Simulation of light scattering in large, disordered nanostructures using a periodic T-matrix method." Journal of Quantitative Spectroscopy and Radiative Transfer 272 (2021): 107802. <https://drive.google.com/file/d/1zEJ2easDBEpuouRX4IMdxlx15LrSJ_fi/view>`_
 
 Dissertations about SMUTHI:
