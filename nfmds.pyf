@@ -1,0 +1,226 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module nfmds ! in 
+    interface  ! in :nfmds
+        module parameters ! in :nfmds:smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Parameters.f90
+            integer, parameter,optional :: o=kind(1.d0)
+            real(kind=8), parameter,optional :: pi=3.1415926535897932384626433832795028841971_o
+            complex(kind=8), parameter,optional :: im=(0._o,1._o)
+            complex(kind=8), parameter,optional :: one=(1._o,0._o)
+            complex(kind=8), parameter,optional :: zero=(0._o,0._o)
+            integer, parameter,optional :: nsurfpd=10
+            integer, parameter,optional :: nrankpd=200
+            integer, parameter,optional :: nfacepd=10000
+            integer, parameter,optional :: nparpd=10
+            integer, parameter,optional :: nphimax=361
+            integer, parameter,optional :: itmat=8
+            integer, parameter,optional :: itmatinfo=9
+            integer, parameter,optional :: idscs=10
+            integer, parameter,optional :: iscat=11
+            integer, parameter,optional :: iss=12
+            integer, parameter,optional :: ifem=13
+            integer, parameter,optional :: iamat=14
+            integer, parameter,optional :: ibmat=15
+            integer, parameter,optional :: icmat=16
+            integer, parameter,optional :: idmat=17
+            integer, parameter,optional :: iemat=18
+            integer, parameter,optional :: ifmat=19
+            integer, parameter,optional :: ioutput=20
+            integer, parameter,optional :: iinput=21
+            integer, parameter,optional :: iinputaxsym=22
+            integer, parameter,optional :: iinputnonaxsym=23
+            integer, parameter,optional :: iinputnonaxsymfem=24
+            integer, parameter,optional :: iinputcomp=25
+            integer, parameter,optional :: iinputlay=26
+            integer, parameter,optional :: iinputinhom=27
+            integer, parameter,optional :: iinputinhom2sph=28
+            integer, parameter,optional :: iinputinhomsph=29
+            integer, parameter,optional :: iinputinhomsphrec=30
+            integer, parameter,optional :: iinputmult=31
+            integer, parameter,optional :: iinputmult2sph=32
+            integer, parameter,optional :: iinputmultsph=33
+            integer, parameter,optional :: iinputmultsphrec=34
+            integer, parameter,optional :: iinputsphere=35
+            integer, parameter,optional :: iinputpartsub=36
+            integer, parameter,optional :: iinputanis=37
+            integer, parameter,optional :: iinputefmed=38
+            integer, parameter,optional :: iinputsct=39
+            integer, parameter,optional :: iinputsctavrgsph=40
+            character(len=80), parameter,optional :: fileoutput="../outputfiles/output.dat"
+            character(len=80), parameter,optional :: fileinput="../inputfiles/input.dat"
+            character(len=80), parameter,optional :: fileinputaxsym="../inputfiles/inputaxsym.dat"
+            character(len=80), parameter,optional :: fileinputnonaxsym="../inputfiles/inputnonaxsym.dat"
+            character(len=80), parameter,optional :: fileinputnonaxsymfem="../inputfiles/inputnonaxsymfem.dat"
+            character(len=80), parameter,optional :: fileinputcomp="../inputfiles/inputcomp.dat"
+            character(len=80), parameter,optional :: fileinputlay="../inputfiles/inputlay.dat"
+            character(len=80), parameter,optional :: fileinputinhom="../inputfiles/inputinhom.dat"
+            character(len=80), parameter,optional :: fileinputinhom2sph="../inputfiles/inputinhom2sph.dat"
+            character(len=80), parameter,optional :: fileinputinhomsph="../inputfiles/inputinhomsph.dat"
+            character(len=80), parameter,optional :: fileinputinhomsphrec="../inputfiles/inputinhomsphrec.dat"
+            character(len=80), parameter,optional :: fileinputmult="../inputfiles/inputmult.dat"
+            character(len=80), parameter,optional :: fileinputmult2sph="../inputfiles/inputmult2sph.dat"
+            character(len=80), parameter,optional :: fileinputmultsph="../inputfiles/inputmultsph.dat"
+            character(len=80), parameter,optional :: fileinputmultsphrec="../inputfiles/inputmultsphrec.dat"
+            character(len=80), parameter,optional :: fileinputsphere="../inputfiles/inputsphere.dat"
+            character(len=80), parameter,optional :: fileinputpartsub="../inputfiles/inputpartsub.dat"
+            character(len=80), parameter,optional :: fileinputanis="../inputfiles/inputanis.dat"
+            character(len=80), parameter,optional :: fileinputefmed="../inputfiles/inputefmed.dat"
+            character(len=80), parameter,optional :: fileinputsct="../inputfiles/inputsct.dat"
+            character(len=80), parameter,optional :: fileinputsctavrgsph="../inputfiles/inputsctavrgsph.dat"
+            character(len=15), parameter,optional :: pathoutput="../outputfiles/"
+            character(len=15), parameter,optional :: pathtemp="../tempfiles/"
+            character(len=15), parameter,optional :: pathgeom="../geomfiles/"
+        end module parameters
+        module derived_parameters ! in :nfmds:smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Parameters.f90
+            use parameters
+            integer, save :: nbasedig
+            integer, save :: niterbes
+            integer, save :: niterpol
+            real(kind=8), save :: largestposnumber
+            real(kind=8), save :: smallestposnumber
+            real(kind=8), save :: macheps
+            real(kind=8), save :: zerocoord
+            real(kind=8), save :: tolj0val
+            real(kind=8), save :: tolrootpol
+            real(kind=8), save :: initbesval
+            real(kind=8), save :: factnbes
+            real(kind=8), save :: largestbesval
+            real(kind=8), save :: maxargbes
+            real(kind=8), save :: upperboundseq
+            real(kind=8), save :: lowerboundseq
+            real(kind=8), save :: zerosinxx
+            real(kind=8), save :: zeroluval
+            real(kind=8), save :: largestsplineval
+        end module derived_parameters
+        module allocation ! in :nfmds:smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/Allocation.f90
+            use parameters
+            integer, save,allocatable,dimension(:) :: nsurf
+            integer, save,allocatable,dimension(:) :: nparam
+            integer, save,allocatable,dimension(:) :: nrankp
+            integer, save,allocatable,dimension(:) :: nrankp1
+            real(kind=8), save,allocatable,dimension(:,:) :: surf
+            real(kind=8), save,allocatable,dimension(:) :: zpart
+            real(kind=8), save,allocatable,dimension(:,:) :: zre
+            real(kind=8), save,allocatable,dimension(:,:) :: zim
+            real(kind=8), save,allocatable,dimension(:,:) :: zre1
+            real(kind=8), save,allocatable,dimension(:,:) :: zim1
+            real(kind=8), save,allocatable,dimension(:) :: lnorm
+            real(kind=8), save,allocatable,dimension(:) :: epszreim
+            complex(kind=8), save,allocatable,dimension(:) :: ind_ref
+            logical, save,allocatable,dimension(:) :: complexplane
+            integer, save,allocatable,dimension(:) :: mrankcs
+            integer, save,allocatable,dimension(:) :: nrankcs
+            real(kind=8), save,allocatable,dimension(:) :: rcs
+            integer, save,allocatable,dimension(:) :: mrankp
+            real(kind=8), save,allocatable,dimension(:) :: xp
+            real(kind=8), save,allocatable,dimension(:) :: yp
+            real(kind=8), save,allocatable,dimension(:) :: zp
+            real(kind=8), save,allocatable,dimension(:) :: alphap
+            real(kind=8), save,allocatable,dimension(:) :: betap
+            real(kind=8), save,allocatable,dimension(:) :: gammap
+            character(len=80), save,allocatable,dimension(:) :: filetmatp
+            logical, save,allocatable,dimension(:) :: axsymp
+            logical, save,allocatable,dimension(:) :: chiralp
+            real(kind=8), save,allocatable,dimension(:) :: rp
+            complex(kind=8), save,allocatable,dimension(:) :: ind_refp
+            integer, save,allocatable,dimension(:) :: indi
+            integer, save,allocatable,dimension(:) :: indj
+            character(len=2), save,allocatable,dimension(:) :: nameelem
+        end module allocation
+        subroutine tlay(kuser,ind_ref,surf,npart,nsurfmax,nrankpmax,btot) ! in :nfmds:smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TLAY.f90
+            use parameters
+            use derived_parameters
+            use allocation, only: nsurf,nparam,nrankp,nrankp1,zpart,zre,zim,zre1,zim1,lnorm,complexplane,epszreim
+            real(kind=8) :: kuser
+            complex(kind=8) dimension(npart) :: ind_ref
+            real(kind=8) dimension(npart,nsurfmax),depend(npart) :: surf
+            integer, optional,check(shape(ind_ref, 0) == npart),depend(ind_ref) :: npart=shape(ind_ref, 0)
+            integer, optional,check(shape(surf, 1) == nsurfmax),depend(surf) :: nsurfmax=shape(surf, 1)
+            integer :: nrankpmax
+            complex(kind=8) dimension(4 * nrankpmax + 2 * nrankpmax * nrankpmax,4 * nrankpmax + 2 * nrankpmax * nrankpmax),intent(out),depend(nrankpmax) :: btot
+        end subroutine tlay
+        subroutine tnonaxsym(wavelength,ind_refmed,ind_refrel,ind_refrelz,alphapr,betapr,perfectcond,anisotropic,chiral,kb,filegeom,typegeom,filefem,nsurf,surf,nparam,anorm,rcirc,miror,nazimutsym,doconvtest,extthetadom,nbeta,nint1,nint2,nrank,mrank,epsnint,epsnrank,epsmrank,dnint1,dnint2,prnprogress,gammapr,nface,nmax,b) ! in :nfmds:smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TNONAXSYM.f90
+            use parameters
+            use derived_parameters
+            real(kind=8), optional :: wavelength=1
+            real(kind=8), optional :: ind_refmed=1
+            complex(kind=8), optional :: ind_refrel=(4, 0.0)
+            complex(kind=8), optional :: ind_refrelz=(1.5, 0.0)
+            real(kind=8), optional :: alphapr=0
+            real(kind=8), optional :: betapr=0
+            logical, optional :: perfectcond=0
+            logical, optional :: anisotropic=0
+            logical, optional :: chiral=0
+            real(kind=8), optional :: kb=0
+            logical, optional :: filegeom=1
+            integer, optional :: typegeom=1
+            character*80, optional :: filefem='../geomfiles/cubekc.fem'
+            integer, optional,check(shape(surf, 0) == nsurf),depend(surf) :: nsurf=shape(surf, 0)
+            real(kind=8) dimension(nsurf) :: surf
+            integer, optional :: nparam=1
+            real(kind=8), optional :: anorm=1
+            real(kind=8), optional :: rcirc=1
+            logical, optional :: miror=0
+            integer, optional :: nazimutsym=0
+            logical, optional :: doconvtest=0
+            logical, optional :: extthetadom=1
+            integer, optional :: nbeta=60
+            integer, optional :: nint1=100
+            integer, optional :: nint2=100
+            integer, optional :: nrank=10
+            integer, optional :: mrank=10
+            real(kind=8), optional :: epsnint=0.05
+            real(kind=8), optional :: epsnrank=0.05
+            real(kind=8), optional :: epsmrank=0.05
+            integer, optional :: dnint1=4
+            integer, optional :: dnint2=4
+            logical, optional :: prnprogress=1
+            real(kind=8), optional :: gammapr=0
+            integer, optional :: nface=1
+            integer :: nmax
+            complex(kind=8) dimension(2 * nmax,2 * nmax),intent(out),depend(nmax) :: b
+        end subroutine tnonaxsym
+        subroutine taxsym(wavelength,ind_refmed,ind_refrel,perfectcond,chiral,kb,filegeom,typegeom,filefem,nsurf,surf,nparam,anorm,rcirc,miror,doconvtest,mishconvtest,ds,autgends,complexplane,epszreim,nint,nrank,epsnint,epsnrank,epsmrank,dnint,dnintmrank,filetmat,prnprogress,nface,nmaxmax,b) ! in :nfmds:smuthi/linearsystem/tmatrix/nfmds/NFM-DS/TMATSOURCES/TAXSYM_SMUTHI.f90
+            use parameters
+            use derived_parameters
+            real(kind=8), optional :: wavelength=1
+            real(kind=8), optional :: ind_refmed=1
+            complex(kind=8), optional :: ind_refrel=(1.5, 0)
+            logical, optional :: perfectcond=0
+            logical, optional :: chiral=0
+            real(kind=8), optional :: kb=0
+            logical, optional :: filegeom=0
+            integer, optional :: typegeom=1
+            character*80, optional :: filefem=' '
+            integer, optional,check(shape(surf, 0) == nsurf),depend(surf) :: nsurf=shape(surf, 0)
+            real(kind=8) dimension(nsurf) :: surf
+            integer, optional :: nparam=1
+            real(kind=8), optional :: anorm=1
+            real(kind=8), optional :: rcirc=1
+            logical, optional :: miror=0
+            logical, optional :: doconvtest=0
+            logical, optional :: mishconvtest=0
+            logical, optional :: ds=0
+            logical, optional :: autgends=1
+            logical, optional :: complexplane=1
+            real(kind=8), optional :: epszreim=0.95
+            integer, optional :: nint=100
+            integer, optional :: nrank=17
+            real(kind=8), optional :: epsnint=0.05
+            real(kind=8), optional :: epsnrank=0.05
+            real(kind=8), optional :: epsmrank=0.05
+            integer, optional :: dnint=4
+            integer, optional :: dnintmrank=10
+            character*80, optional :: filetmat='../tmatfiles/t.dat'
+            logical, optional :: prnprogress=1
+            integer, optional :: nface=1
+            integer :: nmaxmax
+            complex(kind=8) dimension(2 * nmaxmax,2 * nmaxmax),intent(out),depend(nmaxmax) :: b
+        end subroutine taxsym
+    end interface 
+end python module nfmds
+
+! This file was auto-generated with f2py (version:2.0.0).
+! See:
+! https://web.archive.org/web/20140822061353/http://cens.ioc.ee/projects/f2py2e

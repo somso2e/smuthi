@@ -11,7 +11,7 @@ from matplotlib.colors import Normalize, LogNorm, SymLogNorm
 from itertools import cycle
 import tempfile
 import shutil
-#import imageio
+# import imageio
 import os
 import warnings
 import sys
@@ -27,7 +27,8 @@ def plot_layer_interfaces(dim1min, dim1max, layer_system):
         layer_system (smuthi.layers.LayerSystem):   Stratified medium
     """
     for il in range(1, layer_system.number_of_layers()):
-        plt.plot([dim1min, dim1max], [layer_system.reference_z(il), layer_system.reference_z(il)], 'g')
+        plt.plot([dim1min, dim1max], [layer_system.reference_z(
+            il), layer_system.reference_z(il)], 'g')
 
 
 def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
@@ -81,7 +82,8 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
             if not particle.euler_angles == [0, 0, 0]:
                 warnings.warn("Drawing rotated particles currently not supported - drawing black disc with size"
                               + " based on the circumscribing sphere instead")
-                ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), circradius, facecolor='k', edgecolor='k'))
+                ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]),
+                             circradius, facecolor='k', edgecolor='k'))
                 ax.text(pos[draw_coord[0]], pos[draw_coord[1]], 'rotated ' + type(particle).__name__,
                         verticalalignment='center', horizontalalignment='center', color='blue', fontsize=5)
             else:
@@ -93,12 +95,12 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                     a = particle.semi_axis_a
                     c = particle.semi_axis_c
                     if plane_coord in [0, 1]:
-                        w = a * np.sqrt(1 - (dis/a)**2) if dis < a else 0
-                        h = c * np.sqrt(1 - (dis/a)**2) if dis < a else 0
+                        w = a * np.sqrt(1 - (dis / a)**2) if dis < a else 0
+                        h = c * np.sqrt(1 - (dis / a)**2) if dis < a else 0
                     else:
-                        w = a * np.sqrt(1 - (dis/c)**2) if dis < c else 0
+                        w = a * np.sqrt(1 - (dis / c)**2) if dis < c else 0
                         h = w
-                    ax.add_patch(Ellipse(xy=(pos[draw_coord[0]], pos[draw_coord[1]]), width=2*w, height=2*h,
+                    ax.add_patch(Ellipse(xy=(pos[draw_coord[0]], pos[draw_coord[1]]), width=2 * w, height=2 * h,
                                          facecolor='w', edgecolor='k'))
 
                 elif type(particle).__name__ == 'FiniteCylinder':
@@ -107,9 +109,9 @@ def plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, particle_list,
                     if plane_coord in [0, 1]:
                         w = np.sqrt(r**2 - dis**2) if dis < r else 0
                         h *= np.sign(w)
-                        ax.add_patch(Rectangle((pos[draw_coord[0]]-w, pos[draw_coord[1]]-h/2),
-                                                2*w, h, facecolor='w', edgecolor='k'))
-                    elif np.logical_and(plane_coord == 2, dis <= h/2):
+                        ax.add_patch(Rectangle((pos[draw_coord[0]] - w, pos[draw_coord[1]] - h / 2),
+                                               2 * w, h, facecolor='w', edgecolor='k'))
+                    elif np.logical_and(plane_coord == 2, dis <= h / 2):
                         ax.add_patch(Circle((pos[draw_coord[0]], pos[draw_coord[1]]), r,
                                             facecolor='w', edgecolor='k'))
 
@@ -120,8 +122,9 @@ def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', ch
     X, Y, Z = np.atleast_1d(X).T, np.atleast_1d(Y).T, np.atleast_1d(Z).T
     e_x, e_y, e_z = (np.zeros_like(X, dtype=np.complex128) for i in range(3))
 
-    if chunksize is None: # pick chunksize dynamically between 4096, 8192 or 16384
-        chunksize = min(2**16, 2**np.floor(np.log2(X.size / 10))).astype(int) if X.size > 2**12 else 2**12
+    if chunksize is None:  # pick chunksize dynamically between 4096, 8192 or 16384
+        chunksize = min(2**16, 2**np.floor(np.log2(X.size / 10))
+                        ).astype(int) if X.size > 2**12 else 2**12
 
     if 'sca' in type:
         min_laynum = simulation.layer_system.layer_number(Z.min())
@@ -138,7 +141,7 @@ def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', ch
         int_fld_exp = intf.internal_field_piecewise_expansion(simulation.initial_field.vacuum_wavelength, simulation.particle_list,
                                                               simulation.layer_system)
 
-    descr = 'Compute '+type+' near-field'
+    descr = 'Compute ' + type+' near-field'
 
     nchunks = np.ceil(X.size / chunksize).astype(int)
     e_x, e_y, e_z = ([None] * nchunks for i in range(3))
@@ -146,12 +149,13 @@ def compute_near_field(simulation=None, X=None, Y=None, Z=None, type='scatt', ch
     Xc, Yc, Zc = np.array_split(X, nchunks), np.array_split(Y, nchunks), np.array_split(Z, nchunks)
 
     for c in tqdm(range(len(Xc)), desc=descr.ljust(26), file=sys.stdout,
-                                  bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
+                  bar_format='{l_bar}{bar}| elapsed: {elapsed} ' 'remaining: {remaining}'):
         xarr, yarr, zarr = Xc[c], Yc[c], Zc[c]
         if 'sca' in type:
             e_x[c], e_y[c], e_z[c] = scat_fld_exp.electric_field(xarr, yarr, zarr)
         elif 'ini' in type:
-            e_x[c], e_y[c], e_z[c] = simulation.initial_field.electric_field(xarr, yarr, zarr, simulation.layer_system)
+            e_x[c], e_y[c], e_z[c] = simulation.initial_field.electric_field(
+                xarr, yarr, zarr, simulation.layer_system)
         elif 'int' in type:
             e_x[c], e_y[c], e_z[c] = int_fld_exp.electric_field(xarr, yarr, zarr)
 
@@ -248,42 +252,46 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     if quantities_to_plot is None:
         quantities_to_plot = ['norm(E)']
     if show_opts is None:
-        show_opts = [{'interpolation':'none'}]
+        show_opts = [{'interpolation': 'none'}]
     if save_opts is None:
-        save_opts = [{'format':'png'}]
+        save_opts = [{'format': 'png'}]
 
-    res = np.resize(resolution_step,3)
-    x = np.arange(xmin, xmax + res[0]/2, res[0])
-    y = np.arange(ymin, ymax + res[1]/2, res[1])
-    z = np.arange(zmin, zmax + res[2]/2, res[2])
+    res = np.resize(resolution_step, 3)
+    x = np.arange(xmin, xmax + res[0] / 2, res[0])
+    y = np.arange(ymin, ymax + res[1] / 2, res[1])
+    z = np.arange(zmin, zmax + res[2] / 2, res[2])
     xarr, yarr, zarr = np.squeeze(np.meshgrid(x, y, z, indexing='ij'))
 
     if xmin == xmax:
         dim1vec, dim2vec = y, z
-        step1, step2 = res[1]/2, res[2]/2 # these are for proper registration of particles and layers to the pixel grid
+        # these are for proper registration of particles and layers to the pixel grid
+        step1, step2 = res[1] / 2, res[2] / 2
         titlestr = '$x$ = {} '.format(xmin) + simulation.length_unit
         dim1name = '$y$ (' + simulation.length_unit + ')'
         dim2name = '$z$ (' + simulation.length_unit + ')'
     elif ymin == ymax:
         dim1vec, dim2vec = x, z
-        step1, step2 = res[0]/2, res[2]/2
+        step1, step2 = res[0] / 2, res[2] / 2
         titlestr = '$y$ = {} '.format(ymin) + simulation.length_unit
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$z$ (' + simulation.length_unit + ')'
     elif zmin == zmax:
         dim1vec, dim2vec = x, y
-        step1, step2 = res[0]/2, res[1]/2
+        step1, step2 = res[0] / 2, res[1] / 2
         titlestr = '$z$ = {} '.format(zmin) + simulation.length_unit
         dim1name = '$x$ (' + simulation.length_unit + ')'
         dim2name = '$y$ (' + simulation.length_unit + ')'
 
     sys.stdout.write("Evaluate fields ...\n")
     sys.stdout.flush()
-    e_x_scat, e_y_scat, e_z_scat = compute_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='scatt.')
-    e_x_init, e_y_init, e_z_init = compute_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='initl.')
+    e_x_scat, e_y_scat, e_z_scat = compute_near_field(
+        simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='scatt.')
+    e_x_init, e_y_init, e_z_init = compute_near_field(
+        simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='initl.')
 
     if show_internal_field:
-        e_x_int, e_y_int, e_z_int = compute_near_field(simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='intrn.')
+        e_x_int, e_y_int, e_z_int = compute_near_field(
+            simulation=simulation, X=xarr, Y=yarr, Z=zarr, type='intrn.')
 
     sys.stdout.write("Generate plots ...\n")
     sys.stdout.flush()
@@ -291,7 +299,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
     if not show_plots:
         import matplotlib
         default_backend = matplotlib.get_backend()
-        matplotlib.use('Agg') # a non-gui backend to avoid opening figure windows
+        matplotlib.use('Agg')  # a non-gui backend to avoid opening figure windows
 
     for quantity in quantities_to_plot:
 
@@ -299,7 +307,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
             try:
                 filename = 'E'
-                label_str = show_opt.get('label','')
+                label_str = show_opt.get('label', '')
 
                 if 'scat' in quantity:
                     e_x, e_y, e_z = e_x_scat, e_y_scat, e_z_scat
@@ -318,7 +326,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                         e_x, e_y, e_z = e_x + e_x_int, e_y + e_y_int, e_z + e_z_int
                     field_type_string = 'tot'
 
-                fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+                fig = plt.figure(figsize=show_opt.get('figsize', [6.4, 4.8]))
                 if not zmin == zmax:
                     plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
                 plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
@@ -326,13 +334,14 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 if 'norm' in quantity:
                     e = np.sqrt(abs(e_x)**2 + abs(e_y)**2 + abs(e_z)**2)
                     vmax = np.abs(e).max()
-                    color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',0), vmax=show_opt.get('vmax',vmax)))
+                    color_norm = show_opt.get('norm', Normalize(
+                        vmin=show_opt.get('vmin', 0), vmax=show_opt.get('vmax', vmax)))
                     plt.imshow(e,
                                alpha=show_opt.get('alpha'), norm=color_norm,
-                               cmap=show_opt.get('cmap','inferno'), origin=show_opt.get('origin','lower'),
-                               interpolation=show_opt.get('interpolation','none'),
-                               extent=show_opt.get('extent', [dim1vec.min()-step1, dim1vec.max()+step1,
-                                                              dim2vec.min()-step2, dim2vec.max()+step2]))
+                               cmap=show_opt.get('cmap', 'inferno'), origin=show_opt.get('origin', 'lower'),
+                               interpolation=show_opt.get('interpolation', 'none'),
+                               extent=show_opt.get('extent', [dim1vec.min() - step1, dim1vec.max() + step1,
+                                                              dim2vec.min() - step2, dim2vec.max() + step2]))
                     plt_title = '$|' + filename + '^{' + field_type_string + '}|$ at ' + titlestr \
                                 + ('' if label_str == '' else ' (' + label_str + ')')
                     filename = 'norm_' + filename
@@ -352,13 +361,14 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                         raise ValueError('field component not specified')
 
                     vmax = np.abs(e).max()
-                    color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin',-vmax), vmax=show_opt.get('vmax',vmax)))
+                    color_norm = show_opt.get('norm', Normalize(
+                        vmin=show_opt.get('vmin', -vmax), vmax=show_opt.get('vmax', vmax)))
                     plt.imshow(e.real,
                                alpha=show_opt.get('alpha'), norm=color_norm,
-                               cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
-                               interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
-                               extent=show_opt.get('extent', [dim1vec.min()-step1, dim1vec.max()+step1,
-                                                              dim2vec.min()-step2, dim2vec.max()+step2]))
+                               cmap=show_opt.get('cmap', 'RdYlBu'), origin=show_opt.get('origin', 'lower'),
+                               interpolation=show_opt.get('interpolation', 'none'), aspect=show_opt.get('aspect', 'equal'),
+                               extent=show_opt.get('extent', [dim1vec.min() - step1, dim1vec.max() + step1,
+                                                              dim2vec.min() - step2, dim2vec.max() + step2]))
                     plt_title = '$ ' + filename + '^{' + field_type_string + '}$' + ' at ' + titlestr \
                                 + ('' if label_str == '' else ' (' + label_str + ')')
                     plt.title(plt_title)
@@ -367,29 +377,30 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 plt.xlabel(dim1name)
                 plt.ylabel(dim2name)
 
-                label_str = '' if label_str == '' else '_' + label_str # prepend underscore
+                label_str = '' if label_str == '' else '_' + label_str  # prepend underscore
                 filename = filename + '_' + field_type_string + label_str
                 export_filename = outputdir + '/' + filename
                 if save_plots:
                     if save_opt.get('format') == 'gif':
                         if 'norm' in quantity:
                             plt.close(fig)
-                            continue # it seems like savefig does not accept 'gif' as a format, so we have to continue explicitly here
+                            continue  # it seems like savefig does not accept 'gif' as a format, so we have to continue explicitly here
                         tempdir = tempfile.mkdtemp()
                         images = []
                         for i_t, t in enumerate(np.linspace(0, 1, 20, endpoint=False)):
-                            tempfig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+                            tempfig = plt.figure(figsize=show_opt.get('figsize', [6.4, 4.8]))
                             if not zmin == zmax:
-                                plot_layer_interfaces(dim1vec[0], dim1vec[-1], simulation.layer_system)
+                                plot_layer_interfaces(
+                                    dim1vec[0], dim1vec[-1], simulation.layer_system)
                             plot_particles(xmin, xmax, ymin, ymax, zmin, zmax, simulation.particle_list,
                                            draw_circumscribing_sphere, not show_internal_field)
                             e_t = e * np.exp(-1j * t * 2 * np.pi)
                             plt.imshow(e_t.real,
                                        alpha=show_opt.get('alpha'), norm=color_norm,
-                                       cmap=show_opt.get('cmap','RdYlBu'), origin=show_opt.get('origin','lower'),
-                                       interpolation=show_opt.get('interpolation','none'), aspect=show_opt.get('aspect','equal'),
-                                       extent=show_opt.get('extent', [dim1vec.min()-step1, dim1vec.max()+step1,
-                                                                      dim2vec.min()-step2, dim2vec.max()+step2]))
+                                       cmap=show_opt.get('cmap', 'RdYlBu'), origin=show_opt.get('origin', 'lower'),
+                                       interpolation=show_opt.get('interpolation', 'none'), aspect=show_opt.get('aspect', 'equal'),
+                                       extent=show_opt.get('extent', [dim1vec.min() - step1, dim1vec.max() + step1,
+                                                                      dim2vec.min() - step2, dim2vec.max() + step2]))
                             plt.title(plt_title)
                             plt.colorbar()
                             plt.xlabel(dim1name)
@@ -397,30 +408,32 @@ def show_near_field(simulation=None, quantities_to_plot=None,
 
                             tempfig_filename = tempdir + '/temp_' + str(i_t) + '.png'
                             plt.savefig(tempfig_filename, dpi=save_opt.get('dpi'),
-                                        orientation=save_opt.get('orientation','portrait'),
-                                        transparent=save_opt.get('transparent',False),
-                                        bbox_inches=save_opt.get('bbox_inches','tight'),
-                                        pad_inches=save_opt.get('pad_inches',0.1))
+                                        orientation=save_opt.get('orientation', 'portrait'),
+                                        transparent=save_opt.get('transparent', False),
+                                        bbox_inches=save_opt.get('bbox_inches', 'tight'),
+                                        pad_inches=save_opt.get('pad_inches', 0.1))
                             plt.close(tempfig)
                             images.append(imageio.imread(tempfig_filename))
                         imageio.mimsave(export_filename + '.gif', images, duration=0.1)
                         shutil.rmtree(tempdir)
                     else:
-                        file_ext = '.' + save_opt.get('format','png') # default to png if not specified
+                        # default to png if not specified
+                        file_ext = '.' + save_opt.get('format', 'png')
                         plt.savefig(export_filename + file_ext, dpi=save_opt.get('dpi'),
-                                    orientation=save_opt.get('orientation','portrait'),
-                                    transparent=save_opt.get('transparent',False),
-                                    bbox_inches=save_opt.get('bbox_inches','tight'),
-                                    pad_inches=save_opt.get('pad_inches',0.1))
+                                    orientation=save_opt.get('orientation', 'portrait'),
+                                    transparent=save_opt.get('transparent', False),
+                                    bbox_inches=save_opt.get('bbox_inches', 'tight'),
+                                    pad_inches=save_opt.get('pad_inches', 0.1))
 
                 if not show_plots:
                     plt.close(fig)
 
-            except Exception as e: # TODO: parse to understand if this is due to incompatible options or trying to plot non-2D data
-                print("Skipping " + quantity + " for show_opt = ", show_opt, " and save_opt = ", save_opt)
+            except Exception as e:  # TODO: parse to understand if this is due to incompatible options or trying to plot non-2D data
+                print("Skipping " + quantity + " for show_opt = ", show_opt,
+                      " and save_opt = ", save_opt, e.with_traceback())
 
     if not show_plots:
-        matplotlib.use(default_backend) # now we can restore the original backend
+        matplotlib.use(default_backend)  # now we can restore the original backend
     else:
         plt.show(block=False)
 
@@ -437,23 +450,23 @@ def show_near_field(simulation=None, quantities_to_plot=None,
             if type(simulation.initial_field).__name__ == "DipoleSource":
                 metadata = {'initial_field': type(simulation.initial_field).__name__,
                             'dipole_moment': simulation.initial_field.dipole_moment,
-                            'dipole_position': simulation.initial_field.position,}
+                            'dipole_position': simulation.initial_field.position, }
             elif type(simulation.initial_field).__name__ == "DipoleCollection":
                 metadata = {'initial_field': type(simulation.initial_field).__name__,
                             'dipole_moments': [dip.dipole_moment for dip in simulation.initial_field.dipole_list],
-                            'dipole_positions': [dip.position for dip in simulation.initial_field.dipole_list],}
+                            'dipole_positions': [dip.position for dip in simulation.initial_field.dipole_list], }
             elif type(simulation.initial_field).__name__ == "PlaneWave":
                 metadata = {'initial_field': type(simulation.initial_field).__name__,
                             'polar_angle': simulation.initial_field.polar_angle,
                             'azimuthal_angle': simulation.initial_field.azimuthal_angle,
-                            'polarization': simulation.initial_field.polarization,}
+                            'polarization': simulation.initial_field.polarization, }
             elif type(simulation.initial_field).__name__ == "GaussianBeam":
                 metadata = {'initial_field': type(simulation.initial_field).__name__,
                             'polar_angle': simulation.initial_field.polar_angle,
                             'azimuthal_angle': simulation.initial_field.azimuthal_angle,
                             'polarization': simulation.initial_field.polarization,
                             'reference_point': simulation.initial_field.reference_point,
-                            'beam_waist': simulation.initial_field.beam_waist,}
+                            'beam_waist': simulation.initial_field.beam_waist, }
 
             with h5py.File(outputdir + '/data.hdf5', 'a') as f:
                 # add attributes that are dependent on the initial field
@@ -468,7 +481,8 @@ def show_near_field(simulation=None, quantities_to_plot=None,
                 g.create_dataset('init_electric_field', data=Ei, dtype='c16', compression="gzip")
                 g.create_dataset('scat_electric_field', data=Es, dtype='c16', compression="gzip")
                 if show_internal_field:
-                    g.create_dataset('inte_electric_field', data=En, dtype='c16', compression="gzip")
+                    g.create_dataset('inte_electric_field', data=En,
+                                     dtype='c16', compression="gzip")
         elif data_format.lower() == 'ascii':
             np.savetxt(outputdir + '/1st_dim_axis.dat', x, fmt='%g')
             np.savetxt(outputdir + '/2nd_dim_axis.dat', y, fmt='%g')
@@ -488,7 +502,7 @@ def show_near_field(simulation=None, quantities_to_plot=None,
             raise ValueError('Currently, only hdf5 or ascii output data formats are available')
 
 
-def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'scattered_far_field'}],
+def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label': 'scattered_far_field'}],
                              save_plots=False, save_opts=None,
                              save_data=False, data_format='hdf5', outputdir='.',
                              flip_downward=True, split=True, log_scale=False,
@@ -550,14 +564,14 @@ def show_scattered_far_field(simulation, show_plots=True, show_opts=[{'label':'s
                                        azimuthal_angles=azimuthal_angles,
                                        angular_resolution=angular_resolution)
 
-    [d.setdefault('label','scattered_far_field') for d in show_opts]
+    [d.setdefault('label', 'scattered_far_field') for d in show_opts]
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
                    flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total_far_field'}],
+def show_total_far_field(simulation, show_plots=True, show_opts=[{'label': 'total_far_field'}],
                          save_plots=False, save_opts=None,
                          save_data=False, data_format='hdf5', outputdir='.',
                          flip_downward=True, split=True, log_scale=False,
@@ -618,14 +632,14 @@ def show_total_far_field(simulation, show_plots=True, show_opts=[{'label':'total
                                          azimuthal_angles=azimuthal_angles,
                                          angular_resolution=angular_resolution)
 
-    [d.setdefault('label','total_far_field') for d in show_opts]
+    [d.setdefault('label', 'total_far_field') for d in show_opts]
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
                    flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'label':'scattering_cross_section'}],
+def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'label': 'scattering_cross_section'}],
                                   save_plots=False, save_opts=None,
                                   save_data=False, data_format='hdf5', outputdir='.',
                                   flip_downward=True, split=True, log_scale=False,
@@ -687,14 +701,14 @@ def show_scattering_cross_section(simulation, show_plots=True, show_opts=[{'labe
                                             azimuthal_angles=azimuthal_angles,
                                             angular_resolution=angular_resolution)
 
-    [d.setdefault('label','scattering_cross_section') for d in show_opts]
+    [d.setdefault('label', 'scattering_cross_section') for d in show_opts]
 
     show_far_field(far_field=far_field, save_plots=save_plots, save_opts=save_opts, show_plots=show_plots,
                    show_opts=show_opts, save_data=save_data, data_format=data_format, outputdir=outputdir,
                    flip_downward=flip_downward, split=split, log_scale=log_scale)
 
 
-def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}], save_plots=False, save_opts=None,
+def show_far_field(far_field, show_plots=True, show_opts=[{'label': 'far_field'}], save_plots=False, save_opts=None,
                    save_data=False, data_format='hdf5', outputdir='.',
                    flip_downward=True, split=True, log_scale=False):
     """Display and export the far field.
@@ -740,7 +754,7 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         log_scale (bool):       If True, set a logarithmic scale
     """
 
-    if split and any(far_field.polar_angles < np.pi/2) and any(far_field.polar_angles > np.pi/2):
+    if split and any(far_field.polar_angles < np.pi / 2) and any(far_field.polar_angles > np.pi / 2):
         for d in show_opts:
             d['label'] = d.get('label') + '_top'
         show_far_field(far_field.top(), show_plots, show_opts, save_plots, save_opts,
@@ -755,12 +769,13 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
         os.makedirs(outputdir)
 
     if save_opts is None:
-        save_opts = [{'format':'png'}]
+        save_opts = [{'format': 'png'}]
 
     if save_data:
         pa = far_field.polar_angles
         aa = far_field.azimuthal_angles
-        label = show_opts[0].get('label') # WARNING: filenames are based only on the label in show_opts[0]
+        # WARNING: filenames are based only on the label in show_opts[0]
+        label = show_opts[0].get('label')
         if data_format.lower() == 'hdf5':
             import h5py
 
@@ -769,7 +784,8 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
                 g.require_dataset('polar_angles', data=pa, shape=np.shape(pa), dtype=pa.dtype)
                 g.require_dataset('azimuthal_angles', data=aa, shape=np.shape(aa), dtype=aa.dtype)
                 g.create_dataset(label, data=far_field.signal, compression="gzip")
-                g.create_dataset(label + '_polar', data=far_field.azimuthal_integral(), compression="gzip")
+                g.create_dataset(label + '_polar',
+                                 data=far_field.azimuthal_integral(), compression="gzip")
         elif data_format.lower() == 'ascii':
             np.savetxt(outputdir + '/' + label + '_TE.dat', far_field.signal[0, :, :],
                        header='Each line corresponds to a polar angle, each column corresponds to an azimuthal angle.')
@@ -796,66 +812,70 @@ def show_far_field(far_field, show_plots=True, show_opts=[{'label':'far_field'}]
     if not show_plots:
         import matplotlib
         default_backend = matplotlib.get_backend()
-        matplotlib.use('Agg') # a non-gui backend to avoid opening figure windows
+        matplotlib.use('Agg')  # a non-gui backend to avoid opening figure windows
 
     for show_opt, save_opt in zip(cycle(show_opts), save_opts) if len(show_opts) < len(save_opts) else zip(show_opts, cycle(save_opts)):
         # 2D polar plot of far field
-        fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+        fig = plt.figure(figsize=show_opt.get('figsize', [6.4, 4.8]))
         ax = fig.add_subplot(111, polar=True)
 
-        if log_scale: # in either case, this will be overridden if a 'norm' is also passed to show_opts
-            color_norm = show_opt.get('norm', LogNorm(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+        if log_scale:  # in either case, this will be overridden if a 'norm' is also passed to show_opts
+            color_norm = show_opt.get('norm', LogNorm(
+                vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
         else:
-            color_norm = show_opt.get('norm', Normalize(vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
+            color_norm = show_opt.get('norm', Normalize(
+                vmin=show_opt.get('vmin'), vmax=show_opt.get('vmax')))
 
         pcm = ax.pcolormesh(alpha_grid, beta_grid, (far_field.signal[0, :, :] + far_field.signal[1, :, :]),
                             alpha=show_opt.get('alpha'), norm=color_norm,
-                            cmap=show_opt.get('cmap','inferno'), shading=show_opt.get('shading','nearest'))
+                            cmap=show_opt.get('cmap', 'inferno'), shading=show_opt.get('shading', 'nearest'))
 
         plt.colorbar(pcm, ax=ax)
-        plt.title(show_opt.get('label').replace('_',' '))
+        plt.title(show_opt.get('label').replace('_', ' '))
         if save_plots:
-            export_filename = outputdir + '/' + show_opt.get('label') + '.' + save_opt.get('format','png') # png unless specified
-            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation','portrait'),
-                        transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
-                        pad_inches=save_opt.get('pad_inches',0.1))
+            export_filename = outputdir + '/' + \
+                show_opt.get('label') + '.' + save_opt.get('format', 'png')  # png unless specified
+            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation', 'portrait'),
+                        transparent=save_opt.get('transparent', False), bbox_inches=save_opt.get('bbox_inches', 'tight'),
+                        pad_inches=save_opt.get('pad_inches', 0.1))
 
         if not show_plots:
             plt.close(fig)
 
         # 1D polar plot of far field
-        fig = plt.figure(figsize=show_opt.get('figsize',[6.4, 4.8]))
+        fig = plt.figure(figsize=show_opt.get('figsize', [6.4, 4.8]))
 
         plt.plot(polar_array, np.sum(far_field.azimuthal_integral(), axis=0) * np.pi / 180, alpha=show_opt.get('alpha'),
                  lw=show_opt.get('linewidth'), ls=show_opt.get('linestyle'), marker=show_opt.get('marker'))
 
-        plt.xlabel('polar angle (degree)') # TODO: use radians instead?
+        plt.xlabel('polar angle (degree)')  # TODO: use radians instead?
         if far_field.signal_type == 'differential scattering cross section':
-            plt.ylabel('d_CS/d_cos(beta)') # TODO: add units based on simulation.length_unit?
+            plt.ylabel('d_CS/d_cos(beta)')  # TODO: add units based on simulation.length_unit?
         elif far_field.signal_type == 'intensity':
-            plt.ylabel('d_P/d_cos(beta)') # TODO: add units based on simulation.length_unit?
+            plt.ylabel('d_P/d_cos(beta)')  # TODO: add units based on simulation.length_unit?
 
         if isinstance(color_norm, LogNorm):
             plt.yscale('log')
         elif isinstance(color_norm, SymLogNorm):
-            linscale = color_norm._linscale_adj*(1.0 - 1/color_norm._base)
+            linscale = color_norm._linscale_adj * (1.0 - 1 / color_norm._base)
             plt.yscale('symlog', linthresh=color_norm.linthresh,
-                                 base=color_norm._base, linscale=linscale)
+                       base=color_norm._base, linscale=linscale)
 
         # the following line would apply the same vmin and vmax of 2D maps to 1D polar plots
         # plt.ylim([color_norm.vmin, color_norm.vmax])
         plt.grid(True)
-        plt.title(show_opt.get('label').replace('_',' '))
+        plt.title(show_opt.get('label').replace('_', ' '))
 
         if save_plots:
-            export_filename = outputdir + '/' + show_opt.get('label') + '_polar.' + save_opt.get('format','png')
-            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation','portrait'),
-                        transparent=save_opt.get('transparent',False), bbox_inches=save_opt.get('bbox_inches','tight'),
-                        pad_inches=save_opt.get('pad_inches',0.1))
+            export_filename = outputdir + '/' + \
+                show_opt.get('label') + '_polar.' + save_opt.get('format', 'png')
+            plt.savefig(export_filename, dpi=save_opt.get('dpi'), orientation=save_opt.get('orientation', 'portrait'),
+                        transparent=save_opt.get('transparent', False), bbox_inches=save_opt.get('bbox_inches', 'tight'),
+                        pad_inches=save_opt.get('pad_inches', 0.1))
         if not show_plots:
             plt.close(fig)
 
     if not show_plots:
-        matplotlib.use(default_backend) # now we can restore the original backend
+        matplotlib.use(default_backend)  # now we can restore the original backend
     else:
         plt.show(block=False)
